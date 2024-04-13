@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body .container {
+    @apply px-5 mx-auto 2xl:px-10 3xl:max-w-screen-3xl;
+}

@@ -125,3 +125,8 @@ infra/terraform/.terraform*
 # local env files
 .env
 .envrc
+
+
+.next
+
+node_modules

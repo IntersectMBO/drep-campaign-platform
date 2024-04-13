@@ -1,12 +1,12 @@
 // Import createMiddleware from next-intl to configure internationalization middleware for Next.js.
 import createMiddleware from "next-intl/middleware";
-import { defaultLocale, locales } from "./constants";
+import { locales } from "./constants";
 
 // Export the middleware configuration to define supported locales and the default locale.
 // This setup applies internationalization strategies across the application.
 export default createMiddleware({
-	locales: locales, // Specify the supported locales for the application.
-	defaultLocale: defaultLocale, // Set the default locale to be used when no other locale matches.
+	locales: locales.variants, // Specify the supported locales for the application.
+	defaultLocale: locales.defaultLocale, // Set the default locale to be used when no other locale matches.
 });
 
 // Define and export a config object to specify which paths the middleware should apply to.

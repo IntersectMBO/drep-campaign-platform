@@ -1,0 +1,11 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+RUN yarn install --frozen-lockfile
+
+# Expose the port that the Nest.js application will run on
+EXPOSE 8080
+
+# Specify the command to run the application
+CMD ["npx", "nest", "start", "--watch"]

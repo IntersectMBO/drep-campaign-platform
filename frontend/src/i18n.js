@@ -6,7 +6,7 @@ import { locales } from "./constants";
 // This setup function is called for each request to determine the appropriate locale messages to load.
 export default getRequestConfig(async ({ locale }) => {
 	// Check if the requested locale is supported. If not, trigger a notFound response.
-	if (!locales.includes(locale)) notFound();
+	if (!locales.variants.includes(locale)) notFound();
 
 	// Dynamically import the JSON messages file for the requested locale and return it.
 	// This allows serving locale-specific content without hardcoding the locale data.

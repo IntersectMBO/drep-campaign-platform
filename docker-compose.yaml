@@ -1,59 +1,154 @@
-version: "3"
+version: "3.9"
 services:
   backend:
     container_name: backend # Name of the backend container
     build: # Build configuration for the backend
       context: ./backend # Directory containing Dockerfile
-      dockerfile: Dockerfile
-    image: strapi:latest # Use the latest Strapi image
+      dockerfile: Dockerfile.dev
+    image: io-1694:latest # Use the latest io-1694 image
     restart: unless-stopped # Always restart unless explicitly stopped
     environment: # Environment variables for configuration
       HOST: 0.0.0.0
-      PORT: 1337
-      DATABASE_HOST: database # Link to the database service by name
-      DATABASE_NAME: pdf_db
+      PORT: 8080
+      DATABASE_HOST: web_db # Link to the database service by name
+      DATABASE_NAME: 1694
       DATABASE_USERNAME: postgres
       DATABASE_PASSWORD: postgres
       NODE_ENV: development # Set node environment to development
     volumes: # Mount points for persistent data and source code
-      - ./backend/config:/opt/app/config
-      - ./backend/public/uploads:/opt/app/public/uploads
+      - "./backend:/app"
     ports:
-      - "1337:1337" # Expose port 1337 to the host
+      - "8080:8080" # Expose port 8080 to the host
     networks:
-      - strapi # Connect to the 'strapi' network
+      - io-1694 # Connect to the 'io-1694' network
     depends_on:
-      - database # Depends on the database service
-  database:
-    container_name: database # Name of the database container
+      - web_db # Depends on the database service
+  dbsync_db:
+    image: postgres:16.2-alpine
+    environment:
+      - POSTGRES_LOGGING=true
+      - POSTGRES_DB_FILE=/run/secrets/postgres_db
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+      - POSTGRES_USER_FILE=/run/secrets/postgres_user
+    secrets:
+      - postgres_password
+      - postgres_user
+      - postgres_db
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+    volumes:
+      - dbsync-db-data:/var/lib/postgresql/data
+    restart: on-failure
+    healthcheck:
+      # Use pg_isready to check postgres is running. Substitute different
+      # user `postgres` if you've setup differently to config/pgpass-mainnet
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: ${POSTGRES_ARGS:--c maintenance_work_mem=1GB -c max_parallel_maintenance_workers=4}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+  web_db:
+    container_name: voltaire_db # Name of the database container
     platform: linux/arm64 # Specify the platform (important for ARM64 architectures)
-    image: postgres:12.0-alpine # Use PostgreSQL 12 on Alpine for smaller size
+    image: postgres:16.2-alpine # Use PostgreSQL 12 on Alpine for smaller size
     restart: unless-stopped
+    ports:
+      - "5434:5432" # Expose port 5432 to the host
     environment: # PostgreSQL user, password, and database name
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: pdf_db
+      POSTGRES_DB: 1694
     volumes:
-      - strapi-data:/var/lib/postgresql/data/ # Persistent storage for the database
+      - db-data:/var/lib/postgresql/data/ # Persistent storage for the database
     networks:
-      - strapi # Connect to the 'strapi' network
+      - io-1694 # Connect to the 'io-1694' network
   frontend:
     container_name: frontend # Name of the frontend container
     build: # Build configuration for the frontend
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:1337 # Environment variable for the API URL
+      NEXT_PUBLIC_API_URL: http://localhost:4000 # Environment variable for the API URL
     ports:
-      - "3000:3000" # Expose port 3000 to the host
+      - "4000:3000" # Expose port 4000 to the host
     networks:
-      - strapi # Connect to the 'strapi' network
+      - io-1694
+    volumes:
+      - "./frontend:/app"
     depends_on:
       - backend # Depends on the backend service
+  cardano-node:
+    image: ghcr.io/intersectmbo/cardano-node:8.9.0
+    command: [
+      "run",
+      "--config", "/config/config.json",
+      "--database-path", "/data/db",
+      "--socket-path", "/ipc/node.socket",
+      "--topology", "/config/topology.json"
+    ]
+    volumes:
+      - ./cardanonode/config/network/${NETWORK:-sanchonet}/cardano-node:/config
+      - ./cardanonode/config/network/${NETWORK:-sanchonet}/genesis:/genesis
+      - node-db:/data
+      - node-ipc:/ipc
+    restart: on-failure
+    environment:
+      CARDANO_NODE_SOCKET_PATH: /ipc/node.socket
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "400k"
+        max-file: "20"
+  cardano-db-sync:
+    image: ghcr.io/intersectmbo/cardano-db-sync:sancho-4.1.0
+    environment:
+      - DISABLE_LEDGER=${DISABLE_LEDGER}
+      - NETWORK=${NETWORK:-sanchonet}
+      - POSTGRES_HOST=dbsync_db
+      - POSTGRES_PORT=5432
+      - RESTORE_SNAPSHOT=${RESTORE_SNAPSHOT:-}
+      - RESTORE_RECREATE_DB=N
+      - EXTRA_DB_SYNC_ARGS=${EXTRA_DB_SYNC_ARGS:-}
+    depends_on:
+      # Depend on both services to be healthy before starting.
+      cardano-node:
+        condition: service_healthy
+      dbsync_db:
+        condition: service_healthy
+    secrets:
+      - postgres_password
+      - postgres_user
+      - postgres_db
+    volumes:
+      - db-sync-data:/var/lib/cexplorer
+      - node-ipc:/node-ipc
+    restart: on-failure
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
 volumes:
-  strapi-data: # Define a volume for PostgreSQL data
+  db-data:
+  db-sync-data:
+  dbsync-db-data:
+  node-db:
+  node-ipc:
+
+secrets:
+  postgres_db:
+    file: ./config/secrets/postgres_db
+  postgres_password:
+    file: ./config/secrets/postgres_password
+  postgres_user:
+    file: ./config/secrets/postgres_user
+
 networks:
-  strapi: # Custom network for inter-container communication
-    name: Strapi
+  io-1694:
     driver: bridge

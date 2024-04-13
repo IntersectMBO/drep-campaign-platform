@@ -1,0 +1,23 @@
+
+.button {
+    font-family: 'Poppins', sans-serif;
+    text-transform: capitalize;
+    background-color: #0033ad;
+    border-radius:50px;
+}
+
+.extraLarge {
+    font-size: 16px;
+}
+
+.large {
+    font-size: 12px;
+}
+
+.medium {
+    font-size: 12px;
+}
+
+.small {
+    font-size: 12px;
+}

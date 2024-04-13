@@ -4,6 +4,7 @@
 
 // Import createContext and useContext hooks from React to create and consume the context.
 import { createContext, useContext } from "react";
+import { CardanoProvider } from "./walletContext";
 
 // Create a new Context object. This will be used to provide and consume the context.
 const AppContext = createContext();
@@ -20,7 +21,9 @@ export function AppContextProvider({ children }) {
 	// Any child components will be able to access these values via the useAppContext hook.
 	return (
 		<AppContext.Provider value={{ testValue, testFunction }}>
+			<CardanoProvider>
 			{children}
+			</CardanoProvider>
 		</AppContext.Provider>
 	);
 }

@@ -1,0 +1,11 @@
+.chooseWalletText{
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 24px;
+    text-align: center;
+}
+.walletNoOptionsText{
+    color:blue ;
+    font-weight: 600;
+    text-align: center;
+}
