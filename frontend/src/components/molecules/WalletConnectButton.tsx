@@ -1,9 +1,11 @@
 import React from 'react'
 import Button from '../atoms/Button'
+import { useDRepContext } from '@/context/drepContext'
 
-const WalletConnectButton = ({handleClick}) => {
+const WalletConnectButton = () => {
+  const {setIsWalletListModalOpen}=useDRepContext()
   return (
-    <Button handleClick={handleClick}>
+    <Button handleClick={()=>setIsWalletListModalOpen(true)} data-testid='connect-wallet-button'>
      <p>Connect Wallet</p>
     </Button>
   )

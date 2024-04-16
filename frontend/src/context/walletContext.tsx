@@ -74,7 +74,6 @@ type Utxos = {
   TransactionUnspentOutput: TransactionUnspentOutput;
 }[];
 
-const NETWORK = 1
 
 const CardanoContext = createContext<CardanoContext>({} as CardanoContext);
 CardanoContext.displayName = "CardanoContext";
@@ -253,9 +252,13 @@ function CardanoProvider(props: Props) {
             throw new Error("errors.noAddressesFound");
           }
           if (!usedAddresses.length) {
-            setAddress(unusedAddresses[0]);
+            const rawFirst=unusedAddresses[0]
+            const unusedAddress = Address.from_bytes(Buffer.from(rawFirst, "hex")).to_bech32()
+            setAddress(unusedAddress);
           } else {
-            setAddress(usedAddresses[0]);
+            const rawFirst=usedAddresses[0]
+            const usedAddress = Address.from_bytes(Buffer.from(rawFirst, "hex")).to_bech32()
+            setAddress(usedAddress);
           }
 
           const registeredStakeKeysList =

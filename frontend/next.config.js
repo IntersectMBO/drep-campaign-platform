@@ -1,10 +1,12 @@
 const withNextIntl = require("next-intl/plugin")();
-
+const path = require('path')
 const nextConfig = {
   output: "standalone",
   reactStrictMode: true,
 };
-
+const sassOptions= {
+  includePaths: [path.join(__dirname, 'assets/styles')],
+}
 // This line integrates the NextIntl library with the Next.js configuration.
 // It enhances the Next.js application with internationalization features provided by NextIntl,
 // applying the configurations defined in `nextConfig`.
@@ -16,6 +18,7 @@ const { withSentryConfig } = require("@sentry/nextjs");
 
 module.exports = withSentryConfig(
   module.exports,
+  sassOptions,
   {
     // For all available options, see:
     // https://github.com/getsentry/sentry-webpack-plugin#options

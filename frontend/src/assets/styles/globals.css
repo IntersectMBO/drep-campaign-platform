@@ -2,6 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+    @apply font-poppins;
+}
+body {
+    @apply bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF] ;
+}
+
 body .container {
-    @apply px-5 mx-auto 2xl:px-10 3xl:max-w-screen-3xl;
+    @apply px-5 mx-auto 2xl:px-10 3xl:max-w-screen-3xl ;
+
+}
+
+.table_container tbody tr {
+    @apply border-b-2 border-b-wall-info-txt-color border-opacity-40;
+}
+
+.table_container tbody td,
+.table_container tbody td th {
+    @apply pr-4;
+}
+/* Hover effect for the role part */
+.table_container tbody tr>td:first-child {
+    @apply hover:text-[#5f5e5e];
+}
+
+.table_container tbody td {
+    @apply pb-5;
+}
+
+.drep_intro_radial_bg {
+    background: radial-gradient(circle closest-side, #f10b314d 0%, #ffffff00 100%)
+}
+
+.drep_bg {
+    background-image: linear-gradient(to bottom, rgba(0, 51, 173, 0.97), rgba(0, 41, 138, 0.97))
 }

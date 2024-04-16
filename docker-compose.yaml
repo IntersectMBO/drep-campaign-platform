@@ -84,7 +84,7 @@ services:
     depends_on:
       - backend # Depends on the backend service
   cardano-node:
-    image: ghcr.io/intersectmbo/cardano-node:8.9.0
+    image: ghcr.io/intersectmbo/cardano-node:8.10.0-pre
     command: [
       "run",
       "--config", "/config/config.json",
@@ -93,8 +93,8 @@ services:
       "--topology", "/config/topology.json"
     ]
     volumes:
-      - ./cardanonode/config/network/${NETWORK:-sanchonet}/cardano-node:/config
-      - ./cardanonode/config/network/${NETWORK:-sanchonet}/genesis:/genesis
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-sanchonet}/cardano-node:/config
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-sanchonet}/genesis:/genesis
       - node-db:/data
       - node-ipc:/ipc
     restart: on-failure
@@ -109,7 +109,7 @@ services:
     image: ghcr.io/intersectmbo/cardano-db-sync:sancho-4.1.0
     environment:
       - DISABLE_LEDGER=${DISABLE_LEDGER}
-      - NETWORK=${NETWORK:-sanchonet}
+      - NETWORK=${CARDANO_NETWORK:-sanchonet}
       - POSTGRES_HOST=dbsync_db
       - POSTGRES_PORT=5432
       - RESTORE_SNAPSHOT=${RESTORE_SNAPSHOT:-}

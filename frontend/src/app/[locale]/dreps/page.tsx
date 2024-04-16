@@ -1,21 +1,18 @@
 'use client'
-import {useCardano} from '@/context/walletContext'
+import DRepInfo from '@/components/organisms/DRepInfo'
+import DRepIntro from '@/components/organisms/DRepIntro'
+import GovernanceActionsCard from '@/components/organisms/GovernanceActionsCard'
+import PickADRep from '@/components/organisms/PickADRep'
 import React, {useState} from 'react'
 
 const page = () => {
-    const {isEnabled} = useCardano()
-    const [isModalOpen, setIsModalOpen] = useState(false)
-
-    const connectWallet = () => {
-        try {
-            setIsModalOpen(true)
-        } catch (err) {
-            console.log(err)
-        }
-    }
+    
     return (
         <div className={'container'}>
-            Homepage
+            <DRepIntro/>
+            <DRepInfo/>
+            <PickADRep/>
+            <GovernanceActionsCard/>
         </div>
     )
 }

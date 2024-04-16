@@ -34,7 +34,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <MUIButton
-      className={`button ${size}`} // Add classes based on size
+      className={`font-poppins capitalize bg-button-blue rounded-3xl ${size}`} // Add classes based on size
       style={{
         height: buttonHeight,
         width: width,

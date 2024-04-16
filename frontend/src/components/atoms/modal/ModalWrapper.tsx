@@ -23,15 +23,16 @@ export function ModalWrapper({
 }: Props) {
 
   return (
-    <BaseWrapper className={`base-wrapper ${variant}-variant z-[999]`} data-testid={dataTestId} sx={sx}>
+    <BaseWrapper className={`fixed shadow-lg max-h-[90vh] top-1/2 left-1/2 flex flex-col bg-base-wrapper-bg-color rounded-md -translate-x-1/2 -translate-y-1/2  ${variant}-variant z-50`} data-testid={dataTestId} sx={sx}>
       {variant !== "popup" && !hideCloseButton && (
-        <FontAwesomeIcon
-          className="close-button"
-          size="xl"
+        <div className="cursor-pointer absolute top-6 right-6 ">
+          <img         
           data-testid={"close-modal-button"}
-          icon={faTimes}
+          src="/close.svg"
           onClick={onClose}
         />
+        </div>
+        
       )}
       {children}
     </BaseWrapper>
@@ -39,9 +40,5 @@ export function ModalWrapper({
 }
 
 export const BaseWrapper = styled("div")`
-  /* Styles moved to CSS file, no changes needed here */
-`;
-
-export const CloseButton = styled("img")`
   /* Styles moved to CSS file, no changes needed here */
 `;

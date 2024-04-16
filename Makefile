@@ -40,9 +40,19 @@ watch:
 build:
 	docker-compose exec frontend yarn run build
 
-.PHONY: sh
-sh:
+.PHONY: sh-backend
+sh-backend:
 	docker-compose exec backend sh
+
+.PHONY: sh-cardano
+sh-cardano:
+	docker-compose exec cardano-node sh
+
+.PHONY: sh-frontend
+sh-frontend:
+	docker-compose exec frontend sh
+
+
 
 .PHONY: test-backend
 test-backend:

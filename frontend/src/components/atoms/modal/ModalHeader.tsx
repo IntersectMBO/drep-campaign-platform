@@ -9,9 +9,8 @@ interface Props {
 export function ModalHeader({ children, sx }: Props) {
   return (
     <Typography
-      className='modalHeader'
+      className='mb-2 text-3xl font-medium text-center'
       sx={sx}
-      
     >
       {children}
     </Typography>
