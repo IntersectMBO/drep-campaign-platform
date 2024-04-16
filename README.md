@@ -1,6 +1,8 @@
-# 🚀 Web-App Boilerplate 🚀
+# 🚀 Voltaire DRep Campaign Platform 🚀
 
-Welcome to the official repository for the Web App Boilerplate.
+The DRep Campaign platform was funded by Intersect MBO and originally developed by the Lido Nation team. 
+The platform is a web3/web2 system that allows DReps to create a profile to facilitate their campaigns, 
+communicate with prospective and current delegators, and showcase their onchain and off chain activities. 
 
 ## Table of content:
 
