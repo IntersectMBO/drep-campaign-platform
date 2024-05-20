@@ -1,0 +1,14 @@
+[
+  {
+    "drep_hash_id": "2",
+    "view": "Test-drep-id",
+    "delegation_vote_count": "3",
+    "amount": "148994.0",
+    "epoch_no": 314,
+    "active_until": 329,
+    "drep_registration_id": "2",
+    "deposit": "500.0",
+    "url": null,
+    "type": null
+  }
+]

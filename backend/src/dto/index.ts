@@ -1,1 +1,2 @@
-export * from './createDrepDto'
+export * from './createDrepDto';
+export * from './createNoteDto';

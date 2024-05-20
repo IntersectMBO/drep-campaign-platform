@@ -1,13 +1,36 @@
-import React from 'react'
+import React from 'react';
+import Button from "@/components/atoms/Button";
+import Link from "next/link";
 
-const DrepInfoCard = ({img, title, description}) => {
-  return (
-    <div className='flex flex-col items-start justify-center bg-drep-info-bg-color shadow-lg rounded-lg p-5 w-[286px] h-[269px]'>
-      <img src={img} alt={title} width={"60px"} className='mb-3'/>
-      <p className='text-lg mb-3 font-extrabold'>{title}</p>
-      <p className='text-sm font-extralight'>{description}</p>
-    </div>
-  )
+interface  DrepInfoCardProps {
+    img: string;
+    title: string;
+    description: string;
+    action?: {
+        label: string;
+        href: string;
+    };
 }
 
-export default DrepInfoCard
+const DrepInfoCard = ({img, title, description, action = null}: DrepInfoCardProps) => {
+    return (
+        <div
+            className="flex h-full flex-1 w-full flex-col items-start rounded-lg bg-blue-800 p-5 shadow-lg">
+            <img src={img} alt={title} width={'60px'} className="mb-3"/>
+            <p className="mb-3 text-lg font-extrabold">{title}</p>
+            <p className="text-sm font-extralight">{description}</p>
+
+            {!!action &&
+                <div className="mt-auto pt-4">
+                    <Button sx={{width: 'fit-content'}} variant="contained">
+                        <Link href={action.href}>
+                            {action.label}
+                        </Link>
+                    </Button>
+                </div>
+            }
+        </div>
+    );
+};
+
+export default DrepInfoCard;

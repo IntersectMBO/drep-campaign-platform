@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ $.Chart.Name }}-backend-service"
+  namespace: {{ .Values.namespace }}
+  labels:
+    service: "{{ .Values.backend.labels.service }}"
+spec:
+  ports:
+    - port: 80
+      name: backend
+      targetPort: backend
+      protocol: TCP
+  selector:
+    service: "{{ .Values.backend.labels.service }}"

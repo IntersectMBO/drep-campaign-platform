@@ -1,3 +1,3 @@
-export * from  './WalletConnectButton'
-export * from './WalletInfoCard'
-export * from './WalletOption'
+export * from './WalletConnectButton';
+export * from './WalletInfoCard';
+export * from './WalletOption';

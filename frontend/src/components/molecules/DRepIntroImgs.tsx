@@ -1,23 +1,32 @@
-import React from "react";
+import React, { useEffect, useState } from 'react';
 
 const DRepIntroImgs = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', () => {
+      setIsMobile(window.innerWidth < 768);
+    });
+  }, []);
   return (
-    <div className="drep_intro_radial_bg relative w-fullScale h-[100%]">
-      {/* rainbow one */}
-      <div className="absolute z-[10] top-24 left-0">
-        <img src="/img/faces/img1.png" alt="Img1" width={"278px"} />
+    <div className="img_container relative flex shrink-0 items-center justify-center my-5">
+      <div
+        id="rainbow"
+        className="responsive-img absolute -left-20 top-20 z-20"
+      >
+        <img src="/img/faces/img1.png" alt="Img1" width={`${isMobile?'70%':'90%'}`}/>
       </div>
-      {/* the dull one */}
-      <div className="absolute z-[11] top-12 left-52">
-        <img src="/img/faces/img2.png" alt="Img2" width={"170px"} />
+      <div id="dull" className="responsive-img left-30 absolute -top-20 z-30">
+        <img src="/img/faces/img2.png" alt="Img2" width={`${isMobile?'70%':'90%'}`}/>
       </div>
-      {/* feathered one */}
-      <div className="absolute z-[9] bottom-0 right-5">
-        <img src="/img/faces/img3.png" alt="Img3" width={"478px"} />
+      <div id="main" className="z-10">
+        <img src="/img/faces/img3.png" alt="Img3" />
       </div>
-      {/* inverse one */}
-      <div className="absolute z-[11] top-20 right-10 ">
-        <img width={"133px"} src="/img/faces/img4.png" alt="Img4" />
+      <div
+        id="inverse"
+        className="responsive-img absolute -right-10 -top-10 z-30"
+      >
+        <img src="/img/faces/img4.png" alt="Img4" width={`${isMobile?'70%':'90%'}`}/>
       </div>
     </div>
   );

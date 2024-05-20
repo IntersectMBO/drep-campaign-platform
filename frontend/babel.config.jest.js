@@ -2,5 +2,5 @@
 // It ensures that JavaScript and React code is compiled with the optimal settings for Next.js
 // applications, enabling features like SSR and optimization for modern browsers.
 module.exports = {
-	presets: ["next/babel"],
+  presets: ['next/babel'],
 };

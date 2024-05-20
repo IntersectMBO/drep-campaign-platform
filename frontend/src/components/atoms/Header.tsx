@@ -1,47 +1,110 @@
-"use client";
-import React from "react";
-import { useCardano } from "@/context/walletContext";
-import WalletConnectButton from "@/components/molecules/WalletConnectButton";
-import { WalletInfoCard } from "@/components/molecules";
-import Link from "next/link";
-import { useDRepContext } from "@/context/drepContext";
+import React, { useEffect, useState } from 'react';
+import { useCardano } from '@/context/walletContext';
+import WalletConnectButton from '@/components/molecules/WalletConnectButton';
+import { WalletInfoCard } from '@/components/molecules';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useDRepContext } from '@/context/drepContext';
+import TranslationBlock from '../1694.io/TranslationBlock';
 
+const navOptions = [
+  {
+    name: 'DReps',
+    path: '/dreps',
+  },
+  {
+    name: 'DRep List',
+    path: '/dreps/list',
+  },
+  {
+    name: 'Notes',
+    path: '/dreps/notes',
+  },
+  {
+    name: 'Ecosystem',
+    path: '/ecosystem',
+  },
+];
 const Header = () => {
   const { isEnabled } = useCardano();
-  const { activeTab, setActiveTab } = useDRepContext();
+  const { currentLocale, setIsMobileDrawerOpen } = useDRepContext();
+  const [isMobile, setIsMobile] = useState(false);
+  const pathname = usePathname();
+  const [activeLink, setActiveLink] = useState(null);
+
+  useEffect(() => {
+    // Setting the active link based on the current pathname
+    setActiveLink(pathname);
+    setIsMobile(window.innerWidth < 768);
+  }, [pathname]);
+  //add event listener to the window to check if the screen is mobile
+  useEffect(() => {
+    window.addEventListener('resize', () => {
+      setIsMobile(window.innerWidth < 768);
+    });
+  }, []);
   return (
-    <div className="flex flex-row items-center justify-between bg-top-nav-bg-color">
-      <div className="ml-20 p-3">
-        <img src="/sancho-black.svg" alt="Sancho logo" />
-      </div>
-      <div className="flex m-5 items-center text-sm font-bold  text-nowrap gap-6 md:mr-20 lg:mr-25">
-        <Link
-          href="/dreps"
-          onClick={()=>setActiveTab('/dreps')}
-          className={activeTab === "/dreps" ? "text-active" : ""}
-        >
-          What are DReps
+    <header className="bg-white bg-opacity-50 w-full">
+      <div className="base_container flex shrink-0 flex-row items-center justify-between py-6 ">
+        <Link href="/" className=" sm:w-1/2">
+          <img
+            src="/sancho1694.svg"
+            alt="Sancho logo"
+            width={ '40%'}
+          />
         </Link>
-        <Link
-          href="/dreps/list"
-          onClick={()=>setActiveTab('/dreps/list')}
-          className={activeTab === "/dreps/list" ? "text-active" : ""}
-        >
-          DRep List
-        </Link>
-        {/*<Link href="#">Become a DRep</Link>*/}
-        <Link href="#">Notes</Link>
-        <Link href="#">Ecosystem</Link>
-        {/*<Link href="#" className="text-blue-800 font-bold">*/}
-        {/*  Create profile*/}
-        {/*</Link>*/}
-        <div>{!isEnabled ? <WalletConnectButton /> : <WalletInfoCard />}</div>
-        <div className="cursor-pointer">
-          <img src="/bell.svg" alt="Notifs" />
+        <div className="flex shrink-0 items-center gap-3 text-nowrap text-sm font-bold">
+          {!isMobile && (
+            <div className='flex flex-row gap-6'>
+              <Link
+                href={'/'}
+                className={`${
+                  activeLink === `/${currentLocale}`
+                    ? 'text-orange-500'
+                    : 'text-gray-800'
+                }`}
+              >
+                CIP
+              </Link>
+              {navOptions.slice(0, 1).map((option, index) => (
+                <Link
+                  key={index + option.name + option.path + option}
+                  href={option.path}
+                  className={`${
+                    activeLink === `/${currentLocale}${option.path}`
+                      ? 'text-orange-500'
+                      : 'text-gray-800'
+                  }`}
+                >
+                  {option.name}
+                </Link>
+              ))}
+            </div>
+          )}
+          <div>
+            {!isEnabled ? (
+              <WalletConnectButton test_name={'header'} />
+            ) : (
+              <WalletInfoCard />
+            )}
+          </div>
+          {!isMobile && (
+            <div className="cursor-pointer">
+              <img src="/bell.svg" alt="Notifs" />
+            </div>
+          )}
+          {isMobile && (
+            <div
+              className="cursor-pointer"
+              onClick={() => setIsMobileDrawerOpen(true)}
+            >
+              <img src="/drawer-icon.svg" alt="Drawer" />
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 
-export default Header;
+export { Header, navOptions}

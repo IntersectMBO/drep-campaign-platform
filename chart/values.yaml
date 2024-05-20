@@ -1,0 +1,99 @@
+affinity: {}
+
+app: {
+  ADMIN_EMAIL: "webmaster@lidonation.io",
+  APP_NAME: "1694.io",
+  APP_ENV: "production",
+  APP_DEBUG: "false",
+  APP_SETUP: "false",
+  APP_URL: "https://www.1694.io"
+}
+
+certmanager:
+  issuer: letsencrypt-prod-issuer
+  email: webmaster@lidonation.io
+  server: https://acme-staging-v02.api.letsencrypt.org/directory
+
+certificate:
+  secretName: www-1694-tls
+  hosts:
+    - "'*.1694.io'"
+
+secrets:
+  NEXT_PUBLIC_GOOGLE_API:
+
+image:
+  repository: registry.lidonation.com/voltaire/www.1694.io
+  tag: stable
+  pullPolicy: IfNotPresent
+  pullSecret: '1694-registry-deploy-token'
+
+imageCredentials:
+  registry: registry.raddcreative.io
+  username: someone
+  password: sillyness
+  email: webmaster@1694.io
+
+ingress:
+  enabled: true
+  controller:
+    headers:
+      HTTPS: "on"
+  annotations: {
+    kubernetes.io/ingress.class: traefik,
+    cert-manager.io/cluster-issuer: letsencrypt-issuer,
+    traefik.ingress.kubernetes.io/router.entrypoints: "websecure,web",
+    traefik.ingress.kubernetes.io/router.middlewares: "traefik-redirect-http-to-https@kubernetescrd,traefik-default-headers@kubernetescrd"
+  }
+  hosts:
+    - sancho.1694.io
+  tls:
+    - hosts:
+        - "'*.1694.io'"
+      secretName: wildcard-1694-tls
+labels:
+  domain: 1694.io
+
+namespace: voltaire-sancho
+
+nodeSelector: {}
+
+redis:
+  image: redis:7.2-rc2-alpine
+
+replicaCount: 2
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 1024Mi
+    cpu: 300m
+
+serviceAccount:
+  create: true
+
+service:
+  type: ClusterIP
+  port: 80
+
+backend:
+  replicaCount: 2
+  labels:
+    service: backend
+  image:
+    repository: registry.lidonation.com/voltaire/www.1694.io/1694.io-backend
+  ingress:
+    path: /api
+    tls:
+
+frontend:
+  replicaCount: 2
+  labels:
+    service: frontend
+  image:
+      repository: registry.lidonation.com/voltaire/www.1694.io/1694.io-frontend
+  ingress:
+    path: /
+    tls:

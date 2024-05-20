@@ -1,11 +1,9 @@
-import React from "react";
-import { styled } from "@mui/material/styles";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import './Modal.css'
+import React, { useEffect } from 'react';
+import { styled } from '@mui/material/styles';
+import './Modal.css';
 
 interface Props {
-  variant?: "modal" | "popup";
+  variant?: 'modal' | 'popup';
   onClose?: () => void;
   hideCloseButton?: boolean;
   children: React.ReactNode;
@@ -16,29 +14,39 @@ interface Props {
 export function ModalWrapper({
   children,
   onClose,
-  variant = "modal",
+  variant = 'modal',
   hideCloseButton = false,
-  dataTestId = "modal",
+  dataTestId = 'modal',
   sx,
 }: Props) {
-
+  useEffect(() => {
+    if (variant === 'modal') {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [variant]);
   return (
-    <BaseWrapper className={`fixed shadow-lg max-h-[90vh] top-1/2 left-1/2 flex flex-col bg-base-wrapper-bg-color rounded-md -translate-x-1/2 -translate-y-1/2  ${variant}-variant z-50`} data-testid={dataTestId} sx={sx}>
-      {variant !== "popup" && !hideCloseButton && (
-        <div className="cursor-pointer absolute top-6 right-6 ">
-          <img         
-          data-testid={"close-modal-button"}
-          src="/close.svg"
-          onClick={onClose}
-        />
+    <BaseWrapper
+      className={`fixed left-1/2 top-1/2 flex max-h-[90vh] -translate-x-1/2 -translate-y-1/2 flex-col rounded-md bg-stone-50 shadow-lg  ${variant}-variant z-50`}
+      data-testid={dataTestId}
+      sx={sx}
+    >
+      {variant !== 'popup' && !hideCloseButton && (
+        <div className="absolute right-6 top-6 cursor-pointer ">
+          <img
+            data-testid={'close-modal-button'}
+            src="/close.svg"
+            onClick={onClose}
+          />
         </div>
-        
       )}
       {children}
     </BaseWrapper>
   );
 }
 
-export const BaseWrapper = styled("div")`
+export const BaseWrapper = styled('div')`
   /* Styles moved to CSS file, no changes needed here */
 `;

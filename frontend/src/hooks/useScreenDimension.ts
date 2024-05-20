@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from 'react';
 
 export const useScreenDimension = () => {
   const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
@@ -7,12 +7,12 @@ export const useScreenDimension = () => {
     return screenWidth < 768
       ? 2
       : screenWidth < 1024
-      ? 6
-      : screenWidth < 1440
-      ? 8
-      : screenWidth < 1920
-      ? 10
-      : 37;
+        ? 6
+        : screenWidth < 1440
+          ? 8
+          : screenWidth < 1920
+            ? 10
+            : 37;
   }, [screenWidth]);
 
   function handleWindowSizeChange() {
@@ -20,9 +20,9 @@ export const useScreenDimension = () => {
     setIsMobile(window.innerWidth < 768);
   }
   useEffect(() => {
-    window.addEventListener("resize", handleWindowSizeChange);
+    window.addEventListener('resize', handleWindowSizeChange);
     return () => {
-      window.removeEventListener("resize", handleWindowSizeChange);
+      window.removeEventListener('resize', handleWindowSizeChange);
     };
   }, []);
 
