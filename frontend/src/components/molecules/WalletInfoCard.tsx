@@ -16,10 +16,10 @@ export const WalletInfoCard = () => {
           border: 1,
           borderColor: 'lightBlue',
           borderRadius: 3,
-          px: 1.75,
-          py: 1.5,
+          px: 1.25,
+          py: 1,
           position: 'relative',
-          width: '200px',
+          width: '150px',
         }}
       >
         <Typography className="text-sm font-medium text-gray-200">

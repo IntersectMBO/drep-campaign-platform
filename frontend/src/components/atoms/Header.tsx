@@ -46,11 +46,11 @@ const Header = () => {
   return (
     <header className="bg-white bg-opacity-50 w-full">
       <div className="base_container flex shrink-0 flex-row items-center justify-between py-6 ">
-        <Link href="/" className=" sm:w-1/2">
+        <Link href="/">
           <img
             src="/sancho1694.svg"
             alt="Sancho logo"
-            width={ '40%'}
+            width={isMobile ? 100 : 150}
           />
         </Link>
         <div className="flex shrink-0 items-center gap-3 text-nowrap text-sm font-bold">

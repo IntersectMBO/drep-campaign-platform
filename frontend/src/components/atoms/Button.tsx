@@ -15,6 +15,7 @@ export interface ButtonProps {
     | 'warning';
   width?: number | string;
   bgColor?: string;
+  id?:string;
   borderRadius?: string;
   sx?: object;
   children?: React.ReactNode;
@@ -26,6 +27,7 @@ const Button: React.FC<ButtonProps> = ({
   size = 'large',
   variant = 'contained',
   color = 'primary',
+  id, 
   width,
   bgColor,
   borderRadius,
@@ -52,6 +54,7 @@ const Button: React.FC<ButtonProps> = ({
         borderRadius: borderRadius,
         ...sx,
       }}
+      id={id}
       variant={variant}
       color={color}
       onClick={handleClick}

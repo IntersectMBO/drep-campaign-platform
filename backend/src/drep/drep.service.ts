@@ -9,9 +9,9 @@ import { DataSource } from 'typeorm';
 export class DrepService {
   constructor(
     @InjectDataSource('default')
-    private voltaireService:DataSource,
+    private voltaireService: DataSource,
     @InjectDataSource('dbsync')
-    private cexplorerService:DataSource,
+    private cexplorerService: DataSource,
     private attachmentService: AttachmentService,
   ) {}
   //get from cexplorer db
@@ -93,7 +93,7 @@ export class DrepService {
     WHERE drep.id = ${drepId};
     `);
 
-    if (!drep) {
+    if (!drep || drep.length === 0) {
       throw new NotFoundException('Drep not found!');
     }
     if (drep[0].url) {
@@ -120,7 +120,9 @@ export class DrepService {
         voter_id: drep.view,
       };
     });
-    const queryInstance = await this.voltaireService.getRepository('Drep').insert(modified);
+    const queryInstance = await this.voltaireService
+      .getRepository('Drep')
+      .insert(modified);
     return modified;
   }
   async registerDrep(drepDto: createDrepDto, profileUrl: Express.Multer.File) {
@@ -168,9 +170,19 @@ export class DrepService {
         drepId,
       );
     }
-    //other fields will be added here
+    const updatedDrep = Object.keys(drep).reduce((acc, key) => {
+      let value = drep[key];
+      try {
+        value = JSON.parse(value);
+      } catch (e) {
+        // ignore 
+      }
+      return { ...acc, [key]: value };
+    }, {});
+    delete updatedDrep['profileUrl']
     return await this.voltaireService
       .getRepository('Drep')
-      .update(drepId, { name: drep.name });
+      .update(drepId, updatedDrep);
+    
   }
 }

@@ -15,10 +15,12 @@ interface DRepContext {
   isNotDRepErrorModalOpen: boolean;
   currentLocale: string;
   drepId: number;
+  currentRegistrationStep: number;  
   setStep1Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
   setStep2Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
   setStep3Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
   setStep4Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
+  setCurrentRegistrationStep: React.Dispatch<React.SetStateAction<number>>;
   setIsNotDRepErrorModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsWalletListModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsMobileDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -30,7 +32,10 @@ interface Props {
   children: React.ReactNode;
 }
 export interface stepStatus {
-  status: 'success' | 'active' | 'pending';
+  status: 'success' | 'active' | 'pending' | 'update';
+}
+export interface currentRegistrationStep{
+  step: number;
 }
 const DRepContext = createContext<DRepContext>({} as DRepContext);
 DRepContext.displayName = 'DRepContext';
@@ -40,6 +45,7 @@ function DRepProvider(props: Props) {
   const {sharedState, updateSharedState} = useSharedContext();
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [isNotDRepErrorModalOpen, setIsNotDRepErrorModalOpen] = useState(false);
+  const [currentRegistrationStep, setCurrentRegistrationStep] = useState<currentRegistrationStep['step']>(1);
   const [drepId, setNewDrepId] = useState<number | null>(null);
   const [step1Status, setStep1Status] =
     useState<stepStatus['status']>('pending');
@@ -66,6 +72,7 @@ function DRepProvider(props: Props) {
       step3Status,
       step4Status,
       isMobileDrawerOpen,
+      currentRegistrationStep,
       setStep1Status,
       setStep2Status,
       setStep3Status,
@@ -73,6 +80,7 @@ function DRepProvider(props: Props) {
       setIsWalletListModalOpen,
       setIsNotDRepErrorModalOpen,
       setCurrentLocale,
+      setCurrentRegistrationStep,
       setIsMobileDrawerOpen,
       setNewDrepId,
       ...sharedState,
@@ -80,6 +88,7 @@ function DRepProvider(props: Props) {
     [
       isWalletListModalOpen,
       isNotDRepErrorModalOpen,
+      currentRegistrationStep,
       currentLocale,
       drepId,
       step1Status,

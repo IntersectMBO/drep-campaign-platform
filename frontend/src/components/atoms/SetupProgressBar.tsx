@@ -1,49 +1,101 @@
+import React, { useRef, useEffect, useContext } from 'react';
+import { useRouter } from 'next/navigation';
 import { stepStatus, useDRepContext } from '@/context/drepContext';
-import React from 'react';
 
-const stepStatusChip = (
-  stepNumber: number,
-  stepText: string,
-  stepStatus: stepStatus['status'],
-) => {
+const stepStatusChip = (stepNumber, stepText, stepStatus, handleClick) => {
+  const baseClasses = "flex flex-col items-center justify-center gap-1 px-16 py-3 cursor-pointer";
+  const activeClasses = "border-b-2 border-b-blue-800";
+  const inactiveClasses = "border-b-2 border-b-gray-300";
+  const numberClasses = "h-8 w-8 rounded-full text-center text-white p-1";
+
+  const onClick = () => handleClick(stepNumber);
+
   if (stepStatus === 'active') {
     return (
-      <div className="flex flex-col items-center justify-center gap-1 border-b-2 border-b-blue-800 px-16 py-3">
-        <p className="h-8 w-8 rounded-full bg-blue-800 p-1 text-center text-white">
-          {stepNumber}
-        </p>
-        <p>{stepText}</p>
+      <div className={`${baseClasses} ${activeClasses}`} onClick={onClick}>
+        <p className={`${numberClasses} bg-blue-800`}>{stepNumber}</p>
+        <p className="text-center">{stepText}</p>
       </div>
     );
-  } else if (stepStatus === 'success') {
+  } else if (stepStatus === 'success' || stepStatus === 'update') {
     return (
-      <div className="flex flex-col items-center justify-center gap-1 border-b-2 border-b-gray-300 px-16 py-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-300 p-1 text-white">
+      <div className={`${baseClasses} ${stepStatus === 'update' ? activeClasses : inactiveClasses}`} onClick={onClick}>
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-300 text-white">
           <img src="/check.svg" alt="check" className="h-8 w-8" />
         </div>
-        <p>{stepText}</p>
+        <p className="text-center">{stepText}</p>
       </div>
     );
   } else {
     return (
-    <div className="flex flex-col items-center justify-center gap-1 border-b-2 border-b-gray-300 px-16 py-3">
-      <p className="h-8 w-8 rounded-full bg-gray-300 p-1 text-center text-white">
-        {stepNumber}
-      </p>
-      <p>{stepText}</p>
-    </div>
-    )
+      <div className={`${baseClasses} ${inactiveClasses}`} onClick={onClick}>
+        <p className={`${numberClasses} bg-gray-300`}>{stepNumber}</p>
+        <p className="text-center">{stepText}</p>
+      </div>
+    );
   }
 };
+
 const SetupProgressBar = () => {
-  const { step1Status, step2Status, step3Status, step4Status } =
-    useDRepContext();
+  const {
+    step1Status, step2Status, step3Status, step4Status,
+    currentRegistrationStep, setStep1Status, setStep2Status,
+    setStep3Status, setStep4Status, setCurrentRegistrationStep
+  } = useDRepContext();
+
+  const router = useRouter();
+  const containerRef = useRef(null);
+  const stepRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+
+  const handleNavigate = (step) => {
+
+    if (step === 1) {
+      setStep1Status('update');
+      setStep2Status('active');
+      setCurrentRegistrationStep(1);
+      router.push(`/dreps/workflow/profile/update/step${step}`);
+    } else if (step === 2) {
+      setStep2Status('update');
+      setStep3Status('active');
+      setCurrentRegistrationStep(2);
+      router.push(`/dreps/workflow/profile/update/step${step}`);
+    } else if (step === 3) {
+      setStep3Status('update');
+      setStep4Status('active');
+      setCurrentRegistrationStep(3);
+      router.push(`/dreps/workflow/profile/update/step${step}`);
+    } else if (step === 4) {
+      setStep4Status('update');
+      setCurrentRegistrationStep(4);
+      router.push(`/dreps/workflow/profile/update/step${step}`);
+    } else {
+      console.log('default');
+    }
+  };
+
+  useEffect(() => {
+    const activeIndex = [step1Status, step2Status, step3Status, step4Status].findIndex(status => status === 'active');
+    if (activeIndex !== -1 && stepRefs[activeIndex].current) {
+      const activeStep = stepRefs[activeIndex].current;
+      const container = containerRef.current;
+
+      const containerWidth = container.offsetWidth;
+      const stepWidth = activeStep.offsetWidth;
+      const stepOffsetLeft = activeStep.offsetLeft;
+
+      container.scrollTo({
+        left: stepOffsetLeft - containerWidth / 2 + stepWidth / 2,
+        behavior: 'smooth'
+      });
+    }
+  }, [step1Status, step2Status, step3Status, step4Status]);
+
   return (
-    <div className="flex w-full flex-row items-center justify-around gap-1">
-      {stepStatusChip(1, 'Profile set up', step1Status)}
-      {stepStatusChip(2, 'Platform statement', step2Status)}
-      {stepStatusChip(3, 'Metadata set up', step3Status)}
-      {stepStatusChip(4, 'Social media', step4Status)}
+    <div className="progress_bar w-full inline-flex whitespace-nowrap gap-5 overflow-x-scroll" ref={containerRef}>
+      <div ref={stepRefs[0]}>{stepStatusChip(1, 'Profile set up', step1Status, handleNavigate)}</div>
+      <div ref={stepRefs[1]}>{stepStatusChip(2, 'Platform statement', step2Status, handleNavigate)}</div>
+      <div ref={stepRefs[2]}>{stepStatusChip(3, 'Metadata set up', step3Status, handleNavigate)}</div>
+      <div ref={stepRefs[3]}>{stepStatusChip(4, 'Social media', step4Status, handleNavigate)}</div>
     </div>
   );
 };

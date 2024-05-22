@@ -18,6 +18,10 @@ export class Drep {
 
   @Column({ nullable: true })
   bio: string;
+  @Column({ nullable: true })
+  metadata: string;
+  @Column({ type: 'json', nullable: true })
+  social: Record<string, any>;
 
   @Column({ nullable: true })
   platform_statement: string;
