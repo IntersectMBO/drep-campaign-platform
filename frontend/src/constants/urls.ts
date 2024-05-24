@@ -1,4 +1,5 @@
-export const urls={
-    baseProdUrl:'',
-    baseLocalUrl:"http://localhost:1337"
-}
+export const urls = {
+  baseProdUrl: '',
+  baseServerUrl: process.env.NEXT_PUBLIC_BASE_SERVER_URL,
+  govToolUrl: 'https://sanchogov.tools/',
+};

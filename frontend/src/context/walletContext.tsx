@@ -4,24 +4,29 @@ import {
   useContext,
   useMemo,
   useState,
-} from "react";
+} from 'react';
 import {
   Address,
   PublicKey,
   RewardAddress,
   TransactionUnspentOutput,
-  TransactionUnspentOutputs
- ,StakeCredential
-} from "@emurgo/cardano-serialization-lib-asmjs";
-import { Buffer } from "buffer";
-import * as Sentry from "@sentry/react";
+  TransactionUnspentOutputs,
+  StakeCredential,
+  Value,
+} from '@emurgo/cardano-serialization-lib-asmjs';
+import { Buffer } from 'buffer';
+import * as Sentry from '@sentry/react';
+import { useDRepContext } from './drepContext';
 
-
-import { getPubDRepID,
+import {
+  getPubDRepID,
   WALLET_LS_KEY,
   getItemFromLocalStorage,
-  setItemToLocalStorage,removeItemFromLocalStorage } from "@/lib";
-import { CardanoApiWallet, VoterInfo } from "@/models/wallet";
+  setItemToLocalStorage,
+  removeItemFromLocalStorage,
+} from '@/lib';
+import { CardanoApiWallet, VoterInfo } from '@/models/wallet';
+import { useSharedContext } from './sharedContext';
 
 interface Props {
   children: React.ReactNode;
@@ -33,26 +38,29 @@ interface EnableResponse {
   error?: string;
 }
 const TIME_TO_EXPIRE_TRANSACTION = 3 * 60 * 1000; // 3 MINUTES
-const REFRESH_TIME= 15 * 1000; // 15 SECONDS
+const REFRESH_TIME = 15 * 1000; // 15 SECONDS
 
 type TransactionHistoryItem = {
   transactionHash: string;
   time?: Date;
 };
 
-
 interface CardanoContext {
   address?: string;
+  balance?: string;
   disconnectWallet: () => Promise<void>;
   enable: (walletName: string) => Promise<EnableResponse>;
   isEnableLoading: string | null;
-  isEnabling:boolean;
+  isEnabling: boolean;
   error?: string;
   voter: VoterInfo | undefined;
   isEnabled: boolean;
   pubDRepKey: string;
   dRepID: string;
-  walletState:{usedAddress:string|undefined, changeAddress:undefined|string }
+  walletState: {
+    usedAddress: string | undefined;
+    changeAddress: undefined | string;
+  };
   dRepIDBech32: string;
   isMainnet: boolean;
   stakeKey?: string;
@@ -62,7 +70,6 @@ interface CardanoContext {
   walletApi?: CardanoApiWallet;
   delegatedDRepID?: string;
   setDelegatedDRepID: (key: string) => void;
- 
 }
 
 type Utxos = {
@@ -74,22 +81,23 @@ type Utxos = {
   TransactionUnspentOutput: TransactionUnspentOutput;
 }[];
 
-
 const CardanoContext = createContext<CardanoContext>({} as CardanoContext);
-CardanoContext.displayName = "CardanoContext";
+CardanoContext.displayName = 'CardanoContext';
 
 function CardanoProvider(props: Props) {
+  const {sharedState, updateSharedState} = useSharedContext();
   const [isEnabled, setIsEnabled] = useState(false);
   const [isEnableLoading, setIsEnableLoading] = useState<string | null>(null);
   const [voter, setVoter] = useState<VoterInfo | undefined>(undefined);
   const [walletApi, setWalletApi] = useState<CardanoApiWallet | undefined>(
-    undefined
+    undefined,
   );
-  const [isEnabling, setIsEnabling]=useState<boolean>(false)
+  const { setIsWalletListModalOpen } = useDRepContext();
+  const [isEnabling, setIsEnabling] = useState<boolean>(false);
   const [address, setAddress] = useState<string | undefined>(undefined);
-  const [pubDRepKey, setPubDRepKey] = useState<string>("");
-  const [dRepID, setDRepID] = useState<string>("");
-  const [dRepIDBech32, setDRepIDBech32] = useState<string>("");
+  const [pubDRepKey, setPubDRepKey] = useState<string>('');
+  const [dRepID, setDRepID] = useState<string>('');
+  const [dRepIDBech32, setDRepIDBech32] = useState<string>('');
   const [stakeKey, setStakeKey] = useState<string | undefined>(undefined);
   const [stakeKeys, setStakeKeys] = useState<string[]>([]);
   const [isMainnet, setIsMainnet] = useState<boolean>(false);
@@ -97,7 +105,7 @@ function CardanoProvider(props: Props) {
     useState<string[]>([]);
   const [error, setError] = useState<string | undefined>(undefined);
   const [delegatedDRepID, setDelegatedDRepID] = useState<string | undefined>(
-    undefined
+    undefined,
   );
   const [walletState, setWalletState] = useState<{
     changeAddress: undefined | string;
@@ -107,18 +115,27 @@ function CardanoProvider(props: Props) {
     usedAddress: undefined,
   });
 
-
- 
-
   const getChangeAddress = async (enabledApi: CardanoApiWallet) => {
     try {
       const raw = await enabledApi.getChangeAddress();
       const changeAddress = Address.from_bytes(
-        Buffer.from(raw, "hex")
+        Buffer.from(raw, 'hex'),
       ).to_bech32();
       setWalletState((prev) => ({ ...prev, changeAddress }));
     } catch (err) {
       Sentry.captureException(err);
+      console.log(err);
+    }
+  };
+  const getBalance = async (enabledApi: CardanoApiWallet) => {
+    try {
+      const balanceCBORHex = await enabledApi.getBalance();
+
+      const balance = Value.from_bytes(Buffer.from(balanceCBORHex, 'hex'))
+        .coin()
+        .to_str();
+      setWalletState((prev) => ({ ...prev, balance }));
+    } catch (err) {
       console.log(err);
     }
   };
@@ -128,7 +145,7 @@ function CardanoProvider(props: Props) {
       const raw = await enabledApi.getUsedAddresses();
       const rawFirst = raw[0];
       const usedAddress = Address.from_bytes(
-        Buffer.from(rawFirst, "hex")
+        Buffer.from(rawFirst, 'hex'),
       ).to_bech32();
       setWalletState((prev) => ({ ...prev, usedAddress }));
     } catch (err) {
@@ -138,7 +155,7 @@ function CardanoProvider(props: Props) {
   };
 
   const getUtxos = async (
-    enabledApi: CardanoApiWallet
+    enabledApi: CardanoApiWallet,
   ): Promise<Utxos | undefined> => {
     let Utxos = [];
 
@@ -147,17 +164,17 @@ function CardanoProvider(props: Props) {
 
       for (const rawUtxo of rawUtxos) {
         const utxo = TransactionUnspentOutput.from_bytes(
-          Buffer.from(rawUtxo, "hex")
+          Buffer.from(rawUtxo, 'hex'),
         );
         const input = utxo.input();
-        const txid = Buffer.from(
-          input.transaction_id().to_bytes()
-        ).toString("hex");
+        const txid = Buffer.from(input.transaction_id().to_bytes()).toString(
+          'hex',
+        );
         const txindx = input.index();
         const output = utxo.output();
         const amount = output.amount().coin().to_str(); // ADA amount in lovelace
         const multiasset = output.amount().multiasset();
-        let multiAssetStr = "";
+        let multiAssetStr = '';
 
         if (multiasset) {
           const keys = multiasset.keys(); // policy Ids of thee multiasset
@@ -165,9 +182,9 @@ function CardanoProvider(props: Props) {
 
           for (let i = 0; i < N; i++) {
             const policyId = keys.get(i);
-            const policyIdHex = Buffer.from(
-              policyId.to_bytes()
-            ).toString("hex");
+            const policyIdHex = Buffer.from(policyId.to_bytes()).toString(
+              'hex',
+            );
             const assets = multiasset.get(policyId);
             if (assets) {
               const assetNames = assets.keys();
@@ -176,9 +193,11 @@ function CardanoProvider(props: Props) {
               for (let j = 0; j < K; j++) {
                 const assetName = assetNames.get(j);
                 const assetNameString = Buffer.from(
-                  assetName.name()).toString();
-                const assetNameHex = Buffer.from(
-                  assetName.name()).toString("hex");
+                  assetName.name(),
+                ).toString();
+                const assetNameHex = Buffer.from(assetName.name()).toString(
+                  'hex',
+                );
                 const multiassetAmt = multiasset.get_asset(policyId, assetName);
                 multiAssetStr += `+ ${multiassetAmt.to_str()} + ${policyIdHex}.${assetNameHex} (${assetNameString})`;
               }
@@ -207,19 +226,19 @@ function CardanoProvider(props: Props) {
   const enable = useCallback(
     async (walletName: string) => {
       setIsEnableLoading(walletName);
-      setIsEnabling(true)
+      setIsEnabling(true);
       // todo: use .getSupportedExtensions() to check if wallet supports CIP-95
       if (!isEnabled && walletName) {
         try {
           // Check that this wallet supports CIP-95 connection
           if (!window.cardano[walletName].supportedExtensions) {
-            throw new Error("errors.walletNoCIP30Support");
+            throw new Error('errors.walletNoCIP30Support');
           } else if (
             !window.cardano[walletName].supportedExtensions.some(
-              (item) => item.cip === 95
+              (item) => item.cip === 95,
             )
           ) {
-            throw new Error("errors.walletNoCIP30Nor90Support");
+            throw new Error('errors.walletNoCIP30Nor90Support');
           }
           // Enable wallet connection
           const enabledApi = await window.cardano[walletName]
@@ -230,34 +249,40 @@ function CardanoProvider(props: Props) {
               Sentry.captureException(e);
               throw e.info;
             });
-            console.log('enabled cip95')
+          console.log('enabled cip95');
           await getChangeAddress(enabledApi);
-          console.log('got change address')
+          console.log('got change address');
           await getUsedAddresses(enabledApi);
-          console.log('got used address')
+          console.log('got used address');
           setIsEnabled(true);
           setWalletApi(enabledApi);
           // Check if wallet has enabled the CIP-95 extension
           const enabledExtensions = await enabledApi.getExtensions();
           if (!enabledExtensions.some((item) => item.cip === 95)) {
-            throw new Error("errors.walletNoCIP90FunctionsEnabled");
+            throw new Error('errors.walletNoCIP90FunctionsEnabled');
           }
           const network = await enabledApi.getNetworkId();
-          console.log('net', network)
+          console.log('net', network);
           setIsMainnet(network == 1);
+          //Check and set wallet balance
+          await getBalance(enabledApi);
           // Check and set wallet address
           const usedAddresses = await enabledApi.getUsedAddresses();
           const unusedAddresses = await enabledApi.getUnusedAddresses();
           if (!usedAddresses.length && !unusedAddresses.length) {
-            throw new Error("errors.noAddressesFound");
+            throw new Error('errors.noAddressesFound');
           }
           if (!usedAddresses.length) {
-            const rawFirst=unusedAddresses[0]
-            const unusedAddress = Address.from_bytes(Buffer.from(rawFirst, "hex")).to_bech32()
+            const rawFirst = unusedAddresses[0];
+            const unusedAddress = Address.from_bytes(
+              Buffer.from(rawFirst, 'hex'),
+            ).to_bech32();
             setAddress(unusedAddress);
           } else {
-            const rawFirst=usedAddresses[0]
-            const usedAddress = Address.from_bytes(Buffer.from(rawFirst, "hex")).to_bech32()
+            const rawFirst = usedAddresses[0];
+            const usedAddress = Address.from_bytes(
+              Buffer.from(rawFirst, 'hex'),
+            ).to_bech32();
             setAddress(usedAddress);
           }
 
@@ -265,13 +290,15 @@ function CardanoProvider(props: Props) {
             await enabledApi.cip95.getRegisteredPubStakeKeys();
           setRegisteredPubStakeKeysState(registeredStakeKeysList);
 
-          const unregisteredStakeKeysList =await enabledApi.cip95.getUnregisteredPubStakeKeys();
+          const unregisteredStakeKeysList =
+            await enabledApi.cip95.getUnregisteredPubStakeKeys();
 
           let stakeKeysList;
           if (registeredStakeKeysList.length > 0) {
             stakeKeysList = registeredStakeKeysList.map((stakeKey) => {
               const stakeKeyHash = PublicKey.from_hex(stakeKey).hash();
-              const stakeCredential = StakeCredential.from_keyhash(stakeKeyHash);
+              const stakeCredential =
+                StakeCredential.from_keyhash(stakeKeyHash);
               if (network === 1)
                 return RewardAddress.new(1, stakeCredential)
                   .to_address()
@@ -282,10 +309,11 @@ function CardanoProvider(props: Props) {
                   .to_hex();
             });
           } else {
-            console.warn("warnings.usingUnregisteredStakeKeys");
+            console.warn('warnings.usingUnregisteredStakeKeys');
             stakeKeysList = unregisteredStakeKeysList.map((stakeKey) => {
               const stakeKeyHash = PublicKey.from_hex(stakeKey).hash();
-              const stakeCredential = StakeCredential.from_keyhash(stakeKeyHash);
+              const stakeCredential =
+                StakeCredential.from_keyhash(stakeKeyHash);
               if (network === 1)
                 return RewardAddress.new(1, stakeCredential)
                   .to_address()
@@ -301,7 +329,7 @@ function CardanoProvider(props: Props) {
 
           let stakeKeySet = false;
           const savedStakeKey = getItemFromLocalStorage(
-            `${WALLET_LS_KEY}_stake_key`
+            `${WALLET_LS_KEY}_stake_key`,
           );
           if (savedStakeKey && stakeKeysList.includes(savedStakeKey)) {
             setStakeKey(savedStakeKey);
@@ -311,45 +339,45 @@ function CardanoProvider(props: Props) {
 
             setItemToLocalStorage(
               `${WALLET_LS_KEY}_stake_key`,
-              stakeKeysList[0]
+              stakeKeysList[0],
             );
             stakeKeySet = true;
           }
           const dRepIDs = await getPubDRepID(enabledApi);
-          setPubDRepKey(dRepIDs?.dRepKey || "");
-          setDRepID(dRepIDs?.dRepID || "");
-          setDRepIDBech32(dRepIDs?.dRepIDBech32 || "");
+          setPubDRepKey(dRepIDs?.dRepKey || '');
+          setDRepID(dRepIDs?.dRepID || '');
+          setDRepIDBech32(dRepIDs?.dRepIDBech32 || '');
           setItemToLocalStorage(`${WALLET_LS_KEY}_name`, walletName);
 
-          setIsEnabling(false)
-          return { status: "ok", stakeKey: stakeKeySet };
+          setIsEnabling(false);
+          updateSharedState({isWalletListModalOpen: false });
+          return { status: 'ok', stakeKey: stakeKeySet };
         } catch (e) {
           Sentry.captureException(e);
           console.error(e);
           setError(`${e}`);
           setAddress(undefined);
           setWalletApi(undefined);
-          setPubDRepKey("");
+          setPubDRepKey('');
           setStakeKey(undefined);
           setIsEnabled(false);
-          setIsEnabling(false)
+          setIsEnabling(false);
           throw {
-            status: "ERROR",
-            error: `${e == undefined ? "errors.somethingWentWrong" : e}`,
+            status: 'ERROR',
+            error: `${e == undefined ? 'errors.somethingWentWrong' : e}`,
           };
         } finally {
           setIsEnableLoading(null);
         }
       }
-      setIsEnabling(false)
-      throw { status: "ERROR", error: "errors.somethingWentWrong" };
-     
+      setIsEnabling(false);
+      throw { status: 'ERROR', error: 'errors.somethingWentWrong' };
     },
-    [isEnabled, stakeKeys]
+    [isEnabled, stakeKeys],
   );
 
   const disconnectWallet = useCallback(async () => {
-    console.log('disconnecting')
+    console.log('disconnecting');
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_name`);
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_stake_key`);
     setWalletApi(undefined);
@@ -358,7 +386,6 @@ function CardanoProvider(props: Props) {
     setIsEnabled(false);
   }, []);
 
-
   const getTxUnspentOutputs = useCallback(async (utxos: Utxos) => {
     let txOutputs = TransactionUnspentOutputs.new();
     for (const utxo of utxos) {
@@ -366,9 +393,6 @@ function CardanoProvider(props: Props) {
     }
     return txOutputs;
   }, []);
-
-
-
   const value = useMemo(
     () => ({
       address,
@@ -390,7 +414,8 @@ function CardanoProvider(props: Props) {
       delegatedDRepID,
       setDelegatedDRepID,
       isEnableLoading,
-      isEnabling
+      isEnabling,
+      sharedState
     }),
     [
       address,
@@ -412,9 +437,9 @@ function CardanoProvider(props: Props) {
       error,
       delegatedDRepID,
       setDelegatedDRepID,
-    
+      sharedState,
       isEnableLoading,
-    ]
+    ],
   );
 
   return <CardanoContext.Provider value={value} {...props} />;
@@ -422,10 +447,9 @@ function CardanoProvider(props: Props) {
 
 function useCardano() {
   const context = useContext(CardanoContext);
- 
-  
+
   if (context === undefined) {
-    throw new Error("errors.useCardano");
+    throw new Error('errors.useCardano');
   }
 
   const enable = useCallback(
@@ -433,11 +457,10 @@ function useCardano() {
       try {
         const result = await context.enable(walletName);
         if (!result.error) {
-          console.log('No error found!')
+          console.log('No error found!');
           if (result.stakeKey) {
-            console.log("alerts.walletConnected", 3000);
+            console.log('alerts.walletConnected', 3000);
           }
-         
           return result;
         }
       } catch (e: any) {
@@ -446,7 +469,7 @@ function useCardano() {
         throw e;
       }
     },
-    [context,  context.isEnabled]
+    [context, context.isEnabled],
   );
 
   const disconnectWallet = useCallback(async () => {

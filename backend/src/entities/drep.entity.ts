@@ -1,26 +1,49 @@
-import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Note } from './note.entity';
 
 @Entity()
 export class Drep {
-    //auto increment primary key decorator
-    @PrimaryGeneratedColumn()
-    id: number
-    //Human readable name for the entity
-    @Column({unique: true, nullable: false})
-    name: string
-    //More info about the drep
-    @Column({})
-    bio: string
-    //Platform statement associated with the user
-    @Column({nullable: false})
-    platform_statement: string
-    //Information about the user's expertise
-    @Column({})
-    expertise: string
-    //User's perspective within the decentralized system
-    @Column({})
-    perspective: string
+  @PrimaryGeneratedColumn()
+  id: number;
+  @Column({ unique: true, nullable: true })
+  name: string;
 
-    //DB triggers, triggers a function to autorun if a column has been provided in the req body
-    //use BeforeInsert decorator
+  @Column({ nullable: true })
+  bio: string;
+  @Column({ nullable: true })
+  metadata: string;
+  @Column({ type: 'json', nullable: true })
+  social: Record<string, any>;
+
+  @Column({ nullable: true })
+  platform_statement: string;
+
+  @Column({ nullable: true })
+  expertise: string;
+
+  @Column({ nullable: true })
+  perspective: string;
+
+  @Column({})
+  stake_addr: string;
+
+  @Column({ nullable: false, unique: true })
+  voter_id: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date;
 }

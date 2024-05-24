@@ -1,12 +1,12 @@
-const withNextIntl = require("next-intl/plugin")();
-const path = require('path')
+const withNextIntl = require('next-intl/plugin')();
+const path = require('path');
 const nextConfig = {
-  output: "standalone",
+  output: 'standalone',
   reactStrictMode: true,
 };
-const sassOptions= {
+const sassOptions = {
   includePaths: [path.join(__dirname, 'assets/styles')],
-}
+};
 // This line integrates the NextIntl library with the Next.js configuration.
 // It enhances the Next.js application with internationalization features provided by NextIntl,
 // applying the configurations defined in `nextConfig`.
@@ -14,7 +14,7 @@ module.exports = withNextIntl(nextConfig);
 
 // Injected content via Sentry wizard below
 
-const { withSentryConfig } = require("@sentry/nextjs");
+const { withSentryConfig } = require('@sentry/nextjs');
 
 module.exports = withSentryConfig(
   module.exports,
@@ -37,7 +37,7 @@ module.exports = withSentryConfig(
     transpileClientSDK: true,
 
     // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers (increases server load)
-    tunnelRoute: "/monitoring",
+    tunnelRoute: '/monitoring',
 
     // Hides source maps from generated client bundles
     hideSourceMaps: true,
@@ -50,5 +50,5 @@ module.exports = withSentryConfig(
     // https://docs.sentry.io/product/crons/
     // https://vercel.com/docs/cron-jobs
     automaticVercelMonitors: true,
-  }
+  },
 );

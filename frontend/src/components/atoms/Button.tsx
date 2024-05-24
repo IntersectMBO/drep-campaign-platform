@@ -1,28 +1,40 @@
-import React from "react";
-import { Button as MUIButton } from "@mui/material";
-import "./Atoms.css"; // Import the CSS file
+import React from 'react';
+import { Button as MUIButton } from '@mui/material';
+import './Atoms.css'; // Import the CSS file
+
 export interface ButtonProps {
-  size?: "extraLarge" | "large" | "medium" | "small";
-  variant?: "text" | "outlined" | "contained";
-  color?: "inherit" | "primary" | "secondary" | "error" | "info" | "success" | "warning";
+  size?: 'extraLarge' | 'large' | 'medium' | 'small';
+  variant?: 'text' | 'outlined' | 'contained';
+  color?:
+    | 'inherit'
+    | 'primary'
+    | 'secondary'
+    | 'error'
+    | 'info'
+    | 'success'
+    | 'warning';
   width?: number | string;
   bgColor?: string;
-  borderRadius?:string
+  id?:string;
+  borderRadius?: string;
   sx?: object;
   children?: React.ReactNode;
-  handleClick?: () => void;
+  handleClick?: (any) => any;
+  type?: 'submit' | 'button';
 }
 
 const Button: React.FC<ButtonProps> = ({
-  size = "large",
-  variant = "contained",
-  color = "primary",
+  size = 'large',
+  variant = 'contained',
+  color = 'primary',
+  id, 
   width,
   bgColor,
   borderRadius,
   sx,
   children,
   handleClick,
+  type = 'button',
   ...props
 }) => {
   const buttonHeight = {
@@ -34,7 +46,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <MUIButton
-      className={`font-poppins capitalize bg-button-blue rounded-3xl ${size}`} // Add classes based on size
+      className={`rounded-3xl bg-blue-800 font-poppins capitalize ${size}`}
       style={{
         height: buttonHeight,
         width: width,
@@ -42,9 +54,11 @@ const Button: React.FC<ButtonProps> = ({
         borderRadius: borderRadius,
         ...sx,
       }}
+      id={id}
       variant={variant}
       color={color}
       onClick={handleClick}
+      type={type}
       {...props}
     >
       {children}

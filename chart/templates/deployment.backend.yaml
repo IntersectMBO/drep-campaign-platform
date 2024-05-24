@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ $.Chart.Name }}-backend"
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: "nestjs"
+    service: "{{ .Values.backend.labels.service }}"
+spec:
+  selector:
+    matchLabels:
+      app: "nestjs"
+      service: "{{ .Values.backend.labels.service }}"
+  replicas: {{ .Values.backend.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: "nestjs"
+        service: "{{ .Values.backend.labels.service }}"
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+      containers:
+        - name: app
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: "{{ $.Chart.Name }}-global-secrets"
+            - secretRef:
+                name: "{{ $.Chart.Name }}-frontend-secrets"
+            - secretRef:
+                name: "{{ $.Chart.Name }}-backend-secrets"
+          livenessProbe:
+            httpGet:
+              path: /api/healthz/live
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/healthz/ready
+              port: 8000
+            initialDelaySeconds: 1
+            periodSeconds: 10
+          resources:
+            limits:
+              memory: 8192Mi
+              cpu: 1
+            requests:
+              cpu: 50m
+              memory: 256Mi
+          ports:
+            - name: backend
+              containerPort: 8000
+              protocol: TCP
+          volumeMounts:
+            - name: node-ipc
+              mountPath: /ipc
+              readOnly: false
+        - name: ipc
+          image: alpine/socat:1.7.4.4
+          env:
+            - name: CARDANO_NODE_SOCKET_TCP_HOST
+              value: "lidolovelace-cardano-relay-1-service"
+            - name: CARDANO_NODE_SOCKET_TCP_PORT
+              value: "30111"
+            - name: SOCAT_TIMEOUT
+              value: "3600"
+          command: [
+            "sh",
+            "-c",
+            "socat UNIX-LISTEN:/ipc/node.socket,fork TCP:${CARDANO_NODE_SOCKET_TCP_HOST}:${CARDANO_NODE_SOCKET_TCP_PORT},ignoreeof"
+          ]
+          volumeMounts:
+            - mountPath: /ipc
+              name: node-ipc
+              readOnly: false
+      volumes:
+        - name: node-ipc
+          emptyDir: {}

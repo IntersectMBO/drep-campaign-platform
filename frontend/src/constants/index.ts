@@ -3,7 +3,7 @@
 // These constants ensure uniform behavior and settings across different parts of the app.
 // Refer to this file to use or update default configurations for consistent application functionality.
 
-export * from './paths'
-export * from './locales'
-export * from './urls'
-export * from './icons'
+export * from './paths';
+export * from './locales';
+export * from './urls';
+export * from './icons';

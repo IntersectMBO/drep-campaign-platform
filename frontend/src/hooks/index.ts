@@ -1,1 +1,1 @@
-export * from './useScreenDimension'
+export * from './useScreenDimension';

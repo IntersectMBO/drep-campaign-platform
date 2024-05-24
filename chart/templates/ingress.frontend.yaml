@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "{{ $.Chart.Name }}-frontend-ingress"
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: "nextjs"
+    release: "{{ $.Release.Name }}"
+    service: "{{ .Values.frontend.labels.service }}"
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+      {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  tls:
+  {{- range .Values.ingress.tls }}
+  - hosts:
+  {{- range .hosts }}
+    - {{ . }}
+  {{- end }}
+    secretName: {{ .secretName }}
+  {{- end }}
+  rules:
+  {{- range .Values.ingress.hosts }}
+  - host: {{ . }}
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: "{{ $.Chart.Name }}-frontend-service"
+              port:
+                number: 80
+  {{- end }}

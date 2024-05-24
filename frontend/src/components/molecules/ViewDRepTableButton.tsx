@@ -1,12 +1,12 @@
-import React from 'react'
-import Button from '../atoms/Button'
+import React from 'react';
+import Button from '../atoms/Button';
 
-const ViewDRepTableBtn = ({handleClick}) => {
+const ViewDRepTableBtn = ({ handleClick }) => {
   return (
     <Button handleClick={handleClick}>
-     <p>View DRep Table</p>
+      <p>Explore DReps</p>
     </Button>
-  )
-}
+  );
+};
 
-export default ViewDRepTableBtn
+export default ViewDRepTableBtn;

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ $.Chart.Name }}-frontend"
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: "nextjs"
+    service: "{{ .Values.frontend.labels.service }}"
+spec:
+  selector:
+    matchLabels:
+      app: "nextjs"
+      service: "{{ .Values.frontend.labels.service }}"
+  replicas: {{ .Values.frontend.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: "nextjs"
+        service: "{{ .Values.frontend.labels.service }}"
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+      containers:
+        - name: app
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: NEXT_PUBLIC_GOOGLE_API
+              value: {{ .Values.secrets.NEXT_PUBLIC_GOOGLE_API }}
+          envFrom:
+            - secretRef:
+                name: "{{ $.Chart.Name }}-global-secrets"
+            - secretRef:
+                name: "{{ $.Chart.Name }}-backend-secrets"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 1
+            periodSeconds: 10
+          resources:
+            limits:
+              memory: 4192Mi
+              cpu: 600m
+            requests:
+              cpu: 50m
+              memory: 256Mi
+          ports:
+            - name: frontend
+              containerPort: 3000
+              protocol: TCP

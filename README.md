@@ -1,8 +1,8 @@
 # 🚀 Voltaire DRep Campaign Platform 🚀
 
-The DRep Campaign platform was funded by Intersect MBO and originally developed by the Lido Nation team. 
-The platform is a web3/web2 system that allows DReps to create a profile to facilitate their campaigns, 
-communicate with prospective and current delegators, and showcase their onchain and off chain activities. 
+The DRep Campaign platform was funded by Intersect MBO and originally developed by the Lido Nation team.
+The platform is a web3/web2 system that allows DReps to create a profile to facilitate their campaigns,
+communicate with prospective and current delegators, and showcase their onchain and off chain activities.
 
 ## Table of content:
 
@@ -34,7 +34,7 @@ This document serves as a comprehensive guide for setting up the full stack of o
 
 ### API Backend
 
-The api backend is powered by nest.js, A progressive Node.js framework for building efficient, reliable and scalable server-side applications. 
+The api backend is powered by nest.js, A progressive Node.js framework for building efficient, reliable and scalable server-side applications.
 
 ### Database
 
@@ -51,19 +51,19 @@ Before you begin setting up the application, you'll need to clone the repository
 
 1. **Clone the Repository:**
 
-   - Open a terminal on your computer.
-   - Navigate to the directory where you want to store the project.
-   - Run the following command to clone the repository:
-     ```
-     git clone https://github.com/IntersectMBO/drep-campaign-platform.git
-     ```
+    - Open a terminal on your computer.
+    - Navigate to the directory where you want to store the project.
+    - Run the following command to clone the repository:
+      ```
+      git clone https://github.com/IntersectMBO/drep-campaign-platform.git
+      ```
 
 2. **Navigate to the Project Directory:**
-   - After cloning, change into the project's root directory:
-     ```
-     cd drep-campaign-platform
-     ```
-     This directory contains all the files you need to set up the application, including the Docker Compose files and the separate directories for the backend and frontend components.
+    - After cloning, change into the project's root directory:
+      ```
+      cd drep-campaign-platform
+      ```
+      This directory contains all the files you need to set up the application, including the Docker Compose files and the separate directories for the backend and frontend components.
 
 By cloning the repository, you ensure that you have the latest version of the code and all the necessary files to get started with the application setup.
 
@@ -92,10 +92,10 @@ or run `make logs`.
 
 
 ### Accessing the application:**
-   - With all services running, your application components should be accessible at the following URLs:
-     - **Backend:** `http://localhost:8080` – This is  will mostly be called by Next.js server side code, not much to see as it is just an api.
-     - **Frontend:** `http://localhost:4000` – Your Next.js frontend application will be available here, ready to serve your site's visitors.
-     - **Database:** While the database itself won't be directly accessible via a simple URL (since it's meant to be accessed by your backend service), it's running on a mapped port `5434` on your host machine. This setup is specified in your `docker-compose.yaml` file, allowing secure and straightforward connections from your backend service.
+- With all services running, your application components should be accessible at the following URLs:
+    - **Backend:** `http://localhost:8080` – This is  will mostly be called by Next.js server side code, not much to see as it is just an api.
+    - **Frontend:** `http://localhost:4000` – Your Next.js frontend application will be available here, ready to serve your site's visitors.
+    - **Database:** While the database itself won't be directly accessible via a simple URL (since it's meant to be accessed by your backend service), it's running on a mapped port `5434` on your host machine. This setup is specified in your `docker-compose.yaml` file, allowing secure and straightforward connections from your backend service.
 
 ### Overview of services in docker compose:
 

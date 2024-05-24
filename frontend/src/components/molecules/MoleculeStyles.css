@@ -1,31 +1,31 @@
 /* Wallet info text */
-.walletAddrText{
-    flex:1;
-    font-size:14px;
-    font-weight:400;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width:10px;
+.walletAddrText {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 10px;
 }
-.disconnect-btn{
-    display: flex;
-    width: 1px;
-    justify-content: right;
+.disconnect-btn {
+  display: flex;
+  width: 1px;
+  justify-content: right;
 }
-.walletIcon{
-    height: 24px;
-    width:24px;
-    filter:none;
+.walletIcon {
+  height: 24px;
+  width: 24px;
+  filter: none;
 }
-.walletIcon-loading{
-    filter:grayscale(100%);
+.walletIcon-loading {
+  filter: grayscale(100%);
 }
 
-.walletOptionButtonText{
-    color:'blue';
-    font-size: 16px;
-    font-weight: 500;
+.walletOptionButtonText {
+  color: 'blue';
+  font-size: 16px;
+  font-weight: 500;
 }
-.walletOptionButtonText-loading{
-    color:#C1BED3;
+.walletOptionButtonText-loading {
+  color: #c1bed3;
 }

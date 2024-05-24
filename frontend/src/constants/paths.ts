@@ -1,3 +1,3 @@
-export const PATHS={
-    error:'/error'
-}
+export const PATHS = {
+  error: '/error',
+};

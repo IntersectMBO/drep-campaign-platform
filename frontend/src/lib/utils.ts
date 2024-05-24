@@ -5,6 +5,5 @@
 // By centralizing these utilities, we promote a modular and maintainable codebase, facilitating ease of development and testing.
 
 export const sumTestExample = (a, b) => {
-	return a + b;
+  return a + b;
 };
-

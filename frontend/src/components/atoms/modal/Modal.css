@@ -1,38 +1,38 @@
 .modalHeader {
-    margin-bottom: 8px;
-    font-size: 28px;
-    font-weight: 500;
-    text-align: center;
+  margin-bottom: 8px;
+  font-size: 28px;
+  font-weight: 500;
+  text-align: center;
 }
 
 /* Modal Wrapper styles*/
 .base-wrapper {
-    box-shadow: 1px 2px 11px 0px #00123d5e;
-    max-height: 90vh;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    display: flex;
-    flex-direction: column;
-    background: #fbfbff;
-    border-radius: 24px;
-    transform: translate(-50%, -50%);
+  box-shadow: 1px 2px 11px 0px #00123d5e;
+  max-height: 90vh;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  background: #fbfbff;
+  border-radius: 24px;
+  transform: translate(-50%, -50%);
 }
 
 .modal-variant {
-    width: 80vw;
-    max-width: 510px;
-    padding: 52px 24px 34px 24px;
+  width: 80vw;
+  max-width: 510px;
+  padding: 52px 24px 34px 24px;
 }
 
 .popup-variant {
-    width: 320px;
-    height: 320px;
+  width: 320px;
+  height: 320px;
 }
 
 .close-button {
-    cursor: pointer;
-    position: absolute;
-    top: 24px;
-    right: 24px;
+  cursor: pointer;
+  position: absolute;
+  top: 24px;
+  right: 24px;
 }
