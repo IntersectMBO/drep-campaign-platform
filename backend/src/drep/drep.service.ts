@@ -103,43 +103,54 @@ export class DrepService {
       };
     });
     return mergedDreps;
-
   }
   async getSingleDrepViaID(drepId: number) {
-    const drep = await this.voltaireService.getRepository('Drep').query(`
-    SELECT drep.*, attachment.*
-    FROM drep
-    LEFT JOIN attachment ON attachment.parentEntity = 'drep' AND attachment.parentId = drep.id
-    WHERE drep.id = ${drepId};
-    `);
+    const drep = await this.voltaireService
+    .getRepository('Drep')
+    .createQueryBuilder('drep')
+    .leftJoinAndSelect(
+      'attachment',
+      'attachment',
+      'attachment.parentEntity = :parentEntity AND attachment.parentId = drep.id',
+      { parentEntity: 'drep' },
+    )
+    .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
+    .where('drep.id = :drepId', { drepId })
+    .getRawMany();
 
     if (!drep || drep.length === 0) {
       throw new NotFoundException('Drep not found!');
     }
-    if (drep[0].url) {
-      drep[0].url = await this.attachmentService.parseBufferToBase64(
-        drep[0].url,
-        drep[0].attachmentType,
+    if (drep[0].attachment_url) {
+      drep[0].attachment_url = await this.attachmentService.parseBufferToBase64(
+        drep[0].attachment_url,
+        drep[0].attachment_attachmentType,
       );
     }
 
     return drep[0];
   }
   async getSingleDrepViaVoterID(drepVoterId: string) {
-    const drep = await this.voltaireService.getRepository('Drep').query(`
-    SELECT drep.*, attachment.*
-    FROM drep
-    LEFT JOIN attachment ON attachment.parentEntity = 'drep' AND attachment.parentId = drep.id
-    WHERE drep.voter_id = '${drepVoterId}';
-    `);
+    const drep = await this.voltaireService
+      .getRepository('Drep')
+      .createQueryBuilder('drep')
+      .leftJoinAndSelect(
+        'attachment',
+        'attachment',
+        'attachment.parentEntity = :parentEntity AND attachment.parentId = drep.id',
+        { parentEntity: 'drep' },
+      )
+      .leftJoinAndSelect('signature', 'signature', 'signature.drepId = drep.id')
+      .where('signature.drepVoterId = :drepVoterId', { drepVoterId })
+      .getRawMany();
 
     if (!drep || drep.length === 0) {
       throw new NotFoundException('Drep not found!');
     }
-    if (drep[0].url) {
-      drep[0].url = await this.attachmentService.parseBufferToBase64(
-        drep[0].url,
-        drep[0].attachmentType,
+    if (drep[0].attachment_url) {
+      drep[0].attachment_url = await this.attachmentService.parseBufferToBase64(
+        drep[0].attachment_url,
+        drep[0].attachemnt_attachmentType,
       );
     }
 
@@ -153,13 +164,9 @@ export class DrepService {
         ...drep,
         name: faker.person.fullName(),
         bio: faker.lorem.sentences(2),
-        stake_addr: drep.stake_address,
-        voter_id: drep.view,
       };
     });
-    const queryInstance = await this.voltaireService
-      .getRepository('Drep')
-      .insert(modified);
+    await this.voltaireService.getRepository('Drep').insert(modified);
     return modified;
   }
   async registerDrep(drepDto: createDrepDto, profileUrl: Express.Multer.File) {
@@ -178,19 +185,33 @@ export class DrepService {
         insertedDrep.identifiers[0].id,
       );
     }
-    return insertedDrep;
+    const signatureDto = {
+      drep: insertedDrep.identifiers[0].id,
+      drepVoterId: drepDto?.voter_id,
+      drepStakeKey: drepDto?.stake_addr,
+    };
+    const insertedSig = await this.voltaireService
+      .getRepository('Signature')
+      .insert(signatureDto);
+    return { insertedDrep, insertedSig };
   }
   async updateDrepInfo(
     drepId: number,
     drep: createDrepDto,
     profileUrl: Express.Multer.File,
   ) {
-    const foundDrep = await this.voltaireService.getRepository('Drep').query(`
-    SELECT drep.*, attachment.*
-    FROM drep
-    LEFT JOIN attachment ON attachment.parentEntity = 'drep' AND attachment.parentId = drep.id
-    WHERE drep.id = ${drepId};
-    `);
+    const foundDrep = await this.voltaireService
+      .getRepository('Drep')
+      .createQueryBuilder('drep')
+      .leftJoinAndSelect(
+        'attachment',
+        'attachment',
+        'attachment.parentEntity = :parentEntity AND attachment.parentId = drep.id',
+        { parentEntity: 'drep' },
+      )
+      .where('drep.id = :drepId', { drepId })
+      .getMany();
+
     if (!foundDrep) {
       throw new NotFoundException('Drep to be updated not found!');
     }
@@ -207,6 +228,14 @@ export class DrepService {
         drepId,
       );
     }
+   if(drep.signature){
+    await this.voltaireService.getRepository('Signature')
+    .update({drep:foundDrep[0].id}, {drepSignatureKey:drep.key, drepSignature:drep.signature})
+    delete drep.signature
+    delete drep.key
+    delete drep.stake_addr
+    delete drep.voter_id
+   }
     const updatedDrep = Object.keys(drep).reduce((acc, key) => {
       let value = drep[key];
       try {

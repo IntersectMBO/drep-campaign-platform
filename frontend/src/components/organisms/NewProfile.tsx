@@ -71,7 +71,8 @@ const NewProfile = () => {
       const res = await newDRepMutation.mutateAsync({
         drep: formData as drepInput,
       });
-      setNewDrepId(res.raw[0].id);
+      const {insertedDrep, insertedSig}=res
+      setNewDrepId(insertedDrep.raw[0].id);
       setCurrentRegistrationStep(1);
       addSuccessAlert('DRep Profile Created Successfully!');
       router.push(`/dreps/workflow/profile/update/step1`);

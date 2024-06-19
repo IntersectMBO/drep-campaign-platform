@@ -3,6 +3,7 @@ import StatusChip from '../atoms/StatusChip';
 import { useGetDRepsQuery } from '@/hooks/useGetDRepsQuery';
 import HoverChip from '../atoms/HoverChip';
 import { useRouter } from 'next/navigation';
+import { convertString } from '@/lib';
 
 const DRepsTable = ({ searchQuery }) => {
   const router = useRouter();
@@ -35,18 +36,6 @@ const DRepsTable = ({ searchQuery }) => {
     } else {
       return 'Not registered';
     }
-  }
-
-  function convertString(inputString: string) {
-    if (inputString.length <= 10) {
-      return inputString; // If the string is too short, no replacement is needed
-    }
-    //the string will be truncated per mobile width
-    if (isMobile) {
-      return inputString.slice(0, 5) + '.......' + inputString.slice(-5);
-    }
-
-    return inputString.slice(0, 10) + '.......' + inputString.slice(-10);
   }
   return (
     <div className="overflow-x-auto">
@@ -81,7 +70,7 @@ const DRepsTable = ({ searchQuery }) => {
                 data-testid={`drep-id-${drep.view}`}
                 className="text-nowrap text-left text-sm"
               >
-                <td className="px-4 py-2">{convertString(drep.view)}</td>
+                <td className="px-4 py-2">{convertString(drep.view, isMobile)}</td>
                 <td className="px-4 py-2">{drep.epoch_no}</td>
                 <td className="px-4 py-2">{drep?.name || 'Coming soon'}</td>
                 <td className="px-4 py-2">
