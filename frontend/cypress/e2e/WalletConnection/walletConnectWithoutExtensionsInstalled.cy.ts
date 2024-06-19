@@ -4,7 +4,7 @@ describe('Wallet Integration Test', () => {
     cy.visit('en/dreps');
 
     // Click the connect button to open the modal
-    cy.get('[data-testid=comp-connect-wallet-button]').click();
+    cy.get('[data-testid=header-connect-wallet-button]').click();
 
     // Wait for the modal to be visible
     cy.get('[data-testid=connect-your-wallet-modal]').should('be.visible');

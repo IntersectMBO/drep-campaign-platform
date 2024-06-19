@@ -2,10 +2,13 @@ import { Box, Button, Typography } from '@mui/material';
 
 import { useCardano } from '@/context/walletContext';
 import './MoleculeStyles.css';
+import { useDRepContext } from '@/context/drepContext';
 export const WalletInfoCard = () => {
   const { address, disconnectWallet } = useCardano();
+  const {setIsWalletListModalOpen}=useDRepContext()
   const onClickDisconnect = async () => {
     await disconnectWallet();
+    setIsWalletListModalOpen(false)
   };
 
   return (

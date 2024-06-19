@@ -13,6 +13,7 @@ import { usePostUpdateDrepMutation } from '@/hooks/usePostUpdateDRepMutation';
 import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
+import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 const FormSchema = z.object({
   metadata: z.string(),
 });
@@ -22,20 +23,41 @@ const UpdateProfileStep3 = () => {
   const {
     register,
     handleSubmit,
-    control,
+    getValues,
     formState: { errors },
     setValue,
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
   const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
-  const [currentProfileUrl, setCurrentProfileUrl] = useState<string | null>(
-    null,
-  );
-  const router = useRouter();
-  const { setIsNotDRepErrorModalOpen, drepId } = useDRepContext();
+  const { setIsNotDRepErrorModalOpen, drepId , setStep3Status, setNewDrepId} = useDRepContext();
   const { addChangesSavedAlert } = useGlobalNotifications();
   const updateDrepMutation = usePostUpdateDrepMutation();
+  useEffect(() => {
+      const getDRep = async () => {
+        try {
+          let drep;
+          if (drepId) {
+            drep = await getSingleDRep(drepId);
+          }else if(dRepIDBech32){
+            drep = await getSingleDRepViaVoterId(dRepIDBech32);
+          }
+          setValue('metadata', drep.metadata);
+          setNewDrepId(drep.id);
+          if(drep.metadata){
+            setStep3Status('update')
+          } else setStep3Status('active')
+        } catch (error) {
+          console.log(error);
+        }
+      };
+      getDRep();
+      return () => {
+        if(Boolean(getValues('metadata'))){
+          setStep3Status('success')
+        } else setStep3Status('pending')
+      }
+    }, [dRepIDBech32]);
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {

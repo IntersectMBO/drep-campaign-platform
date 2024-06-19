@@ -11,6 +11,8 @@ import { usePostUpdateDrepMutation } from '@/hooks/usePostUpdateDRepMutation';
 import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
+import { getSingleDRep } from '@/services/requests/getSingleDrep';
+import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 const FormSchema = z.object({
   github: z
     .string()
@@ -49,14 +51,44 @@ const UpdateProfileStep4 = () => {
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
+    setValue
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
   const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
-  const { setIsNotDRepErrorModalOpen, drepId } = useDRepContext();
+  const { setIsNotDRepErrorModalOpen, drepId, setStep4Status, setNewDrepId } = useDRepContext();
   const { addChangesSavedAlert } = useGlobalNotifications();
   const updateDrepMutation = usePostUpdateDrepMutation();
+  
+  useEffect(() => {
+      const getDRep = async () => {
+        try {
+          let drep;
+          if (drepId) {
+            drep = await getSingleDRep(drepId);
+          }else if(dRepIDBech32){
+            drep = await getSingleDRepViaVoterId(dRepIDBech32);
+          }
+          setValue('github', drep.social?.github||'');
+          setValue('x', drep.social?.x || '');
+          setValue('facebook', drep.social?.facebook || '');
+          setNewDrepId(drep.id)
+          if (drep.social?.github || drep.social?.x || drep.social?.facebook) {
+            setStep4Status('update');
+          } else setStep4Status('active');
+        } catch (error) {
+          console.log(error);
+        }
+      };
+      getDRep();
+      return () => {
+        if(Boolean(getValues('github')) || Boolean(getValues('x')) || Boolean(getValues('facebook'))){
+          setStep4Status('success')
+        } else setStep4Status('pending')
+      }
+    }, [dRepIDBech32]); 
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
