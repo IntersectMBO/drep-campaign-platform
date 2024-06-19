@@ -27,7 +27,7 @@ const toBase64 = (file: File) => {
   });
 };
 const FormSchema = z.object({
-  profileName: z.string(),
+  profileName: z.string().min(1, { message: 'Profile name is required' }),
   profileUrl: z.any(),
 });
 type InputType = z.infer<typeof FormSchema>;
@@ -50,7 +50,6 @@ const NewProfile = () => {
   const {
     setIsNotDRepErrorModalOpen,
     setNewDrepId,
-    setStep1Status,
     setCurrentRegistrationStep,
   } = useDRepContext();
   const saveProfile: SubmitHandler<InputType> = async (data) => {
@@ -73,7 +72,6 @@ const NewProfile = () => {
         drep: formData as drepInput,
       });
       setNewDrepId(res.raw[0].id);
-      setStep1Status('update');
       setCurrentRegistrationStep(1);
       addSuccessAlert('DRep Profile Created Successfully!');
       router.push(`/dreps/workflow/profile/update/step1`);

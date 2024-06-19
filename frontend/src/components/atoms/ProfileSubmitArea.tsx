@@ -19,38 +19,35 @@ const ProfileSubmitArea = ({ isUpdate }: ProfileSubmitAreaProps) => {
   } = useDRepContext();
 
   const handleNavigate = (step: number) => {
-    if (!isUpdate) return;
+    if (!isUpdate) {
+      router.push('/dreps');
+      return
+    };
     const submitButton = document.getElementById(
       'profile-submit-button',
     ) as HTMLButtonElement;
     submitButton.click();
-    console.log(currentRegistrationStep);
     if (currentRegistrationStep === 1) {
-      setStep1Status('success');
       setStep2Status('active');
       setCurrentRegistrationStep(2);
       router.push(
         `/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`,
       );
     } else if (currentRegistrationStep === 2) {
-      setStep2Status('success');
       setStep3Status('active');
       setCurrentRegistrationStep(3);
       router.push(
         `/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`,
       );
     } else if (currentRegistrationStep === 3) {
-      setStep3Status('success');
       setStep4Status('active');
       setCurrentRegistrationStep(4);
       router.push(
         `/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`,
       );
     } else if (currentRegistrationStep === 4) {
-      setStep4Status('update');
-      // reroute to the profile page
-    } else {
-      console.log('default');
+      setStep4Status('success');
+      router.push('/dreps/workflow/profile/success')
     }
   };
   return (
@@ -71,6 +68,7 @@ const ProfileSubmitArea = ({ isUpdate }: ProfileSubmitAreaProps) => {
           bgColor="transparent"
           handleClick={handleNavigate}
           id="next_button"
+          sx={!isEnabled ? { pointerEvents: 'none' } : {}}
         >
           <p className="px-5 text-center text-sm font-medium leading-4 text-blue-800">
             {isUpdate ? 'Next' : 'Cancel'}

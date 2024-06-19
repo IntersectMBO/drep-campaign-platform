@@ -10,6 +10,8 @@ import { usePostUpdateDrepMutation } from '@/hooks/usePostUpdateDRepMutation';
 import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
+import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
+import { getSingleDRep } from '@/services/requests/getSingleDrep';
 const FormSchema = z.object({
   statement: z.string(),
 });
@@ -19,8 +21,7 @@ const UpdateProfileStep2 = () => {
   const {
     register,
     handleSubmit,
-    reset,
-    control,
+    getValues,
     formState: { errors },
     setValue,
   } = useForm<InputType>({
@@ -28,10 +29,34 @@ const UpdateProfileStep2 = () => {
   });
   const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
 
-  const { setIsNotDRepErrorModalOpen, drepId } = useDRepContext();
+  const { setIsNotDRepErrorModalOpen, drepId, setStep2Status, setNewDrepId} = useDRepContext();
   const { addChangesSavedAlert } = useGlobalNotifications();
   const updateDrepMutation = usePostUpdateDrepMutation();
-
+  useEffect(() => {
+    const getDRep = async () => {
+      try {
+        let drep;
+        if (drepId) {
+          drep = await getSingleDRep(drepId);
+        }else if(dRepIDBech32){
+          drep = await getSingleDRepViaVoterId(dRepIDBech32);
+        }
+        setValue('statement', drep.platform_statement);
+        setNewDrepId(drep.id);
+        if(drep.platform_statement){
+          setStep2Status('update')
+        }else setStep2Status('active')
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getDRep();
+    return () => {
+      if(Boolean(getValues('statement'))){
+        setStep2Status('success')
+      } else setStep2Status('pending')
+    }
+  }, [dRepIDBech32]);
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {

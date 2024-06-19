@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -85,14 +86,13 @@ const CardanoContext = createContext<CardanoContext>({} as CardanoContext);
 CardanoContext.displayName = 'CardanoContext';
 
 function CardanoProvider(props: Props) {
-  const {sharedState, updateSharedState} = useSharedContext();
+  const { sharedState, updateSharedState } = useSharedContext();
   const [isEnabled, setIsEnabled] = useState(false);
   const [isEnableLoading, setIsEnableLoading] = useState<string | null>(null);
   const [voter, setVoter] = useState<VoterInfo | undefined>(undefined);
   const [walletApi, setWalletApi] = useState<CardanoApiWallet | undefined>(
     undefined,
   );
-  const { setIsWalletListModalOpen } = useDRepContext();
   const [isEnabling, setIsEnabling] = useState<boolean>(false);
   const [address, setAddress] = useState<string | undefined>(undefined);
   const [pubDRepKey, setPubDRepKey] = useState<string>('');
@@ -114,6 +114,19 @@ function CardanoProvider(props: Props) {
     changeAddress: undefined,
     usedAddress: undefined,
   });
+  useEffect(() => {
+    const existingWalletAPI = getItemFromLocalStorage(`${WALLET_LS_KEY}_api`);
+    const currentWalletEnabled = getItemFromLocalStorage(
+      `${WALLET_LS_KEY}_name`,
+    );
+    const enableCurrentWallet = async () => {
+      if (existingWalletAPI && currentWalletEnabled) {
+        setWalletApi(existingWalletAPI);
+        await enable(currentWalletEnabled);
+      }
+    };
+    enableCurrentWallet();
+  }, []);
 
   const getChangeAddress = async (enabledApi: CardanoApiWallet) => {
     try {
@@ -348,9 +361,9 @@ function CardanoProvider(props: Props) {
           setDRepID(dRepIDs?.dRepID || '');
           setDRepIDBech32(dRepIDs?.dRepIDBech32 || '');
           setItemToLocalStorage(`${WALLET_LS_KEY}_name`, walletName);
-
+          setItemToLocalStorage(`${WALLET_LS_KEY}_api`, enabledApi);
           setIsEnabling(false);
-          updateSharedState({isWalletListModalOpen: false });
+          updateSharedState({ isWalletListModalOpen: false });
           return { status: 'ok', stakeKey: stakeKeySet };
         } catch (e) {
           Sentry.captureException(e);
@@ -377,9 +390,9 @@ function CardanoProvider(props: Props) {
   );
 
   const disconnectWallet = useCallback(async () => {
-    console.log('disconnecting');
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_name`);
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_stake_key`);
+    removeItemFromLocalStorage(`${WALLET_LS_KEY}_api`);
     setWalletApi(undefined);
     setAddress(undefined);
     setStakeKey(undefined);
@@ -415,7 +428,7 @@ function CardanoProvider(props: Props) {
       setDelegatedDRepID,
       isEnableLoading,
       isEnabling,
-      sharedState
+      sharedState,
     }),
     [
       address,

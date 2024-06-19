@@ -1,15 +1,14 @@
 import React, { useRef, useEffect, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { stepStatus, useDRepContext } from '@/context/drepContext';
-
+import { usePathname } from 'next/navigation';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
 const stepStatusChip = (stepNumber, stepText, stepStatus, handleClick) => {
   const baseClasses = "flex flex-col items-center justify-center gap-1 px-16 py-3 cursor-pointer";
   const activeClasses = "border-b-2 border-b-blue-800";
   const inactiveClasses = "border-b-2 border-b-gray-300";
   const numberClasses = "h-8 w-8 rounded-full text-center text-white p-1";
-
   const onClick = () => handleClick(stepNumber);
-
   if (stepStatus === 'active') {
     return (
       <div className={`${baseClasses} ${activeClasses}`} onClick={onClick}>
@@ -38,39 +37,36 @@ const stepStatusChip = (stepNumber, stepText, stepStatus, handleClick) => {
 
 const SetupProgressBar = () => {
   const {
-    step1Status, step2Status, step3Status, step4Status,
-    currentRegistrationStep, setStep1Status, setStep2Status,
-    setStep3Status, setStep4Status, setCurrentRegistrationStep
+    step1Status, step2Status, step3Status, step4Status, setStep1Status, setStep2Status,
+    setStep3Status, setStep4Status, setCurrentRegistrationStep, currentLocale
   } = useDRepContext();
-
+  const pathname= usePathname()
   const router = useRouter();
   const containerRef = useRef(null);
   const stepRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
-
+  const {addWarningAlert}=useGlobalNotifications()
   const handleNavigate = (step) => {
-
+    if (pathname=== `/${currentLocale}/dreps/workflow/profile/new`){
+      addWarningAlert('You need to complete this step first.')
+      return
+    };
     if (step === 1) {
-      setStep1Status('update');
-      setStep2Status('active');
+      setStep1Status('active');
       setCurrentRegistrationStep(1);
       router.push(`/dreps/workflow/profile/update/step${step}`);
     } else if (step === 2) {
-      setStep2Status('update');
-      setStep3Status('active');
+      setStep2Status('active');
       setCurrentRegistrationStep(2);
       router.push(`/dreps/workflow/profile/update/step${step}`);
     } else if (step === 3) {
-      setStep3Status('update');
-      setStep4Status('active');
+      setStep3Status('active');
       setCurrentRegistrationStep(3);
       router.push(`/dreps/workflow/profile/update/step${step}`);
     } else if (step === 4) {
-      setStep4Status('update');
+      setStep4Status('active');
       setCurrentRegistrationStep(4);
       router.push(`/dreps/workflow/profile/update/step${step}`);
-    } else {
-      console.log('default');
-    }
+    } 
   };
 
   useEffect(() => {
