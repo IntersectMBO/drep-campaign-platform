@@ -11,6 +11,7 @@ import {
 import { Delegator } from './delegator.entity';
 import { Note } from './note.entity';
 import { Comment } from './comment.entity';
+import { BaseEntity } from 'src/global';
 
 enum ReactionTypeName {
   Like = 'like',
@@ -25,10 +26,8 @@ export enum ReactionParentEntityType {
 
 @Entity()
 @Unique(['delegator', 'type']) // Ensures delegator cant like or thumbs up twice
-export class Reaction {
-  //auto increment primary key decorator
-  @PrimaryGeneratedColumn()
-  id: number;
+export class Reaction extends BaseEntity {
+ 
 
   @Column({
     type: 'enum',
@@ -56,10 +55,5 @@ export class Reaction {
 
   @ManyToOne(() => Delegator, (delegator) => delegator.id) // Many-to-One relationship with Delegator
   delegator: Delegator;
-  //timestamps
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
+ 
 }
