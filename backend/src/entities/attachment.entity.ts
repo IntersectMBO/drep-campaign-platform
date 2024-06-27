@@ -9,6 +9,7 @@ import {
 import { Note } from './note.entity';
 import { Drep } from './drep.entity';
 import { Comment } from './comment.entity';
+import { BaseEntity } from 'src/global';
 export enum AttachmentTypeName {
   Link = 'link',
   PDF = 'pdf',
@@ -25,9 +26,7 @@ export enum AttachmentParentEntityType {
   Comment = 'comment',
 }
 @Entity()
-export class Attachment {
-  @PrimaryGeneratedColumn()
-  id: number;
+export class Attachment  extends BaseEntity {
 
   @Column({ type: 'bytea' })
   url: Uint8Array;
@@ -57,10 +56,4 @@ export class Attachment {
     default: AttachmentTypeName.Link,
   })
   attachmentType: AttachmentTypeName;
-
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }

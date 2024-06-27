@@ -8,11 +8,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Note } from './note.entity';
+import { BaseEntity } from 'src/global';
 
 @Entity()
-export class Drep {
-  @PrimaryGeneratedColumn()
-  id: number;
+export class Drep extends BaseEntity {
+ 
   @Column({ unique: true, nullable: true })
   name: string;
 
@@ -38,12 +38,4 @@ export class Drep {
   @Column({ nullable: false, unique: true })
   voter_id: string;
 
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @DeleteDateColumn({ nullable: true })
-  deletedAt: Date;
 }

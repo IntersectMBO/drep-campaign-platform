@@ -1,3 +1,4 @@
+import { BaseEntity } from 'src/global';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,9 +8,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Delegator {
-  @PrimaryGeneratedColumn()
-  id: number;
+export class Delegator extends BaseEntity {
 
   @Column({ unique: true, nullable: false })
   name: string;
@@ -17,9 +16,4 @@ export class Delegator {
   @Column({ nullable: true })
   voter_id: string;
 
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }
