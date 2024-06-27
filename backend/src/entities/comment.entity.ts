@@ -10,15 +10,13 @@ import {
 } from 'typeorm';
 import { Note } from './note.entity';
 import { Delegator } from './delegator.entity';
+import { BaseEntity } from 'src/global';
 export enum CommentParentEntityType {
   Note = 'note',
   Comment = 'comment',
 }
 @Entity()
-export class Comment {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Comment extends BaseEntity {
   @Column()
   content: string;
 
@@ -41,9 +39,4 @@ export class Comment {
   @ManyToOne(() => Delegator, (delegator) => delegator.id) // Many-to-One relationship with Delegator
   delegator: Delegator;
 
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }
