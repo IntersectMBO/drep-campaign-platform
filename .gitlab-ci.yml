@@ -17,11 +17,13 @@ variables:
   DEPLOY_WEBSITE:
     value: "true"
     description: "Build and deploy www.lidonation.com"
+  CYPRESS_CACHE_FOLDER: '$CI_PROJECT_DIR/frontend/cache/Cypress'
 
 stages:
   - build
   - staging
   - production
+  - test
 
 before_script:
   - |
@@ -191,8 +193,7 @@ staging:
     - |
       set -xev
       
-      DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
-      
+      DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"    
       cp $ENV_FILE backend/.env.production
       cat $ENV_FILE_BACKEND > backend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
@@ -299,3 +300,21 @@ production:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
 
+ui-chrome-tests:
+  image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
+  stage: test
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - frontend/.cache/*
+      - frontend/cache/Cypress
+      - frontend/*node_modules
+      - frontend/build
+  script:
+    - cd frontend
+    - yarn install --frozen-lockfile
+    # start the server in the background
+    - yarn run build
+    - yarn run start &
+    # run Cypress tests in parallel
+    - npx cypress run --browser chrome --config video=false || true
