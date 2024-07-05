@@ -12,8 +12,9 @@ import { getSingleDRep } from '@/services/requests/getSingleDrep';
 import { usePostUpdateDrepMutation } from '@/hooks/usePostUpdateDRepMutation';
 import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
+import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 const FormSchema = z.object({
-  profileName: z.string(),
+  profileName: z.string().min(1, { message: 'Profile name is required' }),
   profileUrl: z.any(),
 });
 type InputType = z.infer<typeof FormSchema>;
@@ -22,8 +23,9 @@ const UpdateProfile = () => {
   const {
     register,
     handleSubmit,
-    reset,
+    getFieldState, 
     control,
+    getValues,
     formState: { errors },
     setValue,
   } = useForm<InputType>({
@@ -34,21 +36,28 @@ const UpdateProfile = () => {
     null,
   );
   const router = useRouter();
-  const { setIsNotDRepErrorModalOpen, drepId } = useDRepContext();
+  const { setIsNotDRepErrorModalOpen, drepId, setStep1Status, setNewDrepId } = useDRepContext();
   const { addChangesSavedAlert } = useGlobalNotifications();
   const updateDrepMutation = usePostUpdateDrepMutation();
   useEffect(() => {
-    const getDRep = async (drepId) => {
+    const getDRep = async () => {
       try {
-        const drep = await getSingleDRep(drepId);
-        setValue('profileName', drep.name);
-        setCurrentProfileUrl(drep.url);
+        let drep;
+        if (drepId) {
+          drep = await getSingleDRep(drepId);
+        }else if(dRepIDBech32){
+          drep = await getSingleDRepViaVoterId(dRepIDBech32);
+        }
+        setValue('profileName', drep.drep_name);
+        setNewDrepId(drep.drep_id);
+        setCurrentProfileUrl(drep.attachment_url);
       } catch (error) {
         console.log(error);
       }
     };
-    if (drepId) getDRep(drepId);
-  }, []);
+    getDRep();
+    return () => {setStep1Status('success')}
+  }, [dRepIDBech32]);
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
@@ -60,8 +69,6 @@ const UpdateProfile = () => {
       ).to_bech32();
       const formData = new FormData();
       formData.append('name', data.profileName);
-      formData.append('stake_addr', stakeAddress);
-      formData.append('voter_id', dRepIDBech32);
       if (data.profileUrl) {
         formData.append('profileUrl', data?.profileUrl[0] as string);
       }

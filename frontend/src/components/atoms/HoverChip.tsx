@@ -30,7 +30,7 @@ const HoverChip = ({
           transition={{ duration: 0.2 }}
           className="absolute z-10 flex max-w-44 flex-col text-wrap rounded-md bg-zinc-800 p-2 text-sm text-white shadow-md"
           style={{
-            top: `${position === 'top' ? '-35px' : '35px'}`,
+            top: `${position === 'top' ? '-55px' : '35px'}`,
             transform: 'translateX(-50%)',
           }}
         >
@@ -51,7 +51,7 @@ const HoverChip = ({
           )}
 
           <div
-            className={`absolute left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 transform bg-zinc-800 ${position === 'bottom' && '-top-1'}`}
+            className={`absolute left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 transform bg-zinc-800 ${position === 'bottom' ? '-top-1' : '-bottom-1'}`}
           ></div>
         </motion.div>
       )}

@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -66,6 +67,7 @@ interface CardanoContext {
   stakeKey?: string;
   setVoter: (key: undefined | VoterInfo) => void;
   setStakeKey: (key: string) => void;
+  loginSignTransaction: () => Promise<any>;
   stakeKeys: string[];
   walletApi?: CardanoApiWallet;
   delegatedDRepID?: string;
@@ -85,14 +87,13 @@ const CardanoContext = createContext<CardanoContext>({} as CardanoContext);
 CardanoContext.displayName = 'CardanoContext';
 
 function CardanoProvider(props: Props) {
-  const {sharedState, updateSharedState} = useSharedContext();
+  const { sharedState, updateSharedState } = useSharedContext();
   const [isEnabled, setIsEnabled] = useState(false);
   const [isEnableLoading, setIsEnableLoading] = useState<string | null>(null);
   const [voter, setVoter] = useState<VoterInfo | undefined>(undefined);
   const [walletApi, setWalletApi] = useState<CardanoApiWallet | undefined>(
     undefined,
   );
-  const { setIsWalletListModalOpen } = useDRepContext();
   const [isEnabling, setIsEnabling] = useState<boolean>(false);
   const [address, setAddress] = useState<string | undefined>(undefined);
   const [pubDRepKey, setPubDRepKey] = useState<string>('');
@@ -114,6 +115,19 @@ function CardanoProvider(props: Props) {
     changeAddress: undefined,
     usedAddress: undefined,
   });
+  useEffect(() => {
+    const existingWalletAPI = getItemFromLocalStorage(`${WALLET_LS_KEY}_api`);
+    const currentWalletEnabled = getItemFromLocalStorage(
+      `${WALLET_LS_KEY}_name`,
+    );
+    const enableCurrentWallet = async () => {
+      if (existingWalletAPI && currentWalletEnabled) {
+        setWalletApi(existingWalletAPI);
+        await enable(currentWalletEnabled);
+      }
+    };
+    enableCurrentWallet();
+  }, []);
 
   const getChangeAddress = async (enabledApi: CardanoApiWallet) => {
     try {
@@ -249,20 +263,16 @@ function CardanoProvider(props: Props) {
               Sentry.captureException(e);
               throw e.info;
             });
-          console.log('enabled cip95');
           await getChangeAddress(enabledApi);
-          console.log('got change address');
           await getUsedAddresses(enabledApi);
-          console.log('got used address');
           setIsEnabled(true);
           setWalletApi(enabledApi);
           // Check if wallet has enabled the CIP-95 extension
           const enabledExtensions = await enabledApi.getExtensions();
           if (!enabledExtensions.some((item) => item.cip === 95)) {
-            throw new Error('errors.walletNoCIP90FunctionsEnabled');
+            throw new Error('errors.walletNoCIP95FunctionsEnabled');
           }
           const network = await enabledApi.getNetworkId();
-          console.log('net', network);
           setIsMainnet(network == 1);
           //Check and set wallet balance
           await getBalance(enabledApi);
@@ -348,9 +358,9 @@ function CardanoProvider(props: Props) {
           setDRepID(dRepIDs?.dRepID || '');
           setDRepIDBech32(dRepIDs?.dRepIDBech32 || '');
           setItemToLocalStorage(`${WALLET_LS_KEY}_name`, walletName);
-
+          setItemToLocalStorage(`${WALLET_LS_KEY}_api`, enabledApi);
           setIsEnabling(false);
-          updateSharedState({isWalletListModalOpen: false });
+          updateSharedState({ isWalletListModalOpen: false });
           return { status: 'ok', stakeKey: stakeKeySet };
         } catch (e) {
           Sentry.captureException(e);
@@ -375,11 +385,25 @@ function CardanoProvider(props: Props) {
     },
     [isEnabled, stakeKeys],
   );
+  //implement sign transaction to determine whether the public key owner is the same owner of the secret key
+  const loginSignTransaction = async () => {
+    try {
+      //get the public key of the wallet
+      const drepPubKey = dRepID;
+      const payloadBuffer=Buffer.from(`Verify DRep ${dRepIDBech32}`).toString('hex');
+      const sign = await walletApi.signData(drepPubKey,payloadBuffer );
+      return sign;
+    } catch (e) {
+      Sentry.captureException(e);
+      console.error(e);
+      throw e;
+    }
+  };
 
   const disconnectWallet = useCallback(async () => {
-    console.log('disconnecting');
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_name`);
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_stake_key`);
+    removeItemFromLocalStorage(`${WALLET_LS_KEY}_api`);
     setWalletApi(undefined);
     setAddress(undefined);
     setStakeKey(undefined);
@@ -402,6 +426,7 @@ function CardanoProvider(props: Props) {
       isEnabled,
       isMainnet,
       disconnectWallet,
+      loginSignTransaction,
       dRepID,
       dRepIDBech32,
       pubDRepKey,
@@ -415,7 +440,7 @@ function CardanoProvider(props: Props) {
       setDelegatedDRepID,
       isEnableLoading,
       isEnabling,
-      sharedState
+      sharedState,
     }),
     [
       address,

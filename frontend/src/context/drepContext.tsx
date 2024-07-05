@@ -10,6 +10,7 @@ interface DRepContext {
   step2Status: stepStatus['status'];
   step3Status: stepStatus['status'];
   step4Status: stepStatus['status'];
+  step5Status: stepStatus['status'];
   isMobileDrawerOpen: boolean;
   isWalletListModalOpen: boolean;
   isNotDRepErrorModalOpen: boolean;
@@ -20,6 +21,7 @@ interface DRepContext {
   setStep2Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
   setStep3Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
   setStep4Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
+  setStep5Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
   setCurrentRegistrationStep: React.Dispatch<React.SetStateAction<number>>;
   setIsNotDRepErrorModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsWalletListModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -55,6 +57,8 @@ function DRepProvider(props: Props) {
     useState<stepStatus['status']>('pending');
   const [step4Status, setStep4Status] =
     useState<stepStatus['status']>('pending');
+  const [step5Status, setStep5Status] =
+    useState<stepStatus['status']>('pending');
   //will fix later
   const [currentLocale, setCurrentLocale] = useState<string | null>('en');
   useEffect(() => {
@@ -71,12 +75,14 @@ function DRepProvider(props: Props) {
       step2Status,
       step3Status,
       step4Status,
+      step5Status,
       isMobileDrawerOpen,
       currentRegistrationStep,
       setStep1Status,
       setStep2Status,
       setStep3Status,
       setStep4Status,
+      setStep5Status,
       setIsWalletListModalOpen,
       setIsNotDRepErrorModalOpen,
       setCurrentLocale,
@@ -95,6 +101,7 @@ function DRepProvider(props: Props) {
       step2Status,
       step3Status,
       step4Status,
+      step5Status,
       isMobileDrawerOpen,
       sharedState,
     ],
@@ -105,7 +112,6 @@ function DRepProvider(props: Props) {
       {props.children}
       {sharedState.isWalletListModalOpen && (
         <div className="blur-container absolute top-0 left-0  z-50 flex h-screen w-full items-center justify-center">
-          hi im a modal
           <ChooseWalletModal />
         </div>
       )}

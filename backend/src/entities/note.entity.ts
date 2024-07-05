@@ -25,7 +25,7 @@ export class Note extends BaseEntity {
   @Column({ nullable: false })
   note_content: string;
 
-  @ManyToOne(() => Drep, (drep) => drep.voter_id)
+  @ManyToOne(() => Drep, (drep) => drep.id)
   voter: Drep;
 
   @Column()

@@ -6,7 +6,7 @@ describe('Load page and show dreps', () => {
     cy.intercept(
       {
         method: 'GET',
-        url: `http://localhost:8000/api/dreps`,
+        url: Cypress.env('backendUrl') + '/dreps',
       },
       {
         fixture: 'drepresexample.json',

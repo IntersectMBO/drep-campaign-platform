@@ -2,10 +2,12 @@ describe('Create new note if wallet is connected', () => {
   let noteId;
   it('should create a new note', () => {
     //check if backend is running
-    cy.request('http://localhost:8000/api/notes/all');
+    cy.request(Cypress.env('backendUrl') + '/notes/all' ).should((response) => {
+      expect(response.status).to.eq(200);
+    } );
 
     // Load the page ps. remove localhost:300 if testing via cli
-    cy.visit('localhost:3000/en/dreps/workflow/notes/new');
+    cy.visit('/en/dreps/workflow/notes/new');
 
     // Click the connect button to open the modal
     cy.get('[data-testid=header-connect-wallet-button]').click();
@@ -33,7 +35,7 @@ describe('Create new note if wallet is connected', () => {
     );
     cy.get('input[value="everyone"]').click();
     cy.get('input[value="everyone"]').should('be.checked');
-    cy.intercept('POST', 'http://localhost:8000/api/notes/new').as('add-note');
+    cy.intercept('POST', Cypress.env('backendUrl') +  '/notes/new').as('add-note');
     cy.get('[data-testid=post-submit-button]').click();
     cy.wait('@add-note').then(({ response }) => {
       expect(response.body).to.have.property('noteAdded');
@@ -43,7 +45,7 @@ describe('Create new note if wallet is connected', () => {
   });
   it('should update an existing note', () => {
     // Load the page ps. remove localhost:3000 if testing via cli
-    cy.visit(`localhost:3000/en/dreps/workflow/notes/${noteId}/update`);
+    cy.visit(`en/dreps/workflow/notes/${noteId}/update`);
 
     // Click the connect button to open the modal
     cy.get('[data-testid=header-connect-wallet-button]').click();
@@ -77,7 +79,7 @@ describe('Create new note if wallet is connected', () => {
     );
     cy.get('input[value="myself"]').click();
     cy.get('input[value="myself"]').should('be.checked');
-    cy.intercept('POST', `http://localhost:8000/api/notes/${noteId}/update`).as(
+    cy.intercept('POST', Cypress.env('backendUrl') + `/notes/${noteId}/update`).as(
       'update-note',
     );
     cy.get('[data-testid=post-submit-button]').click();

@@ -9,17 +9,20 @@ import {
 } from 'typeorm';
 import { Note } from './note.entity';
 import { BaseEntity } from 'src/global';
+import { Signature } from './signatures.entity';
 
 @Entity()
 export class Drep extends BaseEntity {
- 
+  
   @Column({ unique: true, nullable: true })
   name: string;
 
   @Column({ nullable: true })
   bio: string;
+
   @Column({ nullable: true })
   metadata: string;
+
   @Column({ type: 'json', nullable: true })
   social: Record<string, any>;
 
@@ -32,10 +35,7 @@ export class Drep extends BaseEntity {
   @Column({ nullable: true })
   perspective: string;
 
-  @Column({})
-  stake_addr: string;
-
-  @Column({ nullable: false, unique: true })
-  voter_id: string;
+  @OneToMany(() => Signature, (signature) => signature.drep)
+  signatures: Signature[];
 
 }

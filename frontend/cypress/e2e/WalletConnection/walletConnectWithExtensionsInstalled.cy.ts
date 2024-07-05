@@ -3,7 +3,7 @@ import { CardanoBrowserWallet } from '@/models/wallet';
 describe('Wallet Integration Test', () => {
   it('should connect a wallet and display wallet address', () => {
     // Load the page
-    cy.visit('localhost:3000/en/dreps');
+    cy.visit('/en/dreps');
 
     // Click the connect button to open the modal
     cy.get('[data-testid=header-connect-wallet-button]').click();

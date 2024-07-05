@@ -5,8 +5,9 @@ import { useDRepContext } from '@/context/drepContext';
 import { useRouter } from 'next/navigation';
 interface ProfileSubmitAreaProps {
   isUpdate?: boolean;
+  isDisabled?: boolean; 
 }
-const ProfileSubmitArea = ({ isUpdate }: ProfileSubmitAreaProps) => {
+const ProfileSubmitArea = ({ isUpdate, isDisabled=false }: ProfileSubmitAreaProps) => {
   const { isEnabled } = useCardano();
   const router = useRouter();
   const {
@@ -16,41 +17,43 @@ const ProfileSubmitArea = ({ isUpdate }: ProfileSubmitAreaProps) => {
     setStep2Status,
     setStep3Status,
     setStep4Status,
+    setStep5Status,
   } = useDRepContext();
 
   const handleNavigate = (step: number) => {
-    if (!isUpdate) return;
+    if (!isUpdate) {
+      router.push('/dreps');
+      return
+    };
     const submitButton = document.getElementById(
       'profile-submit-button',
     ) as HTMLButtonElement;
     submitButton.click();
-    console.log(currentRegistrationStep);
     if (currentRegistrationStep === 1) {
-      setStep1Status('success');
       setStep2Status('active');
       setCurrentRegistrationStep(2);
       router.push(
         `/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`,
       );
     } else if (currentRegistrationStep === 2) {
-      setStep2Status('success');
       setStep3Status('active');
       setCurrentRegistrationStep(3);
       router.push(
         `/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`,
       );
     } else if (currentRegistrationStep === 3) {
-      setStep3Status('success');
       setStep4Status('active');
       setCurrentRegistrationStep(4);
       router.push(
         `/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`,
       );
     } else if (currentRegistrationStep === 4) {
-      setStep4Status('update');
-      // reroute to the profile page
-    } else {
-      console.log('default');
+      setStep5Status('active');
+      setCurrentRegistrationStep(5);
+      router.push(`/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`)
+    } else if (currentRegistrationStep === 5) {
+      setStep5Status('success');
+      router.push('/dreps/workflow/profile/success')
     }
   };
   return (
@@ -60,7 +63,7 @@ const ProfileSubmitArea = ({ isUpdate }: ProfileSubmitAreaProps) => {
           type="submit"
           id="profile-submit-button"
           data-testid="profile-submit-button"
-          sx={!isEnabled ? { pointerEvents: 'none' } : {}}
+          sx={(!isEnabled || isDisabled)  && { pointerEvents: 'none' } }
         >
           <p className="px-5 text-center text-sm font-medium leading-4  text-white">
             {!isUpdate ? 'Create' : 'Update'}
@@ -71,6 +74,7 @@ const ProfileSubmitArea = ({ isUpdate }: ProfileSubmitAreaProps) => {
           bgColor="transparent"
           handleClick={handleNavigate}
           id="next_button"
+          sx={(!isEnabled || isDisabled) && { pointerEvents: 'none' }}
         >
           <p className="px-5 text-center text-sm font-medium leading-4 text-blue-800">
             {isUpdate ? 'Next' : 'Cancel'}
