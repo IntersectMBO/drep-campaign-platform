@@ -10,12 +10,11 @@ import {
   DeleteDateColumn,
 } from 'typeorm';
 import { Drep } from './drep.entity';
+import { BaseEntity } from 'src/global';
 
 @Entity()
-export class Note {
-  //auto increment primary key decorator
-  @PrimaryGeneratedColumn()
-  id: number;
+export class Note extends BaseEntity {
+
 
   @Column({ unique: true, nullable: false })
   note_title: string;
@@ -32,12 +31,5 @@ export class Note {
   @Column()
   note_visibility: string;
 
-  @CreateDateColumn()
-  createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @DeleteDateColumn({ nullable: true })
-  deletedAt: Date;
 }

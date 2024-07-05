@@ -8,13 +8,12 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Note } from './note.entity';
+import { BaseEntity } from 'src/global';
 import { Signature } from './signatures.entity';
 
 @Entity()
-export class Drep {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Drep extends BaseEntity {
+  
   @Column({ unique: true, nullable: true })
   name: string;
 
@@ -39,12 +38,4 @@ export class Drep {
   @OneToMany(() => Signature, (signature) => signature.drep)
   signatures: Signature[];
 
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @DeleteDateColumn({ nullable: true })
-  deletedAt: Date;
 }
