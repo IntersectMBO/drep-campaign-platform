@@ -48,9 +48,9 @@ const UpdateProfile = () => {
         }else if(dRepIDBech32){
           drep = await getSingleDRepViaVoterId(dRepIDBech32);
         }
-        setValue('profileName', drep.name);
-        setNewDrepId(drep.id);
-        setCurrentProfileUrl(drep.url);
+        setValue('profileName', drep.drep_name);
+        setNewDrepId(drep.drep_id);
+        setCurrentProfileUrl(drep.attachment_url);
       } catch (error) {
         console.log(error);
       }
@@ -69,8 +69,6 @@ const UpdateProfile = () => {
       ).to_bech32();
       const formData = new FormData();
       formData.append('name', data.profileName);
-      formData.append('stake_addr', stakeAddress);
-      formData.append('voter_id', dRepIDBech32);
       if (data.profileUrl) {
         formData.append('profileUrl', data?.profileUrl[0] as string);
       }
