@@ -2,6 +2,7 @@ import { FC, useCallback } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { useCardano } from '@/context/walletContext';
 import './MoleculeStyles.css';
+import { useDRepContext } from '@/context/drepContext';
 export interface WalletOption {
   icon: string;
   label: string;
@@ -12,12 +13,14 @@ export interface WalletOption {
 
 export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
   const { enable, isEnableLoading } = useCardano();
+  const { setIsWalletListModalOpen } = useDRepContext();
 
   const { dataTestId, icon, label, name, cip95Available } = props;
 
   const enableByWalletName = useCallback(async () => {
     if (isEnableLoading) return;
-    const result = await enable(name);
+    await enable(name);
+    setIsWalletListModalOpen(false)
   }, [enable, isEnableLoading]);
 
   return (
@@ -25,7 +28,7 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
       data-testid={dataTestId}
       sx={{
         alignItems: 'center',
-        border: isEnableLoading ? 'none' : `1px solid blue`,
+        border: isEnableLoading ? 'none' : `1px solid #D6E2FF`,
         bgcolor: isEnableLoading ? '#EAE9F0' : 'white',
         borderRadius: '100px',
         boxShadow: isEnableLoading ? undefined : '0px 0px 11px 0px #24223230',
@@ -45,7 +48,7 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
         '&:hover': isEnableLoading
           ? undefined
           : {
-              background: 'blue',
+              background: '#D6E2FF',
             },
       }}
       key={name}
@@ -54,14 +57,18 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
       <img
         alt={`${name} icon`}
         src={icon}
-        className={`max-h-6 max-w-6 ${isEnableLoading && 'grayscale filter'}`}
+        className={`h-6 w-6 ${isEnableLoading && 'grayscale'}`}
       />
       <Typography
-        className={`text-lg font-medium text-blue-800 ${isEnableLoading && 'text-gray-300'}`}
+        color={isEnableLoading ? '#C1BED3' : 'primaryBlue'}
+        sx={{
+          fontSize: '16px',
+          fontWeight: '500',
+        }}
       >
         {name ?? label}
       </Typography>
-      <div className="max-h-6 max-w-6" />
+      <div className="h-6 w-6" />
       {isEnableLoading === name && (
         <Box
           position="absolute"

@@ -8,16 +8,14 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import UpdateNotePostForm from '../molecules/UpdateNotePostForm';
 import { usePostUpdateNoteMutation } from '@/hooks/usePostUpdateNoteMutation';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
 
 const FormSchema = z.object({
   postTitle: z
     .string()
     .min(3, 'Post Title cant be less than 3 chars')
     .max(12, "Post Title can't be more than 12 chars"),
-  postTag: z
-    .string()
-    .min(3, 'Post Tag cant be less than 3 chars')
-    .max(12, "Post Tag can't be more than 12 chars"),
+  postTag: z.array(z.string()),
   postText: z.string().min(10, 'Post Text cant be less than 10 chars'),
   postVisibility: z.string().min(1, "Visibilty status can't be empty"),
 });
@@ -32,11 +30,12 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
     formState: { errors },
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
+    defaultValues: { postText: '' },
   });
   const mutation = usePostUpdateNoteMutation();
-  const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
-  const router = useRouter();
+  const { dRepIDBech32, stakeKey } = useCardano();
   const { setIsNotDRepErrorModalOpen } = useDRepContext();
+  const { addSuccessAlert, addErrorAlert } = useGlobalNotifications();
   useEffect(() => {
     if (initialValues) {
       setValue('postTitle', initialValues?.note_title);
@@ -64,7 +63,9 @@ const UpdateNoteForm = ({ noteId, initialValues }) => {
         voter: dRepIDBech32,
       };
       const res = mutation.mutateAsync({ noteId: noteId, note: updatedNote });
+      addSuccessAlert('Note Updated Successfully!');
     } catch (error) {
+      addErrorAlert('Error updating note');
       console.log(error);
     }
   };

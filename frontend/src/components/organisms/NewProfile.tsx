@@ -11,21 +11,7 @@ import NewProfileForm from '../molecules/NewProfileForm';
 import { usePostNewDrepMutation } from '@/hooks/usePostNewDRepMutation';
 import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-const toBase64 = (file: File) => {
-  return new Promise((resolve, reject) => {
-    const fileReader = new FileReader();
-
-    fileReader.readAsDataURL(file);
-
-    fileReader.onload = () => {
-      resolve(fileReader.result);
-    };
-
-    fileReader.onerror = (error) => {
-      reject(error);
-    };
-  });
-};
+import { setItemToLocalStorage } from '@/lib';
 const FormSchema = z.object({
   profileName: z.string().min(1, { message: 'Profile name is required' }),
   profileUrl: z.any(),
@@ -36,14 +22,13 @@ const NewProfile = () => {
   const {
     register,
     handleSubmit,
-    reset,
     control,
     formState: { errors },
     setValue,
   } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
-  const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
+  const { dRepIDBech32, stakeKey, loginSignTransaction } = useCardano();
   const { addSuccessAlert, addErrorAlert } = useGlobalNotifications();
   const router = useRouter();
   const newDRepMutation = usePostNewDrepMutation();
@@ -51,6 +36,7 @@ const NewProfile = () => {
     setIsNotDRepErrorModalOpen,
     setNewDrepId,
     setCurrentRegistrationStep,
+    setIsLoggedIn
   } = useDRepContext();
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
@@ -58,6 +44,8 @@ const NewProfile = () => {
         setIsNotDRepErrorModalOpen(true);
         return;
       }
+      const { signature, key } = await loginSignTransaction();
+
       const stakeAddress = Address.from_bytes(
         Buffer.from(stakeKey, 'hex'),
       ).to_bech32();
@@ -65,15 +53,20 @@ const NewProfile = () => {
       formData.append('name', data.profileName);
       formData.append('stake_addr', stakeAddress);
       formData.append('voter_id', dRepIDBech32);
+      formData.append('signature', signature);
+      formData.append('key', key);
       if (data.profileUrl) {
         formData.append('profileUrl', data?.profileUrl[0] as string);
       }
       const res = await newDRepMutation.mutateAsync({
         drep: formData as drepInput,
       });
-      setNewDrepId(res.raw[0].id);
+      const { insertedDrep, token } = res;
+      setNewDrepId(insertedDrep.raw[0].id);
       setCurrentRegistrationStep(1);
       addSuccessAlert('DRep Profile Created Successfully!');
+      setItemToLocalStorage('token', token);
+      setIsLoggedIn(true);
       router.push(`/dreps/workflow/profile/update/step1`);
     } catch (error) {
       addErrorAlert('Error Creating DRep Profile!');
@@ -101,7 +94,7 @@ const NewProfile = () => {
               }}
               className="clipboard-text cursor-pointer"
             >
-              <img src="/copy.svg" alt="copy" />
+              <img src="/svgs/copy.svg" alt="copy" />
             </CopyToClipboard>
           </div>
         )}

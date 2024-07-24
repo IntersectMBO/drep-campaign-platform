@@ -17,7 +17,7 @@ const CIPGovernanceActions = () => {
         </div>
         <HotLinks />
         <div className="inner_container flex flex-col items-center justify-center">
-          <section className="my-5 flex flex-col gap-6 w-full">
+          <section className="my-5 flex w-full flex-col gap-6">
             <p>
               We define seven different types of{' '}
               <span className="font-bold">governance actions</span>. A
@@ -52,10 +52,10 @@ const CIPGovernanceActions = () => {
               actions.
             </p>
             <p>
-              If a proposal policy is present, the transaction must include that
-              policy in the witness set either directly, or via reference
-              inputs, and any other requirements that the proposal policy makes
-              must be satisfied.
+              If a guardrails script is present, the transaction must include
+              that script in the witness set either directly, or via reference
+              inputs, and any other requirements that the guardrails script
+              makes must be satisfied.
             </p>
             <p>
               Note that a motion of no-confidence is an extreme measure that
@@ -68,8 +68,11 @@ const CIPGovernanceActions = () => {
             />
           </section>
           <Separator />
-          <section id="ratification" className="my-5 w-full flex flex-col gap-6">
-            <p className="lg:text-xl font-bold">Ratification</p>
+          <section
+            id="ratification"
+            className="my-5 flex w-full flex-col gap-6"
+          >
+            <p className="font-bold lg:text-xl">Ratification</p>
             <p>
               Governance actions are ratified through on-chain voting actions.
               Different kinds of governance actions have different ratification
@@ -102,10 +105,10 @@ const CIPGovernanceActions = () => {
               text="As explained above, different stake distributions apply to DReps and SPOs."
             />
             <p>
-              A successful motion of no-confidence, election of a new
-              constitutional committee, a constitutional change, or a hard-fork,
-              delays ratification of all other governance actions until the
-              first epoch after their enactment. This gives a new constitutional
+              A successful motion of no-confidence, update of the constitutional
+              committee, a constitutional change, or a hard-fork, delays
+              ratification of all other governance actions until the first epoch
+              after their enactment. This gives an updated constitutional
               committee enough time to vote on current proposals, re-evaluate
               existing proposals with respect to a new constitution, and ensures
               that the in principle arbitrary semantic changes caused by
@@ -151,7 +154,7 @@ const CIPGovernanceActions = () => {
               Each of these thresholds is a governance parameter. There is one
               additional threshold, Q5, related to security relevant protocol
               parameters, which is explained below. The initial thresholds
-              should be chosen by the Cardano community as a whole. The two
+              should be chosen by the Cardano community as a whole. All
               thresholds for the Info action are set to 100% since setting it
               any lower would result in not being able to poll above the
               threshold.
@@ -163,16 +166,16 @@ const CIPGovernanceActions = () => {
             </p>
             <p>The security relevant protocol parameters are:</p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
-              <li>maxBBSize</li>
+              <li>maxBlockBodySize</li>
               <li>maxTxSize</li>
-              <li>maxBHSize</li>
-              <li>maxValSize</li>
-              <li>maxBlockExUnits</li>
-              <li>minFeeA</li>
-              <li>minFeeB</li>
-              <li>coinsPerUTxOByte</li>
+              <li>maxBlockHeaderSize</li>
+              <li>maxValueSize</li>
+              <li>maxBlockExecutionUnits</li>
+              <li>txFeePerByte</li>
+              <li>txFeeFixed</li>
+              <li>utxoCostPerByte</li>
               <li>govActionDeposit</li>
-              <li>minFeeRefScriptsCoinsPerByte</li>
+              <li>minFeeRefScriptCostPerByte</li>
             </ul>
             <ToastCard
               type="info"
@@ -205,8 +208,8 @@ const CIPGovernanceActions = () => {
             </p>
             <ul className="ml-8 flex list-decimal flex-col gap-2">
               <li>Motion of no-confidence </li>
-              <li>New committee/threshold</li>
-              <li>Update to the Constitution or proposal policy</li>
+              <li>Update committee/threshold</li>
+              <li>New Constitution or Guardrails Script</li>
               <li>Hard Fork Intitiation</li>
               <li>Protocol parameter changes</li>
               <li>Treasury withdrawals</li>
@@ -214,7 +217,7 @@ const CIPGovernanceActions = () => {
             </ul>
             <ToastCard
               type="info"
-              text="Enactment for Info actions is a null action, since they do not have any effect on the protocol."
+              text="Info actions cannot be ratified or enacted, since they do not have any effect on the protocol."
             />
             <p className="text-2xl font-bold text-zinc-800">
               Order of enactment
@@ -303,17 +306,17 @@ const CIPGovernanceActions = () => {
               The <span className="font-bold">network group</span> consists of:
             </p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
-              <li>maximum block body size (maxBBSize).</li>
+              <li>maximum block body size (maxBlockBodySize).</li>
               <li>maximum transaction size (maxTxSize)</li>
-              <li>maximum block header size (maxBHSize)</li>
-              <li>maximum size of a serialized asset value (maxValSize)</li>
+              <li>maximum block header size (maxBlockHeaderSize)</li>
+              <li>maximum size of a serialized asset value (maxValueSize)</li>
               <li>
                 maximum script execution units in a single transaction
-                (maxTxExUnits)
+                (maxTxExecutionUnits)
               </li>
               <li>
                 maximum script execution units in a single block
-                (maxBlockExUnits)
+                (maxBlockExecutionUnits)
               </li>
               <li>maximum number of collateral inputs (maxCollateralInputs)</li>
             </ul>
@@ -321,27 +324,27 @@ const CIPGovernanceActions = () => {
               The <span className="font-bold">economic group</span> consists of:
             </p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
-              <li>minimum fee coefficient (minFeeA)</li>
-              <li>minimum fee constant (minFeeB)</li>
-              <li>delegation key Lovelace deposit (keyDeposit)</li>
-              <li>pool registration Lovelace deposit (poolDeposit)</li>
-              <li>monetary expansion(rho)</li>
-              <li>treasury expansion(tau)</li>
+              <li>minimum fee coefficient (txFeePerByte)</li>
+              <li>minimum fee constant (txFeeFixed)</li>
+              <li>delegation key Lovelace deposit (stakeAddressDeposit)</li>
+              <li>pool registration Lovelace deposit (stakePoolDeposit)</li>
+              <li>monetary expansion(monetaryExpansion)</li>
+              <li>treasury expansion(treasuryCut)</li>
               <li>minimum fixed rewards cut for pools (minPoolCost)</li>
               <li>
                 minimum Lovelace deposit per byte of serialized UTxO
-                (coinsPerUTxOByte)
+                (utxoCostPerByte)
               </li>
-              <li>prices of Plutus execution units (prices)</li>
+              <li>prices of Plutus execution units (executionUnitPrices)</li>
             </ul>
             <p>
               The <span className="font-bold">technical group</span> consists
               of:
             </p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
-              <li>pool pledge influence(a0).</li>
-              <li>pool retirement maximum poch (eMax)</li>
-              <li>desired number of pools (nOpt)</li>
+              <li>pool pledge influence(poolPledgeInfluence).</li>
+              <li>pool retirement maximum poch (poolRetireMaxEpoch)</li>
+              <li>desired number of pools (stakePoolTargetNum)</li>
               <li>Plutus execution cost models (costModels)</li>
               <li>
                 proportion of collateral needed for
@@ -356,7 +359,7 @@ const CIPGovernanceActions = () => {
             <ul className="ml-5 flex list-disc flex-col gap-2">
               <li>
                 {
-                  'governance voting thresholds ($P_1$, $P_{2a}$, $P_{2b}$, $P_3$, $P_4$, $P_{5a}$, $P_{5b}$, $P_{5c}$, $P_{5d}$, $P_6$, $Q_1$, $Q_{2a}$, $Q_{2b}$, $Q_4$)'
+                  'governance voting thresholds ($P_1$, $P_{2a}$, $P_{2b}$, $P_3$, $P_4$, $P_{5a}$, $P_{5b}$, $P_{5c}$, $P_{5d}$, $P_6$, $Q_1$, $Q_{2a}$, $Q_{2b}$, $Q_4$), $Q_5$)'
                 }
               </li>
               <li>
@@ -365,10 +368,10 @@ const CIPGovernanceActions = () => {
               <li>governance action deposit (govActionDeposit)</li>
               <li>DRep deposit amount (drepDeposit)</li>
               <li>DRep activity period in epochs (drepActivity)</li>
-              <li>minimal constitutional committee size (ccMinSize)</li>
+              <li>minimal constitutional committee size (committeeMinSize)</li>
               <li>
                 maximum term length (in epochs) for the constitutional committee
-                members (ccMaxTermLength)
+                members (committeeMaxTermLength)
               </li>
             </ul>
             <p id="votes" className="text-2xl font-bold">

@@ -12,7 +12,7 @@ const CIPPathtoactive = () => {
         </div>
         <div className="flex flex-col gap-3">
           <section className="flex flex-col gap-10">
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-2xl font-bold">Acceptance criteria</p>
               <ul>
                 <li>
@@ -21,13 +21,15 @@ const CIPPathtoactive = () => {
                 </li>
               </ul>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-2xl font-bold">Implementation Plan</p>
               <p>The features in this CIP require a hard fork.</p>
               <p>
                 This document describes an ambitious change to Cardano
-                governance. We propose to implement the changes via one hard
-                fork.
+                governance. We propose to implement the changes via two hard
+                forks: the first one containing all new features but some being
+                disabled for a bootstrap period and the second one enabling all
+                features.
               </p>
               <p>
                 In the following sections, we give more details about the
@@ -38,7 +40,7 @@ const CIPPathtoactive = () => {
                 discussions.
               </p>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-2xl font-bold">
                 Ratification of this proposal
               </p>
@@ -74,7 +76,7 @@ const CIPPathtoactive = () => {
                 </li>
               </ul>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-2xl font-bold">
                 Changes to the transaction body
               </p>
@@ -109,7 +111,7 @@ const CIPPathtoactive = () => {
                 text="As usual, we will provide a CDDL specification for each of those changes."
               />
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-2xl font-bold">
                 Changes to the existing ledger rules
               </p>
@@ -138,7 +140,7 @@ const CIPPathtoactive = () => {
                 </li>
               </ul>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-2xl font-bold">
                 Changes to the local state-query protocol
               </p>
@@ -172,7 +174,7 @@ const CIPPathtoactive = () => {
                 </li>
               </ul>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-2xl font-bold">Bootstrapping Phase</p>
               <p>
                 We will need to be careful how we bootstrap this fledgling
@@ -186,8 +188,7 @@ const CIPPathtoactive = () => {
                 constitutional committee is sufficient to change the protocol
                 parameters. Secondly, during the bootstrap phase, a vote from
                 the constitutional committee, together with a sufficient SPO
-                vote, is sufficient to initiate a hard fork. No other actions
-                are possible during the bootstrap phase.
+                vote, is sufficient to initiate a hard fork.
               </p>
               <p>
                 The bootstrap phase ends when a given number of epochs has
@@ -195,10 +196,20 @@ const CIPPathtoactive = () => {
                 This is likely to be a number of months after the hard fork.
               </p>
               <p>
-                Moreover, there will be an interim Constitutional committee,
-                also specified in the next ledger era configuration file, whose
-                term limits will be set to expire when the bootstrap phase ends.
-                The rotational schedule of the first non-bootstrap committee
+                Thirdly, info actions will be available. No other actions other
+                than those mentioned in this paragraph are possible during the
+                bootstrap phase. The bootstrap phase ends when the
+                Constitutional Committee and SPOs ratify a subsequent hard fork,
+                enabling the remaining governance actions and DRep
+                participation. This is likely to be a number of months after the
+                Chang hard fork. Although all features will be technically
+                available at this point, additional requirements for using each
+                feature may be specified in the constitution.
+              </p>
+              <p>
+                Moreover, there will be an interim Constitutional committee with
+                a set term, also specified in the next ledger era configuration
+                file. The rotational schedule of the first non-interim committee
                 could be included in the constitution itself. Note, however,
                 that since the constitutional committee never votes on new
                 committees, it cannot actually enforce the rotation.
@@ -207,7 +218,7 @@ const CIPPathtoactive = () => {
           </section>
           <section className="flex flex-col gap-10">
             <p className="text-2xl font-bold">Other Ideas / Open Questions</p>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-xl font-bold">Pledge-weighted SPO voting</p>
               <p>
                 The SPO vote could additionally be weighted by each SPO's
@@ -216,7 +227,7 @@ const CIPPathtoactive = () => {
                 should be carefully chosen.
               </p>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-xl font-bold">
                 Automatic re-delegation of DReps
               </p>
@@ -225,10 +236,10 @@ const CIPPathtoactive = () => {
                 registration certificate. Upon retirement, all of the DRep's
                 delegations would be automatically transferred to the given DRep
                 credential. If that DRep had already retired, the delegation
-                would be transfer to the 'Abstain' DRep.
+                would be transfer to the 'Abstain' voting option.
               </p>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-xl font-bold">No DRep registration</p>
               <p>
                 Since the DRep registration does not perform any necessary
@@ -239,7 +250,7 @@ const CIPPathtoactive = () => {
                 registration certificate into the transaction metadata.
               </p>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-xl font-bold">
                 Reduced deposits for some government actions
               </p>
@@ -254,7 +265,7 @@ const CIPPathtoactive = () => {
                 constitutional committee.
               </p>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-xl font-bold">
                 Different deposit amounts for different governance actions
               </p>
@@ -265,7 +276,7 @@ const CIPPathtoactive = () => {
                 this may be considered if it becomes clear that it is necessary.
               </p>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-xl font-bold">Minimum active voting stake</p>
               <p>
                 As a further guarantee to ensure governance actions cannot be
@@ -285,7 +296,7 @@ const CIPPathtoactive = () => {
                 considered a legitimate action.
               </p>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-xl font-bold">
                 Include hash of (future) genesis configuration within hard-fork
                 proposal
@@ -301,7 +312,7 @@ const CIPPathtoactive = () => {
                 within a hard-fork governance action.
               </p>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-xl font-bold">Adaptive thresholds</p>
               <p>
                 As discussed above, it may make sense for some or all thresholds
@@ -314,7 +325,7 @@ const CIPPathtoactive = () => {
                 to DReps.
               </p>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-xl font-bold">
                 Renaming DReps / state of no-confidence?
               </p>
@@ -323,12 +334,12 @@ const CIPPathtoactive = () => {
                 might be confused with Project Catalst DReps. Similarly, some
                 people have expressed confusion between the state of
                 no-confidence, the motion of no-confidence and the no-confidence
-                DReps.
+                voting option.
                 <br />
                 We could imagine finding better terms for these concepts.
               </p>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-xl font-bold">
                 Rate-limiting treasury movements
               </p>
@@ -341,7 +352,7 @@ const CIPPathtoactive = () => {
                 over any period of time.
               </p>
             </div>
-            <div className="flex flex-col gap-4 text-sm md:text-md lg:text-lg">
+            <div className="md:text-md flex flex-col gap-4 text-sm lg:text-lg">
               <p className="text-xl font-bold">
                 Final safety measure, post bootstrapping
               </p>

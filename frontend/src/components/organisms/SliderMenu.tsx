@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { Background } from '../atoms/Background';
+import { LoginInfoCard } from '../molecules/LoginInfoCard';
+import Button from '../atoms/Button';
 interface SliderMenuProps {
   options: { name: string; path: string }[];
   handleClose: () => void;
@@ -15,8 +17,13 @@ const CALCULATED_DRAWER_PADDING = DRAWER_PADDING * 8 * 2;
 
 export const SliderMenu = ({ options, handleClose }: SliderMenuProps) => {
   const [screenWidth, setScreenWidth] = useState<number>(0);
-  const { isMobileDrawerOpen, setIsMobileDrawerOpen, currentLocale } =
-    useDRepContext();
+  const {
+    isMobileDrawerOpen,
+    setIsMobileDrawerOpen,
+    currentLocale,
+    isLoggedIn,
+    setLoginModalOpen,
+  } = useDRepContext();
   const pathname = usePathname();
   const [activeLink, setActiveLink] = useState(null);
 
@@ -58,11 +65,31 @@ export const SliderMenu = ({ options, handleClose }: SliderMenuProps) => {
                 onClick={handleClose}
                 sx={{ padding: 0 }}
               >
-                <img src={'/close.svg'} />
+                <img src={'/svgs/close.svg'} />
               </IconButton>
             </Box>
-            <Grid container direction="column" rowGap={4} mt={6} className='text-center'>
-              <Grid item >
+            <Grid
+              container
+              direction="column"
+              rowGap={4}
+              mt={6}
+              className="flex flex-col items-center text-center"
+            >
+              <Grid item>
+                {isLoggedIn ? (
+                  <LoginInfoCard />
+                ) : (
+                  <Button
+                    handleClick={() => {
+                      setIsMobileDrawerOpen(false);
+                      setLoginModalOpen(true);
+                    }}
+                  >
+                    Login
+                  </Button>
+                )}
+              </Grid>
+              <Grid item>
                 <Link
                   href={'/'}
                   className={`${

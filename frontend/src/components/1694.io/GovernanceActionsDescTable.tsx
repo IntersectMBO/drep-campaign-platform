@@ -7,14 +7,14 @@ const GovernanceActionsDescTable = () => {
       description: 'None',
     },
     {
-      actions: 'New committee threshold',
+      actions: 'Update committee threshold',
       description:
         'The set of verification key hash digests (members to be removed), a map of verification key hash digests to epoch numbers (new members and their term limit), and a fraction (new threshold)',
     },
     {
-      actions: 'Update to the Constitution or proposal policy',
+      actions: 'New Constitution or Guardrails Script',
       description:
-        'An anchor to the Constitution and an optional script hash of the proposal policy',
+        'An anchor to the Constitution and an optional script hash of the Guardrails Script',
     },
     {
       actions: 'Hard-Fork Initiation',
@@ -39,8 +39,8 @@ const GovernanceActionsDescTable = () => {
     <table>
       <thead>
         <tr className="bg-white text-left">
-          <th className="p-4">Actions</th>
-          <th>Description</th>
+          <th className="p-4">Governance action type</th>
+          <th>Additional data</th>
         </tr>
       </thead>
       <tbody>

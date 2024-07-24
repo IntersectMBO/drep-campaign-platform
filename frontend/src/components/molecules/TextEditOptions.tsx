@@ -1,20 +1,112 @@
 import { Editor } from '@tiptap/react';
-import React, { useEffect, useState } from 'react';
-import MultipartDataForm from './MultipartDataForm';
-import { set } from 'cypress/types/lodash';
-type TextEditOptionsProps = {
-  editor: Editor;
+import * as ReactDOM from 'react-dom';
+import React, {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import OverlayForm from './OverlayForm';
+import { useScreenDimension } from '@/hooks';
+
+type DropDownActionsProps = {
   active: boolean;
+  activeForm: string;
+  handleFormatText: (text: string) => void;
+  isMobile: boolean;
+};
+
+const DropDownActions = ({
+  setIsOpen,
+  isOpen,
+  isMobile,
+}: DropDownActionsProps & {
+  setIsOpen: (isOpen: boolean) => void;
+  isOpen: boolean;
+}) => {
+  return (
+    <div className="relative text-nowrap">
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className="cursor-pointer bg-white shadow-sm rounded-xl px-2 py-1"
+      >
+        <div id="drop-down-actions" className="flex items-center gap-1 ">
+          <div>
+            {isMobile ? (
+              <img
+                src="/svgs/paperclip.svg"
+                alt="Add Attachment"
+                className={`h-5 w-5`}
+              />
+            ) : (
+              <p>Add Attachment</p>
+            )}
+          </div>
+          <div>
+            <img
+              src="/svgs/chevron-down.svg"
+              alt="expand"
+              className={`h-5 w-5 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+type TextEditOptionsProps = {
+  active: boolean;
+  editor?: Editor;
+  setInitialMarkdown?: Dispatch<SetStateAction<string>>;
 };
 
 const TextEditOptions: React.FC<TextEditOptionsProps> = ({
-  editor,
   active,
+  editor,
+  setInitialMarkdown,
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [activeForm, setActiveForm] = useState(null);
   const [imagePayload, setImagePayload] = useState(null);
   const [linkPayload, setLinkPayload] = useState(null);
+  const [proposalHashPayload, setProposalHashPayload] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const { isMobile } = useScreenDimension();
+  const dropdownRef = useRef(null);
+
+  const actions = [
+    {
+      name: 'Add file',
+      icon: '/svgs/notesvgs/photo.svg',
+      action: 'image',
+    },
+    {
+      name: 'Add proposal',
+      icon: '/svgs/notesvgs/table.svg',
+      action: 'proposal',
+    },
+    {
+      name: 'Add link',
+      icon: '/svgs/notesvgs/link.svg',
+      action: 'link',
+    },
+  ];
+  const insertMarkdown = (markdown: string) => {
+    setInitialMarkdown((prevMarkdown) => prevMarkdown + markdown);
+  };
+
+  useEffect(() => {
+    if (isOpen && dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+      });
+    }
+  }, [isOpen]);
   const resetState = () => {
     setShowOverlay(false);
     setActiveForm(null);
@@ -22,49 +114,43 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
   useEffect(() => {
     if (imagePayload) {
       if (imagePayload.length > 1) {
-        imagePayload.forEach((image) => {
-          editor.chain().focus().setImage({ src: image }).run();
+        imagePayload.forEach((file) => {
+          insertMarkdown(file.markdown);
         });
-        setImagePayload(null);
       } else {
-        editor.chain().focus().setImage({ src: imagePayload[0] }).run();
-        setImagePayload(null);
+        insertMarkdown(imagePayload[0].markdown);
       }
+      setImagePayload(null);
       resetState();
     }
     if (linkPayload) {
       if (linkPayload.length > 1) {
         linkPayload.forEach((link) => {
-          const linkTag = ` <a href=${link.url}>${link.title}</a> `;
-          editor.chain().focus().insertContent(linkTag).run();
+          insertMarkdown(link.markdown);
         });
-        setLinkPayload(null);
       } else {
-        const linkTag = ` <a href=${linkPayload[0].url}>${linkPayload[0].title}</a> `;
-        editor.chain().focus().insertContent(linkTag).run();
-        setLinkPayload(null);
+        insertMarkdown(linkPayload[0].markdown);
       }
+      setLinkPayload(null);
       resetState();
     }
-  }, [imagePayload, linkPayload]);
+    if (proposalHashPayload) {
+      if (proposalHashPayload.length > 1) {
+        proposalHashPayload.forEach((markdown) => {
+          insertMarkdown(markdown);
+        });
+      } else {
+        insertMarkdown(proposalHashPayload[0]);
+      }
+      setProposalHashPayload(null);
+      resetState();
+    }
+  }, [imagePayload, linkPayload, proposalHashPayload]);
+
   const handleFormatText = (format) => {
     //active maps to isEnabled
     if (!active) return;
     switch (format) {
-      case 'table':
-        if (editor.isActive('table')) {
-          editor.chain().focus().deleteTable().run();
-        } else {
-          editor
-            .chain()
-            .focus()
-            .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-            .run();
-        }
-        break;
-      case 'heading':
-        editor.chain().focus().toggleHeading({ level: 1 }).run();
-        break;
       case 'image':
         setShowOverlay((prev) => !prev);
         setActiveForm((prev) => (prev === 'image' ? null : 'image'));
@@ -73,155 +159,114 @@ const TextEditOptions: React.FC<TextEditOptionsProps> = ({
         setShowOverlay((prev) => !prev);
         setActiveForm((prev) => (prev === 'link' ? null : 'link'));
         break;
+      case 'proposal':
+        setShowOverlay((prev) => !prev);
+        setActiveForm((prev) => (prev === 'proposal' ? null : 'proposal'));
+        break;
+      case 'bold':
+        insertMarkdown('**Bold Text**');
+        break;
+      case 'italic':
+        insertMarkdown('*Italic Text*');
+        break;
       default:
-        editor.commands[
-          `toggle${format.charAt(0).toUpperCase() + format.slice(1)}`
-        ]();
+        console.log('Unknown command', format);
         break;
     }
   };
 
   return (
-    <div
-      id="toolbar-container"
-      className="flex h-9 w-[80%] items-center justify-start gap-3 bg-slate-50 px-2"
-    >
+    <>
       <div
-        className={`${active ? 'cursor-pointer' : 'pointer-events-none'} ${
-          editor.isActive('bold') ? 'opacity-100' : 'opacity-50'
-        }`}
-        onClick={() => handleFormatText('bold')}
+        id="toolbar-container"
+        className="flex max-h-10 w-full items-center justify-start gap-3 overflow-x-auto bg-slate-50 px-2"
       >
-        <img src="/note/bold.svg" alt="Bold img" />
-      </div>
-      <div
-        className={`${active ? 'cursor-pointer' : 'pointer-events-none'} ${
-          editor.isActive('italic') ? 'opacity-100' : 'opacity-50'
-        }`}
-        onClick={() => handleFormatText('italic')}
-      >
-        <img src="/note/italic.svg" alt="Italic img" />
-      </div>
-      <div
-        className={`${active ? 'cursor-pointer' : 'pointer-events-none'} ${
-          editor.isActive('strike') ? 'opacity-100' : 'opacity-50'
-        }`}
-        onClick={() => handleFormatText('strike')}
-      >
-        <img src="/note/strikethrough.svg" alt="Strikethru" />
-      </div>
-      <div
-        className={`${active ? 'cursor-pointer' : 'pointer-events-none'} ${
-          editor.isActive('code') ? 'opacity-100' : 'opacity-50'
-        }`}
-        onClick={() => handleFormatText('code')}
-      >
-        <img src="/note/code.svg" alt="Code" />
-      </div>
-      <div
-        className={`${active ? 'cursor-pointer' : 'pointer-events-none'} ${
-          editor.isActive('superscript') ? 'opacity-100' : 'opacity-50'
-        }`}
-        onClick={() => handleFormatText('superscript')}
-      >
-        <img src="/note/superscript.svg" alt="Superscrpt" />
-      </div>
+        <div
+          className={`${active ? 'cursor-pointer' : 'pointer-events-none'} shrink-0 `}
+          onClick={() => handleFormatText('bold')}
+        >
+          <img src="/svgs/notesvgs/bold.svg" alt="Bold img" />
+        </div>
+        <div
+          className={`${active ? 'cursor-pointer' : 'pointer-events-none'} $ shrink-0`}
+          onClick={() => handleFormatText('italic')}
+        >
+          <img src="/svgs/notesvgs/italic.svg" alt="Italic img" />
+        </div>
 
-      <div
-        className={`${active ? 'cursor-pointer' : 'pointer-events-none'} ${
-          editor.isActive('highlight') ? 'opacity-100' : 'opacity-50'
-        }`}
-        onClick={() => handleFormatText('highlight')}
-      >
-        <img src="/note/highlight.svg" alt="Highlight" />
-      </div>
-      <div
-        className={`${active ? 'cursor-pointer' : 'pointer-events-none'} ${
-          editor.isActive('heading') ? 'opacity-100' : 'opacity-50'
-        }`}
-        onClick={() => handleFormatText('heading')}
-      >
-        <img src="/note/heading.svg" alt="Heading" />
-      </div>
-      <div
-        className={`${active ? 'cursor-pointer' : 'pointer-events-none'} ${
-          editor.isActive('bulletList') ? 'opacity-100' : 'opacity-50'
-        }`}
-        onClick={() => handleFormatText('bulletList')}
-      >
-        <img src="/note/list.svg" alt="List" />
-      </div>
-      <div
-        className={`${active ? 'cursor-pointer' : 'pointer-events-none'} ${
-          editor.isActive('orderedList') ? 'opacity-100' : 'opacity-50'
-        }`}
-        onClick={() => handleFormatText('orderedList')}
-      >
-        <img src="/note/list-numbers.svg" alt="Listnums" />
-      </div>
-      <div
-        className={`${active ? 'cursor-pointer' : 'pointer-events-none'} ${
-          editor.isActive('Blockquote') ? 'opacity-100' : 'opacity-50'
-        }`}
-        onClick={() => handleFormatText('blockquote')}
-      >
-        <img src="/note/quote.svg" alt="Quote" />
-      </div>
-      <div
-        className={`${active ? 'cursor-pointer' : 'pointer-events-none'} ${
-          editor.isActive('codeBlock') ? 'opacity-100' : 'opacity-50'
-        }`}
-        onClick={() => handleFormatText('codeBlock')}
-      >
-        <img src="/note/source-code.svg" alt="Srccode" />
-      </div>
-      <div
-        className={`${active ? 'cursor-pointer' : 'pointer-events-none'}`}
-        onClick={() => handleFormatText('table')}
-      >
-        <img src="/note/table.svg" alt="table" />
-      </div>
-      <div className={`relative flex h-full flex-col`}>
-        <div
-          className={`flex h-full flex-row items-center justify-center gap-5 text-nowrap rounded-lg ${activeForm === 'image' ? 'bg-white' : 'bg-violet-50'} px-3 text-zinc-800 ${active ? 'cursor-pointer' : 'pointer-events-none'}`}
-          onClick={() => handleFormatText('image')}
-        >
-          <img
-            src="/note/photo.svg"
-            alt="Image"
-            className={`${activeForm === 'image' ? 'opacity-100' : 'opacity-50'}`}
+        <div ref={dropdownRef}>
+          <DropDownActions
+            active={active}
+            activeForm={activeForm}
+            handleFormatText={handleFormatText}
+            setIsOpen={setIsOpen}
+            isOpen={isOpen}
+            isMobile={isMobile}
           />
-          <p>Add Image</p>
         </div>
-        {showOverlay && activeForm === 'image' && (
-          <MultipartDataForm
-            activeForm={'image'}
-            nullify={resetState}
-            setImagePayload={setImagePayload}
-          />
-        )}
+        {showOverlay &&
+          ReactDOM.createPortal(
+            <div
+              className={`
+              z-50 w-fit
+              ${
+                isMobile
+                  ? 'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
+                  : 'absolute'
+              }
+            `}
+              style={{
+                ...(isMobile
+                  ? {}
+                  : {
+                      top: `${dropdownPosition.top}px`,
+                      left: `${dropdownPosition.left}px`,
+                    }),
+              }}
+            >
+              <OverlayForm
+                activeForm={activeForm}
+                onClose={() => {
+                  setShowOverlay(false);
+                  setActiveForm(null);
+                }}
+                setImagePayload={setImagePayload}
+                setLinkPayload={setLinkPayload}
+                setProposalHashPayload={setProposalHashPayload}
+              />
+            </div>,
+            document.body,
+          )}
       </div>
-      <div className={`relative flex h-full flex-col`}>
-        <div
-          className={`flex h-full flex-row items-center justify-center gap-5 text-nowrap rounded-lg ${activeForm === 'link' ? 'bg-white' : 'bg-violet-50'} px-3 text-zinc-800 ${active ? 'cursor-pointer' : 'pointer-events-none'}`}
-          onClick={() => handleFormatText('link')}
-        >
-          <img
-            src="/note/link.svg"
-            alt="Link"
-            className={`${activeForm === 'link' ? 'opacity-100' : 'opacity-50'}`}
-          />
-          <p>Add Link</p>
-        </div>
-        {showOverlay && activeForm === 'link' && (
-          <MultipartDataForm
-            activeForm={'link'}
-            nullify={resetState}
-            setLinkPayload={setLinkPayload}
-          />
+      {isOpen &&
+        ReactDOM.createPortal(
+          <div
+            style={{
+              position: 'absolute',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              zIndex: 9999,
+            }}
+          >
+            <div className="overflow-hidden rounded-lg bg-white shadow-lg">
+              {actions.map((action, index) => (
+                <div
+                  key={index}
+                  className={`flex flex-row items-center justify-start gap-5 text-nowrap px-3 py-2 text-zinc-800 ${active ? 'cursor-pointer hover:bg-gray-100' : 'pointer-events-none opacity-50'}`}
+                  onClick={() => {
+                    handleFormatText(action.action);
+                    setIsOpen(false);
+                  }}
+                >
+                  <img src={action.icon} alt="Icon" className="h-5 w-5" />
+                  <p>{action.name}</p>
+                </div>
+              ))}
+            </div>
+          </div>,
+          document.body,
         )}
-      </div>
-    </div>
+    </>
   );
 };
 

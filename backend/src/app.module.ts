@@ -5,6 +5,12 @@ import { AttachmentModule } from './attachment/attachment.module';
 import { ConfigModule } from '@nestjs/config';
 import { DbModule } from './db.module';
 import { HealthzModule } from './healthz/healthz.module';
+import { AuthModule } from './auth/auth.module';
+import { VoterModule } from './voter/voter.module';
+import { CommentsModule } from './comments/comments.module';
+import { ReactionsModule } from './reactions/reactions.module';
+import { AuthService } from './auth/auth.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -17,8 +23,12 @@ import { HealthzModule } from './healthz/healthz.module';
     NoteModule,
     AttachmentModule,
     HealthzModule,
+    AuthModule,
+    VoterModule,
+    CommentsModule,
+    ReactionsModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [AuthService],
 })
 export class AppModule {}

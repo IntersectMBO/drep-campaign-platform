@@ -6,7 +6,7 @@ const PostVisibilityInput = ({ registerVisibility, errors }) => {
   return (
     <div className="flex flex-col items-start justify-center">
       <p>Set Visibility</p>
-      <div className="ml-3 flex flex-row items-center gap-3">
+      <div className="ml-3 flex flex-row items-center gap-3 flex-wrap">
         <input
           type="radio"
           value="everyone"
