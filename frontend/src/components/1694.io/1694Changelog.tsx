@@ -20,7 +20,7 @@ const CIPChangelog = () => {
               <li>Thank the workshop attendees.</li>
               <li>We have added Constitutional Committee terms.</li>
               <li>
-                Two new "pre-defined" DRep options: abstain and no confidence.
+                Two new "pre-defined" voting options: abstain and no confidence.
               </li>
               <li>New "Info" governance action.</li>
               <li>
@@ -46,7 +46,7 @@ const CIPChangelog = () => {
                 economic, technical, and governmental.
               </li>
               <li>
-                Most governmental actions can be enacted (upon ratification)
+                Most governance actions can be enacted (upon ratification)
                 right away. All but: protocol parameters and hard forks.
               </li>
               <li>
@@ -58,7 +58,7 @@ const CIPChangelog = () => {
               <li>
                 Bootstrap phase: Until X% of ADA is registered to vote or Y
                 epochs have elapsed, only parameter changes and hard forks can
-                happen. PP changes just need CC quorum, HFs need CC and SPOs.
+                happen. PP changes just need CC threshold, HFs need CC and SPOs.
                 After the bootstrap phase, we put in place the incentive to keep
                 low DReps, but this mechanism automatically relaxes.
               </li>
@@ -96,7 +96,7 @@ const CIPChangelog = () => {
             </p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
               <li>
-                Add proposal policy, which can control what treasury withdrawals
+                Add guardrails script, which can control what treasury withdrawals
                 and protocol parameter changes are allowed.
               </li>
               <li>
@@ -129,7 +129,7 @@ const CIPChangelog = () => {
           </section>
           <section className="flex flex-col gap-4">
             <p className="text-2xl font-bold">
-              Security-relevant changes and other fixes
+              Security-relevant changes and other fixes (January 2024)
             </p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
               <li>Guard security-relevant changes behind SPO votes.</li>
@@ -139,6 +139,18 @@ const CIPChangelog = () => {
                 act.
               </li>
               <li>Clarify that CC members can use any kind of credential.</li>
+            </ul>
+          </section>
+          <section className="flex flex-col gap-4">
+            <p className="text-2xl font-bold">
+             May 2024
+            </p>
+            <ul className="ml-5 flex list-disc flex-col gap-2">
+              <li>Update the section on the bootstrap period.</li>
+              <li>
+              Mention missing `Q_5` parameter.
+              </li>
+              <li>Various small fixes/consistency changes.</li>
             </ul>
           </section>
           <Separator />

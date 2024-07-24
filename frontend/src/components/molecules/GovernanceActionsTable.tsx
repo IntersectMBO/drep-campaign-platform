@@ -18,16 +18,16 @@ const GovernanceActionsTable = () => {
           </td>
         </tr>
         <tr>
-          <td>New constitutional committee and/or threshold and/or terms</td>
+          <td>Update committee and/or threshold and/or terms</td>
           <td>
             Changes to the members of the constitutional committee and/or to its
             signature threshold and/or terms
           </td>
         </tr>
         <tr>
-          <td>Update to the Constitution or proposal policy</td>
+          <td>New Constitution or Guardrails Script</td>
           <td>
-            A modification to the Constitution or proposal policy, recorded as
+            A modification to the Constitution or Guardrails Script, recorded as
             on-chain hashes
           </td>
         </tr>

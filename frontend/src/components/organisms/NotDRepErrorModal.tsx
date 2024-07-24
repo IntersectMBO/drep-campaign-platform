@@ -14,7 +14,7 @@ export function NotDRepErrorModal() {
       <ModalHeader
         sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
       >
-        <img src="/warning.png" />
+        <img src="/svgs/warning.png" />
       </ModalHeader>
       <ModalContents>
         <Typography
@@ -27,10 +27,10 @@ export function NotDRepErrorModal() {
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            maxHeight: '500px',
+            maxHeight: '31.25rem',
             overflow: 'auto',
             width: '100%',
-            padding: '8px',
+            padding: '0.5rem',
           }}
         >
           <Typography

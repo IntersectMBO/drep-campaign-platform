@@ -23,19 +23,16 @@ const UpdateProfile = () => {
   const {
     register,
     handleSubmit,
-    getFieldState, 
     control,
-    getValues,
     formState: { errors },
     setValue,
   } = useForm<InputType>({
-    resolver: zodResolver(FormSchema),
+    resolver: zodResolver(FormSchema)    
   });
-  const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
+  const { dRepIDBech32, stakeKey } = useCardano();
   const [currentProfileUrl, setCurrentProfileUrl] = useState<string | null>(
     null,
   );
-  const router = useRouter();
   const { setIsNotDRepErrorModalOpen, drepId, setStep1Status, setNewDrepId } = useDRepContext();
   const { addChangesSavedAlert } = useGlobalNotifications();
   const updateDrepMutation = usePostUpdateDrepMutation();
@@ -48,9 +45,9 @@ const UpdateProfile = () => {
         }else if(dRepIDBech32){
           drep = await getSingleDRepViaVoterId(dRepIDBech32);
         }
-        setValue('profileName', drep.name);
-        setNewDrepId(drep.id);
-        setCurrentProfileUrl(drep.url);
+        setValue('profileName', drep.drep_name);
+        setNewDrepId(drep.drep_id);
+        setCurrentProfileUrl(drep.attachment_url);
       } catch (error) {
         console.log(error);
       }
@@ -64,17 +61,12 @@ const UpdateProfile = () => {
         setIsNotDRepErrorModalOpen(true);
         return;
       }
-      const stakeAddress = Address.from_bytes(
-        Buffer.from(stakeKey, 'hex'),
-      ).to_bech32();
       const formData = new FormData();
       formData.append('name', data.profileName);
-      formData.append('stake_addr', stakeAddress);
-      formData.append('voter_id', dRepIDBech32);
       if (data.profileUrl) {
         formData.append('profileUrl', data?.profileUrl[0] as string);
       }
-      const res = await updateDrepMutation.mutateAsync({
+      await updateDrepMutation.mutateAsync({
         drepId: drepId,
         drep: formData as drepInput,
       });
@@ -104,7 +96,7 @@ const UpdateProfile = () => {
               }}
               className="clipboard-text cursor-pointer"
             >
-              <img src="/copy.svg" alt="copy" />
+              <img src="/svgs/copy.svg" alt="copy" />
             </CopyToClipboard>
           </div>
         )}

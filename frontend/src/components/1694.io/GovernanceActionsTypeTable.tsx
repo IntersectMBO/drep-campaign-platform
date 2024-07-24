@@ -9,13 +9,19 @@ const GovernanceActionsTypeTable = () => {
       SPOs: '$Q_1$',
     },
     {
-      actions: 'New committee threshold (normal state)',
+      actions: 'Update committee threshold (normal state)',
       CC: '-',
       DReps: '$P_{2a}$',
       SPOs: '$Q_{2a}$',
     },
     {
-      actions: 'Update to the Constitution or proposal policy',
+      actions: 'Update committee threshold (state of no confidence)',
+      CC: '-',
+      DReps: '$P_{2b}$',
+      SPOs: '$Q_{2b}$',
+    },
+    {
+      actions: 'New Constitution or Guardrails Script',
       CC: '✓',
       DReps: '$P_3$',
       SPOs: '-',

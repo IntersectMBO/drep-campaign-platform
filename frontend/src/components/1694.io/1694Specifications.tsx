@@ -5,19 +5,19 @@ import Separator from './Separator';
 const CIPSpecifications = () => {
   return (
     <div className="flex flex-col items-center justify-center bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF]">
-      <div className="flex max-w-xs sm:max-w-lg text-sm lg:max-w-4xl mx-auto flex-col items-center justify-center py-10">
+      <div className="mx-auto flex max-w-xs flex-col items-center justify-center py-10 text-sm sm:max-w-lg lg:max-w-4xl">
         <div className="w-full">
-          <p className="text-start text-4xl lg:text-6xl font-bold text-zinc-800">
+          <p className="text-start text-4xl font-bold text-zinc-800 lg:text-6xl">
             Specification
           </p>
         </div>
         <HotLinks />
         <div className="flex items-center justify-center">
-          <img src="/building.png" alt="Building" />
+          <img src="/img/building.png" alt="Building" />
         </div>
         <div
           id="the-cardano-constitution"
-          className="w-full my-5 flex flex-col justify-center items-start gap-5 font-extralight"
+          className="my-5 flex w-full flex-col items-start justify-center gap-5 font-extralight"
         >
           <p className="text-2xl font-bold">The Cardano Constitution</p>
           <p>
@@ -37,7 +37,7 @@ const CIPSpecifications = () => {
         <Separator />
         <div
           id="the-constitutional-committee"
-          className="w-full my-5 flex flex-col justify-center items-start gap-5 font-extralight"
+          className="my-5 flex w-full flex-col items-start justify-center gap-5 font-extralight"
         >
           <p className="text-2xl font-bold">The constitutional committee</p>
           <p>
@@ -71,7 +71,7 @@ const CIPSpecifications = () => {
         <Separator />
         <div
           id="state-of-no-confidence"
-          className="w-full my-5  flex flex-col justify-center items-start gap-5 font-extralight"
+          className="my-5 flex  w-full flex-col items-start justify-center gap-5 font-extralight"
         >
           <p className="text-2xl font-bold">State of no-confidence</p>
           <p>
@@ -89,7 +89,7 @@ const CIPSpecifications = () => {
           </p>
         </div>
         <Separator />
-        <div className="my-5 w-full flex flex-col gap-5 font-extralight justify-center items-start">
+        <div className="my-5 flex w-full flex-col items-start justify-center gap-5 font-extralight">
           <p className="text-2xl font-bold">Constitutional committee keys</p>
           <p>
             The constitutional committee will use a hot and cold key setup,
@@ -99,17 +99,18 @@ const CIPSpecifications = () => {
         <Separator />
         <div
           id="replacing-the-constitutional-committee"
-          className="w-full my-5 flex flex-col justify-center items-start gap-5 font-extralight"
+          className="my-5 flex w-full flex-col items-start justify-center gap-5 font-extralight"
         >
           <p className="text-2xl font-bold">
             Replacing the constitutional committee
           </p>
           <p>
             The constitutional committee can be replaced via a specific
-            governance action ("New constitutional committee", described below)
-            that requires the approval of both the SPOs and the DReps. The
-            threshold for ratification might be different depending on if the
-            governance is in a state of confidence or a state of no confidence.
+            governance action ("Update committee", described below) that
+            requires the approval of both the <strong>SPOs</strong> and the{' '}
+            <strong>DReps</strong>. The threshold for ratification might be
+            different depending on if the governance is in a normal state or a
+            state of no confidence.
           </p>
           <p>
             The new constitutional committee could, in principle, be identical
@@ -122,16 +123,14 @@ const CIPSpecifications = () => {
         <Separator />
         <div
           id="size-of-the-constitutional-committee"
-          className="w-full my-5 flex flex-col justify-center items-start gap-5 font-extralight"
+          className="my-5 flex w-full flex-col items-start justify-center gap-5 font-extralight"
         >
           <p className="text-2xl font-bold">
             Size of the constitutional committee
           </p>
           <p>
             Unlike the Shelley governance design, the size of the constitutional
-            committee is not fixed and can be any nonnegative number. It may be
-            changed whenever a new committee is elected ("New constitutional
-            committee and/or threshold"). Likewise, the committee threshold (the
+            committee is not fixed and can be any nonnegative number.It may be changed whenever a new committee is elected ("Update committee"). Likewise, the committee threshold (the
             fraction of committee Yes votes that are required to ratify
             governance actions) is not fixed and can also be varied by the
             governance action. This gives a great deal of flexibility to the
@@ -143,13 +142,14 @@ const CIPSpecifications = () => {
           </p>
           <p>
             There will be a new protocol parameter for the minimal size of the
-            committee, itself a nonnegative number.
+            committee, itself a nonnegative number called{' '}
+            <strong className="font-bold">committeeMinSize</strong>.
           </p>
         </div>
         <Separator />
         <div
-          id="term-limits"
-          className="w-full my-5 flex flex-col justify-center items-start gap-5 font-extralight"
+          id="terms"
+          className="my-5 flex w-full flex-col items-start justify-center gap-5 font-extralight"
         >
           <p className="text-2xl font-bold">Terms</p>
           <p>
@@ -167,11 +167,12 @@ const CIPSpecifications = () => {
             can still be ratified.
           </p>
           <p>
-            For example, a committee of size five with a threshold of 3/5 a
+            For example, a committee of size five with a threshold of 60% a
             minimum size of three and two expired members can still pass
-            governance actions if two non-expired members vote Yes. However, if
-            one more member expires then the constitutional committee becomes
-            unable to ratify any more governance actions.
+            governance actions if two non-expired members vote{' '}
+            <strong className="font-bold">Yes</strong>. However, if one more
+            member expires then the constitutional committee becomes unable to
+            ratify any more governance actions.
           </p>
           <p>
             The maximum term is a governance protocol parameter, specified as a
@@ -181,19 +182,18 @@ const CIPSpecifications = () => {
           </p>
         </div>
         <Separator />
-        <div className="my-5 w-full flex flex-col items-start justify-center gap-5">
-          <p className="text-2xl font-bold">Proposal policy</p>
+        <div id='guardrails-script' className="my-5 flex w-full flex-col items-start justify-center gap-5">
+          <p className="text-2xl font-bold">Guardrails Script</p>
           <p>
             While the constitution is an informal, off-chain document, there
             will also be an optional script that can enforce some guidelines.
             This script acts to supplement the constitutional committee by
             restricting some proposal types. For example, if the community
             wishes to have some hard rules for the treasury that cannot be
-            violated, a script that enforces these rules can be voted in as the
-            proposal policy.
+            violated, a script that enforces these these rules can be voted in as the guardrails script.
           </p>
           <p>
-            The proposal policy applies only to protocol parameter update and
+            The guardrails script applies only to protocol parameter update and
             treasury withdrawal proposals.
           </p>
         </div>

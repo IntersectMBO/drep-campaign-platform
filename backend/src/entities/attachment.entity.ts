@@ -1,10 +1,7 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
 import { Note } from './note.entity';
 import { Drep } from './drep.entity';
@@ -26,8 +23,10 @@ export enum AttachmentParentEntityType {
   Comment = 'comment',
 }
 @Entity()
-export class Attachment  extends BaseEntity {
-
+export class Attachment extends BaseEntity {
+  @Column({nullable: false, unique: true})
+  name: string;
+  
   @Column({ type: 'bytea' })
   url: Uint8Array;
 
@@ -38,7 +37,7 @@ export class Attachment  extends BaseEntity {
   })
   parententity: AttachmentParentEntityType;
 
-  @Column({ type: 'int', nullable: false })
+  @Column({ type: 'int', nullable: true })
   parentid: number;
 
   @ManyToOne(() => Note, (note) => note.id)

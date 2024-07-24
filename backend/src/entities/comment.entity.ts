@@ -1,15 +1,11 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  ManyToMany,
-  JoinTable,
-  CreateDateColumn,
-  UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Note } from './note.entity';
-import { Delegator } from './delegator.entity';
+import { Reaction } from './reaction.entity';
 import { BaseEntity } from 'src/global';
 export enum CommentParentEntityType {
   Note = 'note',
@@ -36,7 +32,10 @@ export class Comment extends BaseEntity {
   @ManyToOne(() => Comment, (comment) => comment.id) // Many-to-One relationship with Comment
   comment: Comment;
 
-  @ManyToOne(() => Delegator, (delegator) => delegator.id) // Many-to-One relationship with Delegator
-  delegator: Delegator;
+  @Column({  nullable: false })
+  voter: string;
 
+
+  @OneToMany(() => Reaction, (reaction) => reaction.comment, { onDelete: 'CASCADE' })
+  reactions: Reaction[];
 }

@@ -1,8 +1,10 @@
 // Import createMiddleware from next-intl to configure internationalization middleware for Next.js.
 import createMiddleware from 'next-intl/middleware';
 import { locales } from './constants';
+import { cookies } from 'next/headers';
+import { decodeToken } from './lib/utils';
 import { NextResponse } from 'next/server';
-
+import { getItemFromLocalStorage } from './lib/localStorage';
 // Export the middleware configuration to define supported locales and the default locale.
 // This setup applies internationalization strategies across the application.
 export default createMiddleware({
@@ -29,19 +31,53 @@ function getLocale(request) {
   // return locale;
   return locales.defaultLocale;
 }
+function getCookies() {
+  const cookieStore = cookies();
+  return cookieStore.get('token');
+}
+function protectRoutes(request, locale) {
+  const token = getCookies(request);
+  let redirectUrl = `/${locale}/dreps`;
+  let message = '';
+  let severity = '';
 
+  if (token) {
+    const { isExpired } = decodeToken(token.value);
+    if (isExpired) {
+       const response=NextResponse.redirect(new URL(redirectUrl, request.url),{status: 307, statusText: 'Temporary Redirect'});
+       response.headers.set(
+         'x-status-reason', 'Token Expired',
+       )
+       return response
+    } else {
+      return NextResponse.next();
+    }
+  } else {
+    const response=NextResponse.redirect(new URL(redirectUrl, request.url),{status: 307, statusText: 'Temporary Redirect'});
+    response.headers.set(
+      'x-status-reason', 'Token Missing',
+    )
+    return response
+  }
+
+  
+}
 export function middleware(request) {
+  const protectedRoutesRegex = /^\/dreps\/workflow\/profile\/update(\/.*)?$/;
   // Check if there is any supported locale in the pathname
   const { pathname } = request.nextUrl;
   const pathnameHasLocale = locales.variants.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
   );
 
-  if (pathnameHasLocale) return;
-  if (pathname.match(/\.(svg|png|ico)$/)) return;
-
+  if (pathnameHasLocale) return NextResponse.next();
+  if (pathname.match(/\.(svg|png|ico)$/)) return NextResponse.next();
   // Redirect if there is no locale
   const locale = getLocale(request);
+  // if (protectedRoutesRegex.test(pathname)) {
+  //   const response = protectRoutes(request, locale);
+  //   if (response.status === 307) return response;
+  // }
   request.nextUrl.pathname = `/${locale}${pathname}`;
   return NextResponse.redirect(request.nextUrl);
 }

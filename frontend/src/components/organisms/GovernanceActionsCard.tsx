@@ -1,13 +1,12 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import GovernanceActionsTable from '../molecules/GovernanceActionsTable';
-
 const GovernanceActionsCard = () => {
   return (
     <div className="drep_white_gradient py-8">
-      <div className="base_container flex flex-col lg:grid grid-cols-2 gap-8 lg:gap-16 py-8">
+      <div className="base_container flex grid-cols-2 flex-col gap-8 py-8 lg:grid lg:gap-16">
         <div className="col-span-1 flex flex-col items-start justify-center gap-3 py-20">
-          <div className="text-5xl lg:text-6xl font-bold">
+          <div className="text-5xl font-bold lg:text-6xl">
             <p>Governance</p>
             <p>actions</p>
           </div>
@@ -35,7 +34,6 @@ const GovernanceActionsCard = () => {
             </li>
           </ul>
         </div>
-
         <div className="table_container col-span-1 flex items-center justify-center">
           <GovernanceActionsTable />
         </div>

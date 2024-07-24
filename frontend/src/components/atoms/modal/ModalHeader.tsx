@@ -8,7 +8,13 @@ interface Props {
 
 export function ModalHeader({ children, sx }: Props) {
   return (
-    <Typography className="mb-2 text-center text-3xl font-medium" sx={sx}>
+    <Typography
+      marginBottom="8px"
+      fontSize="28px"
+      fontWeight="500"
+      textAlign="center"
+      sx={sx}
+    >
       {children}
     </Typography>
   );

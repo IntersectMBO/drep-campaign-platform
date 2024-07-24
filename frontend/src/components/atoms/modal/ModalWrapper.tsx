@@ -29,17 +29,17 @@ export function ModalWrapper({
   }, [variant]);
   return (
     <BaseWrapper
-      className={`fixed left-1/2 top-1/2 flex max-h-[90vh] -translate-x-1/2 -translate-y-1/2 flex-col rounded-md bg-stone-50 shadow-lg  ${variant}-variant z-50`}
       data-testid={dataTestId}
       sx={sx}
+      variant={variant}
     >
       {variant !== 'popup' && !hideCloseButton && (
         <div className="absolute right-6 top-6 cursor-pointer ">
           <img
             data-testid={'close-modal-button'}
-            src="/close.svg"
+            src="/svgs/close.svg"
             onClick={onClose}
-          />
+           alt='modal close icon' />
         </div>
       )}
       {children}
@@ -47,6 +47,31 @@ export function ModalWrapper({
   );
 }
 
-export const BaseWrapper = styled('div')`
-  /* Styles moved to CSS file, no changes needed here */
+export const BaseWrapper = styled("div")<Pick<Props, "variant">>`
+  box-shadow: 1px 2px 11px 0px #00123d5e;
+  max-height: 90vh;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  background: #fbfbff;
+  border-radius: 24px;
+  transform: translate(-50%, -50%);
+
+  ${({ variant }) => {
+    if (variant === "modal") {
+      return `
+        width: 80vw;
+        max-width: 510px;
+        padding: 52px 24px 34px 24px;
+      `;
+    }
+    if (variant === "popup") {
+      return `
+        width: 320px;
+        height: 320px;
+      `;
+    }
+  }}
 `;

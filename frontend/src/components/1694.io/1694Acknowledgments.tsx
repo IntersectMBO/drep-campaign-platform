@@ -1,15 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import AcknowledgmentSummary from './AcknowledgmentSummary';
+import { useScreenDimension } from '@/hooks';
 
 const CIPAcknowledgments = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', () => {
-      setIsMobile(window.innerWidth < 768);
-    });
-  }
-  , []);
+  const {isMobile} = useScreenDimension();
   return (
     <div className="bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF] text-black">
       <div className="base_container flex w-full flex-col gap-10 py-10">
@@ -25,10 +19,10 @@ const CIPAcknowledgments = () => {
             </div>
             <div className="col-span-1 flex flex-col items-center justify-between">
               <div>
-                <img src="/doublecoin-top.png" alt="" />
+                <img src="/img/doublecoin-top.png" alt="" />
               </div>
               <div>
-                <img src="/doublecoin-bottom.png" alt="" />
+                <img src="/img/doublecoin-bottom.png" alt="" />
               </div>
             </div>
           </div>

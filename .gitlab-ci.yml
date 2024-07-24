@@ -144,6 +144,7 @@ build_backend:
       cp backend/.env.production ./chart/backend_env
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-backend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-backend:latest ..."
+      
       docker build --network host -f backend/Dockerfile \
         -t "$CI_APPLICATION_REPOSITORY/1694.io-backend:$CI_APPLICATION_TAG" \
         -t "$CI_APPLICATION_REPOSITORY/1694.io-backend:latest" .
@@ -288,7 +289,8 @@ production:
         --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
         --set image.tag=$CI_APPLICATION_TAG \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
-        --set services.ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
+        --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
+        --set namespace=$KUBE_NAMESPACE \
         --namespace="$KUBE_NAMESPACE" \
         --create-namespace
     - auto-deploy persist_environment_url

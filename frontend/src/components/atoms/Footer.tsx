@@ -8,7 +8,7 @@ const Footer = () => {
     <div className="w-full flex-col items-center justify-center bg-zinc-800 py-2 text-white">
       <div className="mb-12 flex items-center justify-center p-5">
         <img
-          src="/sancho-white.svg"
+          src="/svgs/sancho-white.svg"
           alt="Sancho logo"
           width={'300px'}
           height={'77px'}
@@ -26,19 +26,19 @@ const Footer = () => {
           className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900"
           href="#"
         >
-          <img src="/fb.svg" alt="Facebook" />
+          <img src="/svgs/fb.svg" alt="Facebook" />
         </a>
         <a
           className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900"
           href="#"
         >
-          <img src="/ig.svg" alt="Instagram" />
+          <img src="/svgs/ig.svg" alt="Instagram" />
         </a>
         <a
           className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900"
           href="#"
         >
-          <img src="/github.svg" alt="Github" />
+          <img src="/svgs/github.svg" alt="Github" />
         </a>
       </div>
       <div className="text-center text-sm text-white">

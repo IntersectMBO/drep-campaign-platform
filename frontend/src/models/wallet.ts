@@ -51,7 +51,7 @@ export interface Protocol {
   gov_action_lifetime: number;
   id: number;
   influence: number;
-  key_deposit: number;
+  key_deposit: string;
   max_bh_size: number;
   max_block_ex_mem: number;
   max_block_ex_steps: number;
@@ -64,12 +64,12 @@ export interface Protocol {
   max_val_size: number;
   min_fee_a: number;
   min_fee_b: number;
-  min_pool_cost: number;
-  min_utxo_value: number;
+  min_pool_cost: string;
+  min_utxo: string;
   monetary_expand_rate: number;
   nonce: string;
   optimal_pool_count: number;
-  pool_deposit: number;
+  pool_deposit: string;
   price_mem: number;
   price_step: number;
   protocol_major: number;

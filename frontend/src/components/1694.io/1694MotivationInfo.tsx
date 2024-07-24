@@ -11,7 +11,7 @@ const CIPMotivationInfo = () => {
         <div className="py-10">
           <div className="mb-7 flex flex-col items-center justify-center lg:flex-row gap-10">
             <div className="flex lg:w-[30%] items-center justify-center">
-              <img src="/whiteboard.png" alt="Whiteboard" />
+              <img src="/img/whiteboard.png" alt="Whiteboard" />
             </div>
             <section className="lg:w-[70%]">
               <p className="mb-4 text-4xl font-bold">Goal</p>
@@ -46,7 +46,7 @@ const CIPMotivationInfo = () => {
         <div className="py-10">
           <div className="mb-7 flex flex-col items-center justify-center lg:flex-row gap-10">
             <div className="flex lg:w-[30%] items-center justify-center">
-              <img src="/windmills.png" alt="Windmills" />
+              <img src="/img/windmills.png" alt="Windmills" />
             </div>
             <section className="lg:w-[70%]">
               <p className="mb-4 text-4xl font-bold">
@@ -80,12 +80,12 @@ const CIPMotivationInfo = () => {
                 </p>
                 <ul className="ml-5 flex list-disc flex-col gap-2">
                   <li>
-                    Protocol parameter updates use transaction field nº6 of the
+                    Protocol parameter updates use <a href='https://github.com/input-output-hk/cardano-ledger/blob/8884d921c8c3c6e216a659fca46caf729282058b/eras/babbage/test-suite/cddl-files/babbage.cddl#L56' target='_blank' className='underline'>transaction field nº6</a> of the
                     transaction body.
                   </li>
                   <li>
-                    Movements of the treasury and the reserves use Move
-                    Instantaneous Rewards (abbrev. MIR) certificates.
+                    Movements of the treasury and the reserves use <a href='https://github.com/input-output-hk/cardano-ledger/blob/8884d921c8c3c6e216a659fca46caf729282058b/eras/babbage/test-suite/cddl-files/babbage.cddl#L180' target='_blank' className='underline'>Move
+                    Instantaneous Rewards (abbrev. MIR) certificates.</a>
                   </li>
                 </ul>
                 <p>
@@ -102,7 +102,7 @@ const CIPMotivationInfo = () => {
         <div className="py-10">
           <div className="mb-7 flex flex-col items-center justify-center lg:flex-row gap-10">
             <div className="flex lg:w-[30%] items-center justify-center">
-              <img src="/interface.png" alt="Interface" />
+              <img src="/img/interface.png" alt="Interface" />
             </div>
             <section className="lg:w-[70%]">
               <p className="mb-4 text-4xl font-bold">Hard Forks</p>
@@ -123,7 +123,7 @@ const CIPMotivationInfo = () => {
         <div className="py-10">
           <div className="mb-7 flex flex-col items-center justify-center lg:flex-row gap-10">
             <div className="flex lg:w-[30%] items-center justify-center">
-              <img src="/user-selecting.png" alt="User-selecting" />
+              <img src="/img/user-selecting.png" alt="User-selecting" />
             </div>
             <section className="lg:w-[70%]">
               <p className="mb-4 text-4xl font-bold">

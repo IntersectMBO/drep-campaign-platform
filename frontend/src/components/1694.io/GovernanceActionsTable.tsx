@@ -8,14 +8,14 @@ const GovernanceActionsTable = () => {
         'A motion to create a state of no-confidence in the current constitutional committee',
     },
     {
-      actions: 'New constitutional committee and/or threshold and/or terms',
+      actions: 'Update committee and/or threshold and/or terms',
       description:
         'Changes to the members of the constitutional committee and/or to its signature threshold and/or terms',
     },
     {
-      actions: 'Update to the Constitution or proposal policy',
+      actions: 'New Constitution or Guardrails Script',
       description:
-        'A modification to the Constitution or proposal policy, recorded as on-chain hashes',
+        'A modification to the Constitution or Guardrails Script, recorded as on-chain hashes',
     },
     {
       actions: 'Hard-Fork Initiation',

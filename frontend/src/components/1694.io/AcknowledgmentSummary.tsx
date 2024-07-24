@@ -7,7 +7,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>First draft</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -36,7 +36,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Colorado Workshop (28/02 → 01/03)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -78,7 +78,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Mexico City, Mexico Workshop (20/05)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -105,7 +105,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Buenos Aires, Argentina Workshop (20/05)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -136,7 +136,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Johannesburg, South Africa Workshop (25/05)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -191,7 +191,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Bogota, Colombia Workshop (27/05)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -219,7 +219,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Caracas, Venezuela Workshop (27/05)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -253,7 +253,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Manizales, Colombia Workshop (27/05)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -279,7 +279,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Addis Ababa, Ethiopia Workshop (27/05 & 28/5)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -333,7 +333,7 @@ const AcknowledgmentSummary = () => {
             2023 Kyoto and Fukuoka, Japan Workshop (27/05 & 10/06 )
           </strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -403,7 +403,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Monterey, California Workshop (28/05)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -431,7 +431,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Tlaxcala, Mexico Workshop (01/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -464,7 +464,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 LATAM Virtual Workshop (03/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -495,7 +495,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Worcester, Massachusetts Workshop (08/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -519,7 +519,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Chicago, Illinois Workshop (10/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -541,7 +541,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Virtual Workshop (12/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -563,7 +563,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Toronto, Canada Workshop (15/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -582,7 +582,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Philadelphia, Pennsylvania Workshop (17/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -616,7 +616,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Santiago de Chile Workshop (17/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -642,7 +642,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Virtual Workshop (17/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -665,7 +665,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Taipai, Taiwan Workshop (18/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -698,7 +698,7 @@ const AcknowledgmentSummary = () => {
             2023 Midgard Vikingcenter Horten, Norway Workshop (19/06)
           </strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -728,7 +728,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Virtual Workshop (19/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -755,7 +755,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 New York City, New York Workshop (20/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -781,7 +781,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 La Cumbre, Argentina Workshop (23/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -807,7 +807,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Minneapolis, Minnesota Workshop (23/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -826,7 +826,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 La Plata, Argentina Workshop (23/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -850,7 +850,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Puerto Madryn, Argentina Workshop (23/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -876,7 +876,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Accra, Ghana Workshop (24/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -923,7 +923,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Virtual Workshop (24/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -944,7 +944,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Seoul, South Korea Workshop (24/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -978,7 +978,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Abu Dhabi, UAE Workshop (25/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -1015,7 +1015,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Williamsburg, New York Workshop (25/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -1038,7 +1038,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Lagos, Nigeria Workshop (28/06)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -1067,7 +1067,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Sao Paulo, Brazil Workshop (01/07)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 
@@ -1108,7 +1108,7 @@ const AcknowledgmentSummary = () => {
         <summary>
           <strong>2023 Brazil Virtual Workshop (04/07)</strong>
           <span className="transition group-open:rotate-180">
-            <img src="/chevron-down.svg" alt="down" />
+            <img src="/svgs/chevron-down.svg" alt="down" />
           </span>
         </summary>
 

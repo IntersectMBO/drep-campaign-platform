@@ -1,25 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Button from '../atoms/Button';
-import HoverLinkChip from '../atoms/HoverLinkChip';
+import { useScreenDimension } from '@/hooks';
+import { HtmlTooltip } from '../atoms/HoverChip';
+import { urls } from '@/constants';
+import axiosInstance from '@/services/axiosInstance';
+import { CircularProgress } from '@mui/material';
+import { MDXEditorMethods } from '@mdxeditor/editor';
 interface MultipartDataFormProps {
   activeForm: string;
-  nullify: () => void;
   setImagePayload?: (payload: any) => void;
   setLinkPayload?: (payload: any) => void;
+  nullify: () => void;
+  editor?: MDXEditorMethods | any; // any type of editor
 }
 const MultipartDataForm = ({
   activeForm,
-  nullify,
   setImagePayload,
   setLinkPayload,
+  nullify,
+  editor,
 }: MultipartDataFormProps) => {
   const [files, setFiles] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState(null);
   const [fileSize, setFileSize] = useState('');
   const [links, setLinks] = useState(null);
   const [currentLinkTitle, setCurrentLinkTitle] = useState('');
   const [currentLinkURL, setCurrentLinkURL] = useState('');
-
+  const formRef = useRef<HTMLDivElement>(null);
   const formatFileSize = (sizeInBytes) => {
     const kiloBytes = sizeInBytes / 1024;
     const megaBytes = kiloBytes / 1024;
@@ -104,53 +112,99 @@ const MultipartDataForm = ({
       });
     });
   };
-  const toBase64 = (file: File) => {
-    return new Promise((resolve, reject) => {
-      const fileReader = new FileReader();
-
-      fileReader.readAsDataURL(file);
-
-      fileReader.onload = () => {
-        resolve(fileReader.result);
-      };
-
-      fileReader.onerror = (error) => {
-        reject(error);
-      };
-    });
-  };
-  const sendFile = async () => {
-    const base64strArray = await Promise.all(
-      Array.from(files as FileList).map(async (file) => {
-        const base64str = (await toBase64(file)) as string;
-        return base64str;
-      }),
-    );
-    setFiles(null);
-    setPreview(null);
-    setImagePayload(base64strArray);
-    nullify();
+  const uploadFilesAndSendIds = async () => {
+    try {
+      setIsUploading(true);
+      const insertedFiles = await Promise.all(
+        Array.from(files as FileList).map(async (file) => {
+          const formData = new FormData();
+          formData.append('attachment', file);
+          formData.append('parentEntity', 'note');
+          formData.append('parentId', null);
+          const mimeType = file.type;
+          const res = await axiosInstance.post(
+            `${urls.baseServerUrl}/api/attachments/add`,
+            formData,
+          );
+          return { name: res.data.name, type: mimeType };
+        }),
+      );
+      setIsUploading(false);
+      insertedFiles.forEach((file) => {
+        const encodedFileName = encodeURIComponent(file.name);
+        const markdown = file.type.includes('pdf')
+          ? `[pdf](${urls.baseServerUrl}/api/attachments/${encodedFileName})`
+          : `![image](${urls.baseServerUrl}/api/attachments/${encodedFileName})`;
+        if (editor)
+          editor.focus(
+            () => {
+              editor.insertMarkdown(markdown);
+            },
+            {
+              defaultSelection: 'rootEnd',
+            },
+          );
+        file['markdown'] = markdown;
+        return file;
+      });
+      setImagePayload(insertedFiles);
+      setFiles(null);
+      setPreview(null);
+      nullify();
+    } catch (error) {
+      console.log(error);
+      setIsUploading(false);
+    }
   };
   const sendLink = () => {
+    let linksToInsert = [];
     if (!links || links.length === 0) {
-      setLinkPayload([{ title: currentLinkTitle, url: currentLinkURL }]);
-      setCurrentLinkTitle('');
-      setCurrentLinkURL('');
-      nullify();
-      return;
+      linksToInsert = [{ title: currentLinkTitle, url: currentLinkURL }];
+    } else {
+      linksToInsert = links;
     }
-    if (links && links.length > 0) {
-      setLinkPayload(links);
-      setLinks(null);
-      nullify();
-    }
-  };
 
+    linksToInsert.forEach((link) => {
+      const markdown = `[${link.title}](${link.url})`;
+      if (editor) editor.insertMarkdown(markdown);
+      link['markdown'] = markdown;
+      return link;
+    });
+    if (!editor) setLinkPayload(linksToInsert);
+    setCurrentLinkTitle('');
+    setCurrentLinkURL('');
+    setLinks(null);
+    nullify();
+  };
+  // Handle clicks/taps outside the form
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        formRef.current &&
+        !formRef.current.contains(event.target as Node) &&
+        !event.target['closest']('.image-add-button') &&
+        !event.target['closest']('.link-add-button')
+      ) {
+        nullify();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [nullify]);
   return (
-    <div className="absolute top-9 z-50 flex min-h-[140px] min-w-96 flex-col rounded-lg bg-white p-5 shadow-lg">
+    <div
+      ref={formRef}
+      className={`flex min-h-[8.75rem] w-full flex-col text-nowrap rounded-lg bg-white p-5 shadow-lg`}
+    >
       {activeForm === 'image' ? (
         <>
-          <div className="h-11 text-[22px] font-bold text-zinc-800">
+          <div className="h-11 text-[1.375rem] font-bold text-zinc-800">
             Add File
           </div>
           <div
@@ -159,7 +213,7 @@ const MultipartDataForm = ({
             onDragEnter={preventDefault}
             onDrop={handleDrop}
           >
-            <p className="text-[11px] font-medium text-slate-500">
+            <p className="text-[0.6875rem] font-medium text-slate-500">
               Drag and drop file
             </p>
           </div>
@@ -209,8 +263,12 @@ const MultipartDataForm = ({
           {fileSize && <p>File Size: {fileSize}</p>}
           {files && (
             <div className="mt-2 flex flex-col gap-2">
-              <Button handleClick={sendFile}>
-                <p>Add File</p>
+              <Button handleClick={uploadFilesAndSendIds}>
+                {isUploading ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <p>Add File</p>
+                )}
               </Button>
               <Button
                 handleClick={() => {
@@ -228,7 +286,7 @@ const MultipartDataForm = ({
         </>
       ) : (
         <>
-          <div className="h-11 text-[22px] font-bold text-zinc-800">
+          <div className="h-11 text-[1.375rem] font-bold text-zinc-800">
             Add a Link
           </div>
           <div className="flex flex-col gap-1">
@@ -266,11 +324,26 @@ const MultipartDataForm = ({
                   key={index}
                   className="flex items-center justify-center rounded-xl"
                 >
-                  <HoverLinkChip
-                    children={<p className="text-blue-400">{link.title}</p>}
-                    link={link.url}
-                    position="top"
-                  />
+                  <HtmlTooltip
+                    title={
+                      <React.Fragment>
+                        <div className="flex w-full flex-row">
+                          <img src="/svgs/notesvgs/link.svg" alt="" />
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            className="text-sm text-blue-300 underline"
+                          >
+                            {link.url}
+                          </a>
+                        </div>
+                      </React.Fragment>
+                    }
+                    arrow
+                    placement="top"
+                  >
+                    <p className="text-blue-400">{link.title}</p>
+                  </HtmlTooltip>
                 </div>
               ))}
             </div>

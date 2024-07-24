@@ -7,6 +7,10 @@ export function SharedProvider({ children }) {
     isWalletListModalOpen: false,
     isNotDRepErrorModalOpen: false,
     isMobileDrawerOpen: false,
+    loginCredentials:{
+      signature:null,
+      key:null
+    }
   });
 
   const updateSharedState = useCallback((newState) => {

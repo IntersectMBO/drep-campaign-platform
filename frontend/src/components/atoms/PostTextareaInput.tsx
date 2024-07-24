@@ -1,132 +1,205 @@
-'use client';
-import React, { useEffect, useState } from 'react';
-import { Editor, EditorContent } from '@tiptap/react';
-import { Image } from '@tiptap/extension-image';
-import { BulletList } from '@tiptap/extension-bullet-list';
-import { Highlight } from '@tiptap/extension-highlight';
-import Document from '@tiptap/extension-document';
-import Paragraph from '@tiptap/extension-paragraph';
-import Text from '@tiptap/extension-text';
-import Bold from '@tiptap/extension-bold';
-import Italic from '@tiptap/extension-italic';
-import Strike from '@tiptap/extension-strike';
-import Code from '@tiptap/extension-code';
-import CodeBlock from '@tiptap/extension-code-block';
-import Heading from '@tiptap/extension-heading';
-import Table from '@tiptap/extension-table';
-import OrderedList from '@tiptap/extension-ordered-list';
-import TableRow from '@tiptap/extension-table-row';
-import TableCell from '@tiptap/extension-table-cell';
-import ListItem from '@tiptap/extension-list-item';
-import TableHeader from '@tiptap/extension-table-header';
-import { Link } from '@tiptap/extension-link';
-import Blockquote from '@tiptap/extension-blockquote';
-import Superscript from '@tiptap/extension-superscript';
-import { useCardano } from '@/context/walletContext';
-import { Controller } from 'react-hook-form';
-import TextEditOptions from '../molecules/TextEditOptions';
+import React, { FC, useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
+import {
+  MDXEditor,
+  MDXEditorMethods,
+  headingsPlugin,
+  listsPlugin,
+  quotePlugin,
+  thematicBreakPlugin,
+  linkPlugin,
+  linkDialogPlugin,
+  imagePlugin,
+  tablePlugin,
+  codeBlockPlugin,
+  sandpackPlugin,
+  codeMirrorPlugin,
+  diffSourcePlugin,
+  frontmatterPlugin,
+  toolbarPlugin,
+  markdownShortcutPlugin,
+  DiffSourceToggleWrapper,
+  UndoRedo,
+  BoldItalicUnderlineToggles,
+  InsertTable,
+  ButtonOrDropdownButton,
+  StrikeThroughSupSubToggles,
+} from '@mdxeditor/editor';
 
-const EditorArticle = ({
-  editor,
-  isEnabled,
-  description,
-  onChange,
-}: {
-  editor: Editor;
-  isEnabled: boolean;
-  description: string;
-  onChange: any;
-}) => {
-  description &&
-    editor.commands.setContent(description, false, {
-      preserveWhitespace: 'full',
-    });
-  editor &&
-    editor.on('update', () => {
-      onChange(editor.getHTML());
-    });
+import '@mdxeditor/editor/style.css';
+import { Controller } from 'react-hook-form';
+import { useCardano } from '@/context/walletContext';
+import OverlayForm from '../molecules/OverlayForm';
+
+interface EditorProps {
+  markdown: string;
+  editorRef?: React.MutableRefObject<MDXEditorMethods | null>;
+  onChange: (value: string) => void;
+  isEnabled?: boolean;
+  label?: string;
+}
+
+const actionCard = ({ icon, label }) => {
   return (
-    editor && (
-      <div className="flex flex-col items-start justify-center">
-        <label>Write your note</label>
-        <TextEditOptions editor={editor} active={isEnabled} />
-        <div
-          id="post-textarea"
-          className="flex min-h-40 w-[80%] items-center justify-center rounded-bl-xl rounded-br-xl border-b border-l border-r border-zinc-100"
-        >
-          <EditorContent
-            editor={editor}
-            content={description}
-            className="min-h-40 w-full"
-            data-testid="post-editor-input"
-          />
-        </div>
-      </div>
-    )
+    <div
+      className={`flex flex-row items-center justify-start gap-5 text-nowrap text-zinc-800`}
+    >
+      <img src={icon} alt="Icon" className="h-5 w-5" />
+      <p>{label}</p>
+    </div>
   );
 };
 
-const PostTextareaInput = ({ control, errors }) => {
-  const { isEnabled } = useCardano();
-  const [editor, setEditor] = useState(null);
+const actions = [
+  {
+    value: 'image',
+    label: actionCard({ icon: '/svgs/notesvgs/photo.svg', label: 'Add file' }),
+  },
+  {
+    value: 'proposal',
+    label: actionCard({
+      icon: '/svgs/notesvgs/table.svg',
+      label: 'Add proposal',
+    }),
+  },
+  {
+    label: actionCard({ icon: '/svgs/notesvgs/link.svg', label: 'Add link' }),
+    value: 'link',
+  },
+];
 
+const CustomToolbar: FC<{ editor: MDXEditorMethods }> = ({ editor }) => {
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const dropdownRef = useRef(null);
+  const [activeForm, setActiveForm] = useState(null);
   useEffect(() => {
-    const newEditor = new Editor({
-      extensions: [
-        Document,
-        Paragraph,
-        Text,
-        Bold,
-        Italic,
-        CodeBlock,
-        Code,
-        Strike,
-        Superscript,
-        TableRow,
-        TableCell,
-        TableHeader,
-        Highlight,
-        Blockquote,
-        Link.configure({
-          openOnClick: true,
-        }),
-        Table.configure({
-          resizable: true,
-          HTMLAttributes: {
-            class: 'border',
-          },
-        }),
-        Image.configure({
-          allowBase64: true,
-          inline: true,
-          HTMLAttributes: {
-            width: '20%',
-          },
-        }),
-        BulletList,
-        OrderedList,
-        ListItem,
-        Heading,
-      ],
-      editable: isEnabled,
-      parseOptions: {
-        preserveWhitespace: 'full',
-      },
-    });
-    setEditor(newEditor);
-  }, [isEnabled]);
+    if (showOverlay && dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+      });
+    }
+  }, [showOverlay]);
+  const handleChoose = (value: string) => {
+    setShowOverlay(true);
+    setActiveForm(value);
+  };
+  return (
+    <>
+      <div className="inline-flex w-full justify-between">
+        <div className="inline-flex items-center">
+          <BoldItalicUnderlineToggles />
+          <StrikeThroughSupSubToggles />
+        </div>
+        <div>
+          <ButtonOrDropdownButton
+            children={
+              <img
+                src="/svgs/paperclip.svg"
+                ref={dropdownRef}
+                alt="expand"
+                className={`h-5 w-5 transform transition-transform `}
+              />
+            }
+            title={'Add Attachment'}
+            onChoose={handleChoose}
+            items={[...actions]}
+          />
+        </div>
+      </div>
+      {showOverlay &&
+        ReactDOM.createPortal(
+          <div
+            style={{
+              position: 'absolute',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              zIndex: 9999,
+            }}
+          >
+            <OverlayForm
+              activeForm={activeForm}
+              onClose={() => {
+                setShowOverlay(false);
+                setActiveForm(null);
+              }}
+              editor={editor}
+            />
+          </div>,
+          document.body,
+        )}
+    </>
+  );
+};
+
+const Editor: FC<EditorProps> = ({
+  markdown,
+  editorRef,
+  onChange,
+  isEnabled,
+  label,
+}) => {
+  return (
+    <div className="relative flex flex-col items-start justify-center">
+      <label>{label}</label>
+      <div className="flex min-h-40 w-full items-center justify-center rounded-bl-xl rounded-br-xl border-b border-l border-r border-zinc-100">
+        <MDXEditor
+          onChange={(content) => onChange(content)}
+          ref={editorRef}
+          markdown={markdown}
+          contentEditableClassName="prose max-w-full"
+          plugins={[
+            headingsPlugin(),
+            listsPlugin(),
+            quotePlugin(),
+            thematicBreakPlugin(),
+            linkPlugin(),
+            linkDialogPlugin(),
+            imagePlugin(),
+            tablePlugin(),
+            codeBlockPlugin(),
+            sandpackPlugin(),
+            codeMirrorPlugin(),
+            diffSourcePlugin({
+              readOnlyDiff: true,
+            }),
+            frontmatterPlugin(),
+            toolbarPlugin({
+              toolbarContents: () => (
+                <CustomToolbar editor={editorRef?.current} />
+              ),
+            }),
+            markdownShortcutPlugin(),
+          ]}
+          readOnly={!isEnabled}
+        />
+      </div>
+    </div>
+  );
+};
+const PostTextareaInput = ({
+  control,
+  errors,
+  name = 'postText',
+  label = 'Write your note',
+}) => {
+  const { isEnabled } = useCardano();
+  const editorRef = React.useRef<MDXEditorMethods>(null);
 
   return (
     <>
       <Controller
         control={control}
-        name="postText"
+        name={name}
         render={({ field: { onChange, value } }) => (
-          <EditorArticle
-            editor={editor}
+          <Editor
+            markdown={value}
+            editorRef={editorRef}
             isEnabled={isEnabled}
-            description={value}
             onChange={onChange}
+            label={label}
           />
         )}
       />

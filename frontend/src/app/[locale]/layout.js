@@ -1,4 +1,5 @@
 import { locales } from '@/constants';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import { AppContextProvider } from '@/context/context';
 import { NextIntlClientProvider } from 'next-intl';
 import { unstable_setRequestLocale } from 'next-intl/server';
@@ -6,7 +7,9 @@ import { Poppins } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import '@/assets/styles/globals.css';
 import dynamic from 'next/dynamic';
-
+import '@fontsource/poppins';
+import { ThemeProvider } from '@mui/material';
+import theme from '@/assets/theme';
 const poppins = Poppins({
   weight: '400',
   style: 'normal',
@@ -25,7 +28,14 @@ export const metadata = {
     'Town Halls and Campaigns for Voltaire DReps and their communities.',
 };
 // Dynamically imported ClientScriptLoader with no SSR
-const ClientScriptLoader = dynamic(() => import('@/components/Sprig/ClientScriptLoader'), { ssr: false });
+const SprigClientScriptLoader = dynamic(
+  () => import('@/components/analytics/SprigClientScriptLoader'),
+  { ssr: false },
+);
+const FathomClientScriptLoader = dynamic(
+  () => import('@/components/analytics/AnalyticsLoader'),
+  { ssr: false },
+);
 
 async function RootLayout({ children, params: { locale } }) {
   // Root layout component, sets up locale, loads messages, and wraps the app with providers.
@@ -50,8 +60,13 @@ async function RootLayout({ children, params: { locale } }) {
       {/* Apply font class and suppress hydration warning. */}
       <body className={poppins.className} suppressHydrationWarning={true}>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <AppContextProvider>{children}</AppContextProvider>
-          <ClientScriptLoader/>
+          <AppRouterCacheProvider>
+            <ThemeProvider theme={theme}>
+              <AppContextProvider>{children}</AppContextProvider>
+            </ThemeProvider>
+          </AppRouterCacheProvider>
+          <SprigClientScriptLoader />
+          <FathomClientScriptLoader />
         </NextIntlClientProvider>
       </body>
     </html>

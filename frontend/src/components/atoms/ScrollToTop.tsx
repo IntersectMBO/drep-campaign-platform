@@ -28,7 +28,7 @@ const ScrollToTop = () => {
       }`}
       onClick={scrollToTop}
     >
-      <img src="/up-arrow.svg" alt="Up" />
+      <img src="/svgs/up-arrow.svg" alt="Up" />
     </div>
   );
 };

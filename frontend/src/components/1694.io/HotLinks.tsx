@@ -26,16 +26,20 @@ const HotLinks = ({ seethrough }: HotLinksProps) => {
       link: '#size-of-the-constitutional-committee',
     },
     {
-      title: 'Term limits',
-      link: '#term-limits',
+      title: 'Terms',
+      link: '#terms',
+    },
+    {
+      title: 'Guardrails Script',
+      link: '#guardrails-script',
     },
     {
       title: 'Delegated representatives (DReps)',
       link: '#delegated-representatives-dreps',
     },
     {
-      title: 'Pre-defined DReps',
-      link: '#pre-defined-dreps',
+      title: 'Pre-defined Voting Options',
+      link: '#pre-defined-voting-options',
     },
     {
       title: 'Registered DReps',

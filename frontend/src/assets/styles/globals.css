@@ -122,70 +122,18 @@ body {
   backdrop-filter: blur(2px);
 }
 
-.tiptap {
-  @apply min-h-40 w-full rounded-bl-xl rounded-br-xl bg-white p-2;
-
-  > * + * {
-    margin-top: 0.75em;
-  }
-
-  blockquote {
-    border-left: 3px solid rgba(#0d0d0d, 0.9);
-    padding-left: 1rem;
-  }
-
-  ul,
-  ol {
-    padding: 0 1rem;
-  }
-
-  a {
-    color: #68cef8;
-    cursor: pointer;
-  }
-
-  ul {
-    list-style-type: circle;
-  }
-
-  ol {
-    list-style-type: decimal;
-  }
-
-  table {
-    border-collapse: collapse;
-    margin: 0;
-    overflow: hidden;
-    table-layout: fixed;
-    width: 100%;
-
-    td,
-    th {
-      border: 2px solid #ced4da;
-      box-sizing: border-box;
-      min-width: 1em;
-      padding: 3px 5px;
-      position: relative;
-      vertical-align: top;
-
-      > * {
-        margin-bottom: 0;
-      }
-    }
-
-    th {
-      background-color: #f1f3f5;
-      font-weight: bold;
-      text-align: left;
-    }
-
-    p {
-      margin: 0;
-    }
-  }
+.mdxeditor {
+  @apply min-h-40 w-full rounded-xl bg-white ;
+ 
+}
+.mdxeditor-toolbar {
+  @apply bg-black;
+}
+.mdxeditor-diff-source-wrapper{
+  @apply bg-white;
 }
 .dual-bg {
-  background-image: url('/doublecoin-top.png'), url('/doublecoin-bottom.png');
+  background-image: url('/img/doublecoin-top.png'), url('/img/doublecoin-bottom.png');
   background-position: top right, bottom right;
   background-repeat: no-repeat, no-repeat;
   background-size: auto, auto; 
@@ -204,5 +152,9 @@ body {
 }
 #acknowledgements details span {
   @apply shrink-0;
+}
+
+#epoch-card {
+  text-align: left !important;
 }
 
