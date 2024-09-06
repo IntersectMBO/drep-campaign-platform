@@ -4,9 +4,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Drep } from './entities/drep.entity';
 import { Attachment } from './entities/attachment.entity';
 import { Reaction } from './entities/reaction.entity';
-import { Delegator } from './entities/delegator.entity';
 import { Note } from './entities/note.entity';
 import { Comment } from './entities/comment.entity';
+import { Signature } from './entities/signatures.entity';
 
 @Module({
   imports: [
@@ -21,7 +21,7 @@ import { Comment } from './entities/comment.entity';
         username: configService.get('DATABASE_USERNAME', 'voltaire'),
         password: configService.get('DATABASE_PASSWORD', 'postgres'),
         database: configService.get('DATABASE_NAME', '1694'),
-        entities: [Drep, Note, Attachment, Delegator, Comment, Reaction],
+        entities: [Drep, Note, Attachment, Comment, Reaction, Signature],
         synchronize: true,
       }),
     }),
@@ -32,12 +32,9 @@ import { Comment } from './entities/comment.entity';
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get('DATABASE_HOST_DBSYNC', 'dbsync_db'),
-        port: configService.get('DATABASE_PORT', 5432),
+        port: configService.get('DATABASE_PORT_DBSYNC', 5432),
         username: configService.get('DATABASE_USERNAME_DBSYNC', 'postgres'),
-        password: configService.get(
-          'DATABASE_PASSWORD_DBSYNC',
-          'v8hlDV0yMAHHlIurYupj',
-        ),
+        password: configService.get('DATABASE_PASSWORD_DBSYNC'),
         database: configService.get('DATABASE_NAME_DBSYNC', 'cexplorer'),
       }),
     }),

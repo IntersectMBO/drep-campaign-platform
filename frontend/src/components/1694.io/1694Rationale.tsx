@@ -160,8 +160,8 @@ const CIPRationale = () => {
               actions:
             </p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
-              <li>New committee/threshold (normal state)</li>
-              <li>Update to the constitution</li>
+              <li>Update committee/threshold (normal state)</li>
+              <li>New constitution</li>
               <li>Protocol parameter changes</li>
               <li>Treasury withdrawal</li>
             </ul>
@@ -178,7 +178,7 @@ const CIPRationale = () => {
           </section>
           <section className="flex flex-col gap-3 font-light text-sm md:text-md lg:text-lg">
             <p className="text-2xl font-bold">
-              New committee/threshold (state-of-no-confidence)
+              Update committee/threshold (state-of-no-confidence)
             </p>
             <p>
               Similar to the motion of no-confidence, electing a constitutional

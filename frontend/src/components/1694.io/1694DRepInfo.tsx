@@ -19,16 +19,21 @@ const CIPDRepInfo = () => {
             text="CIP-1694 DReps should not be conflated with Project Catalyst DReps."
           />
           <section
-            id="pre-defined-dreps"
+            id="pre-defined-voting-options"
             className="flex flex-col gap-3 text-white"
           >
             <div className="flex w-full items-center justify-center">
               <img src="/img/becomeDrepImg.png" alt="" width={'25%'} />
             </div>
-            <p className="text-2xl lg:text-3xl font-bold">Pre-defined DReps </p>
+            <p className="text-2xl lg:text-3xl font-bold">Pre-defined Voting Options </p>
+            <p>
+            In order to participate in governance, a stake credential must be delegated to a DRep. Ada holders will generally delegate their voting rights to a registered DRep that will vote on their behalf. In addition, two pre-defined voting options are available:
+            </p>
             <ul className="ml-5 flex list-disc flex-col gap-2">
               <li>
-                Abstain If an Ada holder delegates to Abstain, then their stake
+                Abstain 
+                <br/>
+                If an Ada holder delegates to Abstain, then their stake
                 is actively marked as not participating in governance. The
                 effect of delegating to Abstain on chain is that the delegated
                 stake will not be considered to be a part of the active voting
@@ -37,7 +42,9 @@ const CIPDRepInfo = () => {
                 Incentives for Ada holders to delegate voting stake.
               </li>
               <li>
-                No Confidence If an Ada holder delegates to No Confidence, then
+                No Confidence
+                <br/>
+                If an Ada holder delegates to No Confidence, then
                 their stake is counted as a Yes vote on every No Confidence
                 action and a No vote on every other action. The delegated stake
                 will be considered part of the active voting stake. It also
@@ -47,7 +54,7 @@ const CIPDRepInfo = () => {
             </ul>
             <ToastCard
               type="info"
-              text="The pre-defined DReps do not cast votes inside of transactions, their behavior is accounted for at the protocol level. The Abstain DRep may be chosen for a variety of reasons, including the desire to not participate in the governance system."
+              text="The pre-defined voting options do not cast votes inside of transactions, their behavior is accounted for at the protocol level. The `Abstain` option may be chosen for a variety of reasons, including the desire to not participate in the governance system."
             />
             <ToastCard
               type="info"
@@ -70,10 +77,8 @@ const CIPDRepInfo = () => {
               registered DReps will need to vote regularly to still be
               considered active. Specifically, if a DRep does not submit any
               votes for drepActivity-many epochs, the DRep is considered
-              inactive, where drepActivity is a new protocol parameter. Inactive
-              DReps do not count towards the active voting stake anymore, and
-              can become active again for drepActivity-many epochs by voting on
-              any governance actions. The reason for marking DReps as inactive
+              inactive, where drepActivity is a new protocol parameter. Inactive DReps do not count towards the active voting stake anymore, and can become active again for
+              <strong className='font-bold'> drepActivity </strong>-many epochs by voting on any governance actions or submitting a DRep update certificate. The reason for marking DReps as inactive
               is so that DReps who stop participating but still have stake
               delegated to them do not eventually leave the system in a state
               where no governance action can pass. Registered DReps are
@@ -125,12 +130,12 @@ const CIPDRepInfo = () => {
               any time. After this phase, although rewards will continue to be
               earned for block delegation etc., reward accounts will be blocked
               from withdrawing any rewards unless their associated stake
-              credential is also delegated to a DRep. This helps to ensure high
+              credential is also delegated to a DRep or pre-defined voting option. This helps to ensure high
               participation, and so, legitimacy.
             </p>
             <ToastCard
               type="warning"
-              text="Even though rewards cannot be withdrawn, they are not lost. As soon as a stake credential is delegated (including to a pre-defined DRep), the rewards can be withdrawn."
+              text="Even though rewards cannot be withdrawn, they are not lost. As soon as a stake credential is delegated (including to a pre-defined voting option), the rewards can be withdrawn."
             />
           </section>
           <Separator />

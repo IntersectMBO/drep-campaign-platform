@@ -1,6 +1,13 @@
 import React from 'react';
 interface StatusProps {
-  status: 'Verified' | 'Unverified' | 'Not registered' | 'Active' | 'Inactive';
+  status:
+  | 'Verified'
+  | 'Unverified'
+  | 'Claimed'
+  | 'Active'
+  | 'Inactive'
+  | 'Not claimed'
+  | 'Not registered';
 }
 const StatusChip = ({ status }: StatusProps) => {
   let statusClass = '';
@@ -26,7 +33,7 @@ const StatusChip = ({ status }: StatusProps) => {
 
   return (
     <div
-      className={`text-nowrap rounded-full px-2 py-1 text-center text-sm font-semibold  ${statusClass}`}
+      className={`text-nowrap rounded-full px-2 py-1 text-center text-sm font-normal  ${statusClass}`}
     >
       {status}
     </div>

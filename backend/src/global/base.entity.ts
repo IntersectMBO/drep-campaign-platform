@@ -45,5 +45,5 @@ export abstract class BaseEntity extends SoftDeletableBaseEntity  {
 	createdAt?: Date;
 
 	@UpdateDateColumn() // TypeORM decorator for update date
-	updateAt?: Date;
+	updatedAt?: Date;
 }

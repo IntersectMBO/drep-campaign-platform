@@ -1,4 +1,4 @@
-import closeIcon from '../../public/close.svg';
+import closeIcon from '../../public/svgs/close.svg';
 export const ICONS = {
   closeIcon,
 };

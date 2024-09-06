@@ -8,15 +8,13 @@ import { SharedProvider } from './sharedContext';
 export function AppContextProvider({ children }) {
   return (
     <QueryProvider>
-      <SharedProvider>
-        <CardanoProvider>
-          <DRepProvider>
-            <GlobalNotificationsProvider>
-              {children}
-            </GlobalNotificationsProvider>
-          </DRepProvider>
-        </CardanoProvider>
-      </SharedProvider>
+      <GlobalNotificationsProvider>
+        <SharedProvider>
+          <CardanoProvider>
+            <DRepProvider>{children}</DRepProvider>
+          </CardanoProvider>
+        </SharedProvider>
+      </GlobalNotificationsProvider>
     </QueryProvider>
   );
 }

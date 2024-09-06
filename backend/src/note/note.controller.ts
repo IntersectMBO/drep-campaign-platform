@@ -1,13 +1,26 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { createNoteDto } from 'src/dto';
 import { NoteService } from './note.service';
+import { VoterService } from 'src/voter/voter.service';
 
 @Controller('notes')
 export class NoteController {
-  constructor(private noteService: NoteService) {}
+  constructor(
+    private noteService: NoteService,
+    private voterService: VoterService,
+  ) {}
   @Get('/all')
-  getAllNotes() {
-    return this.noteService.getAllNotes();
+  async getAllNotes(@Query('stakeKeys') stakeKeys?: any, @Query('beforeNoteCursor') beforeNote?: number, @Query('afterNoteCursor') afterNote?: number) {
+    const { stakeKey, stakeKeyBech32 } = stakeKeys || {};
+
+    let delegation = null;
+
+    if (stakeKey) {
+      delegation =
+        await this.voterService.getAdaHolderCurrentDelegation(stakeKey);
+    }
+
+    return this.noteService.getAllNotes(stakeKeyBech32, delegation,beforeNote, afterNote);
   }
   @Get('/:id/single')
   getSingleNote(@Param('id') noteId: string) {

@@ -5,7 +5,9 @@ import { WalletInfoCard } from '@/components/molecules';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useDRepContext } from '@/context/drepContext';
-import TranslationBlock from '../1694.io/TranslationBlock';
+import { useScreenDimension } from '@/hooks';
+import VoltaireMenu from '../molecules/VoltaireMenu';
+import DRepMenu from '../molecules/DRepMenu';
 
 const navOptions = [
   {
@@ -25,37 +27,31 @@ const navOptions = [
     path: '/ecosystem',
   },
 ];
+
 const Header = () => {
   const { isEnabled } = useCardano();
   const { currentLocale, setIsMobileDrawerOpen } = useDRepContext();
-  const [isMobile, setIsMobile] = useState(false);
+  const { isMobile } = useScreenDimension();
   const pathname = usePathname();
   const [activeLink, setActiveLink] = useState(null);
-
   useEffect(() => {
     // Setting the active link based on the current pathname
     setActiveLink(pathname);
-    setIsMobile(window.innerWidth < 768);
   }, [pathname]);
   //add event listener to the window to check if the screen is mobile
-  useEffect(() => {
-    window.addEventListener('resize', () => {
-      setIsMobile(window.innerWidth < 768);
-    });
-  }, []);
   return (
-    <header className="bg-white bg-opacity-50 w-full">
+    <header className="w-full bg-white bg-opacity-50">
       <div className="base_container flex shrink-0 flex-row items-center justify-between py-6 ">
         <Link href="/">
           <img
-            src="/sancho1694.svg"
+            src="/svgs/sancho1694.svg"
             alt="Sancho logo"
             width={isMobile ? 100 : 150}
           />
         </Link>
         <div className="flex shrink-0 items-center gap-3 text-nowrap text-sm font-bold">
           {!isMobile && (
-            <div className='flex flex-row gap-6'>
+            <div className="flex flex-row items-center gap-6">
               <Link
                 href={'/'}
                 className={`${
@@ -66,31 +62,20 @@ const Header = () => {
               >
                 CIP
               </Link>
-              {navOptions.slice(0, 1).map((option, index) => (
-                <Link
-                  key={index + option.name + option.path + option}
-                  href={option.path}
-                  className={`${
-                    activeLink === `/${currentLocale}${option.path}`
-                      ? 'text-orange-500'
-                      : 'text-gray-800'
-                  }`}
-                >
-                  {option.name}
-                </Link>
-              ))}
+              <DRepMenu />
+              <VoltaireMenu />
             </div>
           )}
           <div>
             {!isEnabled ? (
               <WalletConnectButton test_name={'header'} />
             ) : (
-              <WalletInfoCard />
+              <WalletInfoCard test_name={'header'} />
             )}
           </div>
           {!isMobile && (
             <div className="cursor-pointer">
-              <img src="/bell.svg" alt="Notifs" />
+              <img src="/svgs/bell.svg" alt="Notifs" />
             </div>
           )}
           {isMobile && (
@@ -98,7 +83,7 @@ const Header = () => {
               className="cursor-pointer"
               onClick={() => setIsMobileDrawerOpen(true)}
             >
-              <img src="/drawer-icon.svg" alt="Drawer" />
+              <img src="/svgs/drawer-icon.svg" alt="Drawer" />
             </div>
           )}
         </div>
@@ -107,4 +92,4 @@ const Header = () => {
   );
 };
 
-export { Header, navOptions}
+export { Header };

@@ -1,9 +1,19 @@
 import React from 'react';
 import Button from '../atoms/Button';
 
-const ViewDRepTableBtn = ({ handleClick }) => {
+type ViewDRepTableBtnProps = {
+  handleClick?: () => void;
+  size?:
+    | 'extraLarge'
+    | 'large'
+    | 'medium'
+    | 'small'
+    | 'extraSmall'
+    | 'smallest';
+};
+const ViewDRepTableBtn = ({ handleClick, size }: ViewDRepTableBtnProps) => {
   return (
-    <Button handleClick={handleClick}>
+    <Button size={size} handleClick={handleClick}>
       <p>Explore DReps</p>
     </Button>
   );

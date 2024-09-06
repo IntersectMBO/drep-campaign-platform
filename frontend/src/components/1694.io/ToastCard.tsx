@@ -10,7 +10,7 @@ const ToastCard = ({ type, text }: ToastCardProps) => {
     >
       <img
         className="mx-3 lg:mx-7"
-        src={`/toastsvgs/${type === 'warning' ? 'alert-triangle.svg' : 'notes.svg'}`}
+        src={`/svgs/toastsvgs/${type === 'warning' ? 'alert-triangle.svg' : 'notes.svg'}`}
         alt="Alert icon"
       />
       <div className="flex flex-col gap-2 text-black">
