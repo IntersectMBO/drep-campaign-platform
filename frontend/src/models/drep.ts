@@ -1,7 +1,7 @@
-export interface drepInput extends FormData {
-    name: string;
-    stake_addr: string;
-    voter_id: string;
-    profileUrl?: string;
+export interface drepInput  {
+  stake_addr: string;
+  voter_id: string;
+  signature: string;
+  key: string;
   }
   

@@ -26,8 +26,7 @@ export const governanceActionProcessor = (content: string) => {
     parts.push(
       <DrepGovActionSubmitCard
         key={hash}
-        item={govActionData}
-        actionType={govActionData.description.tag}
+        hash={hash}
       />
     );
 

@@ -1,19 +1,6 @@
-
-import { StakeKeys } from '../../../types/commonTypes';
 import axiosInstance from '../axiosInstance';
 
-export const getSingleDRepViaVoterId = async (
-  voterid: string,
-  stakeKeys?: StakeKeys,
-  startTimeCursor?: number,
-  endTimeCursor?: number
-) => {
-  const response = await axiosInstance.get(`/api/dreps/${voterid}/voter`, {
-    params: {
-      stakeKeys:stakeKeys,
-      startTimeCursor: startTimeCursor,
-      endTimeCursor: endTimeCursor
-    },
-  });
+export const getSingleDRepViaVoterId = async (voterid: string) => {
+  const response = await axiosInstance.get(`/dreps/${voterid}/voter`);
   return response.data;
 };

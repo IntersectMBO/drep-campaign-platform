@@ -30,7 +30,7 @@ export function decodeToken(token: string) {
 }
 
 export function shortenAddress(address: string, length: number) {
-  // get five characters from the start and end of the address
+  // get [length] characters from the start and end of the address
   return address.slice(0, length) + '...' + address.slice(-length);
 }
 
@@ -62,4 +62,35 @@ export function formattedAda(lovelace: number | string, decimals: number) {
 export function formatAsCurrency(amount: number | string) {
   let numberAmount = Number(amount);
   return numberAmount.toLocaleString('en-US');
+}
+
+export const handleCopyText = (text: string) => {
+  navigator.clipboard.writeText(text);
+};
+
+export const formatNumberTimeToReadable = (time: number) => {
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  };
+
+  const startTimeFormatted = new Date(time).toLocaleString(undefined, options);
+  return startTimeFormatted;
+};
+export const toBase64 = (file) => {
+  if (!file) return;
+  if (typeof file === 'string') return file;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
+export async function sha256(file: File) {
+  const arrayBuffer = await file.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }

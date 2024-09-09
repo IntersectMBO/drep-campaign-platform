@@ -36,16 +36,14 @@ spec:
             - secretRef:
                 name: "{{ $.Chart.Name }}-global-secrets"
             - secretRef:
-                name: "{{ $.Chart.Name }}-backend-secrets"
+                name: "{{ $.Chart.Name }}-frontend-secrets"
           livenessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: 3000
             initialDelaySeconds: 5
             periodSeconds: 10
           readinessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: 3000
             initialDelaySeconds: 1
             periodSeconds: 10

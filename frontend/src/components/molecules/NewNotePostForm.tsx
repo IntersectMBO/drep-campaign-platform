@@ -24,9 +24,9 @@ const NewNotePostForm = ({ register, control, errors }) => {
         errors={errors}
         dataTestId={'post-tag-input'}
       />
-      <MarkdownEditor name='postText' control={control} errors={errors} />
+      <MarkdownEditor name="postText" control={control} errors={errors} />
       <PostVisiblityInput registerVisibility={register} errors={errors} />
-      <PostSubmitArea />
+      <PostSubmitArea showViewTimeline={false} />
     </div>
   );
 };

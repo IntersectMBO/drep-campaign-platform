@@ -14,10 +14,6 @@ services:
       DATABASE_NAME: 1694
       DATABASE_USERNAME: voltaire
       DATABASE_PASSWORD: postgres
-      DATABASE_HOST_DBSYNC: dbsync_db
-      DATABASE_NAME_DBSYNC: cexplorer
-      DATABASE_USERNAME_DBSYNC: postgres
-      DATABASE_PASSWORD_DBSYNC: v8hlDV0yMAHHlIurYupj
       NODE_ENV: development # Set node environment to development
     volumes: # Mount points for persistent data and source code
       - "./backend:/app"
@@ -27,6 +23,7 @@ services:
       - io-1694 # Connect to the 'io-1694' network
     depends_on:
       - web_db # Depends on the database service
+
   dbsync_db:
     image: postgres:16.3-alpine3.19
     environment:
@@ -58,6 +55,7 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
+
   web_db:
     container_name: voltaire_db # Name of the database container
     platform: linux/amd64 # Specify the platform (important for ARM64 architectures)
@@ -73,14 +71,15 @@ services:
       - db-data:/var/lib/postgresql/data/ # Persistent storage for the database
     networks:
       - io-1694 # Connect to the 'io-1694' network
+
   frontend:
     container_name: frontend # Name of the frontend container
     build: # Build configuration for the frontend
       context: ./frontend
       dockerfile: Dockerfile.dev
     restart: unless-stopped
-    environment:
-      NEXT_PUBLIC_BASE_SERVER_URL: http://localhost:8000 # Environment variable for the API URL
+    env_file:
+      - ./frontend/.env
     ports:
       - 3000:3000 # Expose port 3000 to the host
     networks:
@@ -91,7 +90,7 @@ services:
       - backend # Depends on the backend service
 
   cardano-node:
-    image: ghcr.io/intersectmbo/cardano-node:8.12.0-pre
+    image: ghcr.io/intersectmbo/cardano-node:9.1.1
     command: [
       "run",
       "--config", "/config/config.json",
@@ -100,8 +99,8 @@ services:
       "--topology", "/config/topology.json"
     ]
     volumes:
-      - ./cardanonode/config/network/${CARDANO_NETWORK:-sanchonet}/cardano-node:/config
-      - ./cardanonode/config/network/${CARDANO_NETWORK:-sanchonet}/genesis:/genesis
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-preview}/cardano-node:/config
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-preview}/genesis:/genesis
       - node-db:/data
       - node-ipc:/ipc
     restart: on-failure
@@ -119,11 +118,13 @@ services:
       retries: 3
     networks:
       - io-1694 # Connect to the 'io-1694' network
+
   cardano-db-sync:
-    image: ghcr.io/intersectmbo/cardano-db-sync:sancho-5.0.0
+    image: ghcr.io/intersectmbo/cardano-db-sync:13.5.0.2
     environment:
       - DISABLE_LEDGER=${DISABLE_LEDGER}
-      - NETWORK=${CARDANO_NETWORK:-sanchonet}
+      - DB_SYNC_CONFIG=${DB_SYNC_CONFIG:-/config/config.json}
+      - NETWORK=${CARDANO_NETWORK:-preview}
       - POSTGRES_HOST=dbsync_db
       - POSTGRES_PORT=5432
       - RESTORE_SNAPSHOT=${RESTORE_SNAPSHOT:-}
@@ -142,6 +143,8 @@ services:
     volumes:
       - db-sync-data:/var/lib/cexplorer
       - node-ipc:/node-ipc
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-preview}/cardano-db-sync:/config
+      - ./cardanonode/config/network/${CARDANO_NETWORK:-preview}/genesis:/genesis
     restart: on-failure
     networks:
       - io-1694 # Connect to the 'io-1694' network
@@ -150,15 +153,17 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
-  adminer: 
+
+  adminer:
     image: adminer
     restart: always
     ports:
       - 8080:8080
     networks:
       - io-1694 # Connect to the 'io-1694' network
+
   cypress:
-    image: cypress/included:12.3.0
+    image: cypress/included:cypress-13.13.1-node-20.15.1-chrome-126.0.6478.126-1-ff-128.0-edge-126.0.2592.102-1
     # the Docker image to use from https://github.com/cypress-io/cypress-docker-images
     #  It is however recommended to use a specific image tag to avoid breaking changes when new images are released, especially when they include new major versions of Node.js or Cypress.
     depends_on:
@@ -169,11 +174,12 @@ services:
     working_dir: /e2e
     networks:
       - io-1694
-    command: ["npx", "cypress", "open",  "--browser", "chrome", "--config","video=false"]
+    command: ["npx", "cypress", "open",]
     restart: unless-stopped
     # share the current folder as volume to avoid copying
     volumes:
       - ./frontend:/e2e
+
 volumes:
   db-data:
   db-sync-data:

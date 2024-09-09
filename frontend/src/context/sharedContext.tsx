@@ -5,12 +5,15 @@ const SharedContext = createContext(null);
 export function SharedProvider({ children }) {
   const [sharedState, setSharedState] = useState({
     isWalletListModalOpen: false,
+    isLoginModalOpen: false,
+    isLoggedIn: false,
     isNotDRepErrorModalOpen: false,
     isMobileDrawerOpen: false,
     loginCredentials:{
       signature:null,
       key:null
-    }
+    },
+    dRepIDBech32: '',
   });
 
   const updateSharedState = useCallback((newState) => {

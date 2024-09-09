@@ -106,10 +106,3 @@ export interface CardanoApiWallet {
   getActivePubStakeKeys(): Promise<string[]>;
   getExtensions(): Promise<Extension[]>;
 }
-export interface VoterInfo {
-  isRegisteredAsDRep: boolean;
-  wasRegisteredAsDRep: boolean;
-  isRegisteredAsSoleVoter: boolean;
-  wasRegisteredAsSoleVoter: boolean;
-  deposit: number;
-}

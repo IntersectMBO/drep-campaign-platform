@@ -21,7 +21,8 @@ variables:
 
 stages:
   - build
-  - staging
+  - sancho
+  - preview
   - production
   - test
 
@@ -85,8 +86,10 @@ services:
           --set global.postgresql.auth.password="$POSTGRESQL_WEB_PASSWORD" \
           --set global.postgresql.auth.postgresPassword="$POSTGRESQL_WEB_POSTGRES_PASSWORD" \
           --set primary.persistence.size="$POSTGRESQL_WEB_SIZE" \
+          --set namespace=$KUBE_NAMESPACE \
           $DEPLOYMENT_NAME-web-db \
           bitnami/postgresql
+
 
 .deploy_postgres_dbsync_script: &deploy_postgres_dbsync_script
     - |
@@ -107,8 +110,11 @@ services:
           --set global.postgresql.auth.password="$POSTGRESQL_DBSYNC_PASSWORD" \
           --set global.postgresql.auth.postgresPassword="$POSTGRESQL_DBSYNC_POSTGRES_PASSWORD" \
           --set primary.persistence.size="$POSTGRESQL_DBSYNC_SIZE" \
+          --set namespace=$KUBE_NAMESPACE \
           $DEPLOYMENT_NAME-dbsync-db \
           bitnami/postgresql
+
+
 
 build_frontend:
   stage: build
@@ -118,13 +124,15 @@ build_frontend:
     - *setup
     - |
       set -xev
-      cp $ENV_FILE frontend/.env.production
-      cat $ENV_FILE_FRONTEND > frontend/.env.production
+      cp $ENV_FILE_NEXT_PUBLIC_TEMPLATE frontend/.env.production
+      # cat $ENV_FILE_FRONTEND > frontend/.env.production
+      
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-frontend:latest ..."
       docker build --network host -f frontend/Dockerfile \
         -t "$CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG" \
         -t "$CI_APPLICATION_REPOSITORY/1694.io-frontend:latest" .
+      
       docker push "$CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG"
       docker push "$CI_APPLICATION_REPOSITORY/1694.io-frontend:latest"
   only:
@@ -138,10 +146,12 @@ build_backend:
     - *setup
     - |
       set -xev
+      
       cp $ENV_FILE backend/.env.production
       cat $ENV_FILE_BACKEND > backend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp backend/.env.production ./chart/backend_env
+            
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       echo "Building Dockerfile with tags $CI_APPLICATION_REPOSITORY/1694.io-backend:$CI_APPLICATION_TAG and $CI_APPLICATION_REPOSITORY/www.1694.io-backend:latest ..."
       
@@ -167,24 +177,101 @@ build_backend:
     - *deploy_postgres_dbsync_script
   rules: *infra_rules
 
-postgres-web-staging:
+postgres-app-sancho:
   <<: *deploy_postgres_web
-  stage: staging
+  stage: sancho
   needs: []
   environment:
-    name: staging
+    name: sancho
 
-
-postgres-dbsync-staging:
+postgres-dbsync-sancho:
   <<: *deploy_postgres_dbsync
-  stage: staging
+  stage: sancho
   needs: []
   environment:
-    name: staging
+    name: sancho
 
-staging:
+app-sancho:
   image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
-  stage: staging
+  stage: sancho
+  script:
+    - *setup
+    - auto-deploy check_kube_domain
+    - auto-deploy download_chart
+    - auto-deploy create_secret
+    - |
+      set -xev
+      
+      DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"    
+      cp $ENV_FILE backend/.env.production
+      cat $ENV_FILE_BACKEND > backend/.env.production
+      cat $ENV_FILE_FRONTEND > frontend/.env.production
+      cp backend/.env.production ./chart/backend_env
+      
+      cp $ENV_FILE frontend/.env.production
+      cat $ENV_FILE_FRONTEND > frontend/.env.production
+      cp frontend/.env.production ./chart/frontend_env
+      cp $ENV_FILE_FRONTEND ./chart/frontend_env
+      
+      kubectl delete secret 1694-registry-deploy-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
+      
+      kubectl create secret docker-registry 1694-registry-deploy-token \
+        --namespace="$KUBE_NAMESPACE" \
+        --docker-server=registry.lidonation.com \
+        --docker-username=$CI_REGISTRY_USER \
+        --docker-password=$CI_REGISTRY_PASSWORD \
+        --docker-email=$REGISTRY_EMAIL      
+      
+       helm template ./chart --debug \
+        -f ./chart/values.yaml \
+        --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
+        --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
+        --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
+        --set image.tag=$CI_APPLICATION_TAG \
+        --namespace="$KUBE_NAMESPACE" \
+        --create-namespace    
+      
+      helm upgrade $DEPLOYMENT_NAME ./chart --install \
+        -f ./chart/values.yaml \
+        --timeout 300s \
+        --wait \
+        --atomic \
+        --namespace="$KUBE_NAMESPACE" \
+        --set image.tag=$CI_APPLICATION_TAG \
+        --set backend.replicaCount=1 \
+        --set frontend.replicaCount=1 \
+        --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
+        --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
+        --namespace="$KUBE_NAMESPACE" \
+        --create-namespace
+    - auto-deploy persist_environment_url
+  artifacts:
+    paths: [ environment_url.txt ]
+  needs:
+    - job: build_frontend
+    - job: build_backend
+  environment:
+    name: sancho
+  only:
+    - branches
+
+postgres-app-preview:
+  <<: *deploy_postgres_web
+  stage: preview
+  needs: []
+  environment:
+    name: preview
+
+postgres-dbsync-preview:
+  <<: *deploy_postgres_dbsync
+  stage: preview
+  needs: []
+  environment:
+    name: preview
+
+app-preview:
+  image: "${CI_TEMPLATE_REGISTRY_HOST}/gitlab-org/cluster-integration/auto-deploy-image:${AUTO_DEPLOY_IMAGE_VERSION}"
+  stage: preview
   script:
     - *setup
     - auto-deploy check_kube_domain
@@ -203,7 +290,6 @@ staging:
       cp $ENV_FILE frontend/.env.production
       cat $ENV_FILE_FRONTEND > frontend/.env.production
       cp frontend/.env.production ./chart/frontend_env
-      
       cp $ENV_FILE_FRONTEND ./chart/frontend_env
       
       kubectl delete secret 1694-registry-deploy-token --ignore-not-found --namespace="$KUBE_NAMESPACE"
@@ -213,25 +299,22 @@ staging:
         --docker-server=registry.lidonation.com \
         --docker-username=$CI_REGISTRY_USER \
         --docker-password=$CI_REGISTRY_PASSWORD \
-        --docker-email=$REGISTRY_EMAIL      
+        --docker-email=$REGISTRY_EMAIL
       
-       helm template ./chart --debug \
-        -f ./chart/values.yaml \
-        --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
-        --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
-        --set services.ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
-        --set image.tag=$CI_APPLICATION_TAG \
-        --namespace="$KUBE_NAMESPACE" \
-        --create-namespace    
+      echo "AUTO_DEVOPS_WEB_DOMAIN: $AUTO_DEVOPS_WEB_DOMAIN"
       
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
         -f ./chart/values.yaml \
         --timeout 300s \
         --wait \
         --atomic \
+        --namespace="$KUBE_NAMESPACE" \
         --set image.tag=$CI_APPLICATION_TAG \
+        --set backend.replicaCount=1 \
+        --set frontend.replicaCount=1 \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
-        --set services.ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
+        --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
+        --set namespace=$KUBE_NAMESPACE \
         --namespace="$KUBE_NAMESPACE" \
         --create-namespace
     - auto-deploy persist_environment_url
@@ -241,22 +324,18 @@ staging:
     - job: build_frontend
     - job: build_backend
   environment:
-    name: staging
-  only:
-    - branches
+    name: preview
+  rules:
+    - if: $DEPLOY_WEBSITE == 'true'
+      when: manual
 
-
-postgres-web-production:
+postgres-app-production:
   <<: *deploy_postgres_web
   stage: production
   needs:
-    - job: staging
-  rules:
-    - if: $CI_COMMIT_BRANCH == 'main'
-      when: manual
+    - job: postgres-app-preview
   environment:
     name: production
-
 
 postgres-dbsync-production:
   <<: *deploy_postgres_dbsync
@@ -264,10 +343,7 @@ postgres-dbsync-production:
   environment:
     name: production
   needs:
-    - job: staging
-  rules:
-    - if: $CI_COMMIT_BRANCH == 'main'
-      when: manual
+    - job: postgres-dbsync-preview
 
 production:
   stage: production
@@ -281,6 +357,17 @@ production:
     # - auto-deploy ensure_namespace
     - |      
       DEPLOYMENT_NAME="www-1694.$CI_ENVIRONMENT_SLUG"
+      
+      cp $ENV_FILE backend/.env.production
+      cat $ENV_FILE_BACKEND > backend/.env.production
+      cat $ENV_FILE_FRONTEND > frontend/.env.production
+      cp backend/.env.production ./chart/backend_env
+      
+      cp $ENV_FILE frontend/.env.production
+      cat $ENV_FILE_FRONTEND > frontend/.env.production
+      cp frontend/.env.production ./chart/frontend_env
+      cp $ENV_FILE_FRONTEND ./chart/frontend_env
+      
       helm upgrade $DEPLOYMENT_NAME ./chart --install \
         -f ./chart/values.yaml \
         --timeout 300s \
@@ -288,6 +375,8 @@ production:
         --atomic \
         --set image.repository=$CI_APPLICATION_REPOSITORY/www.1694.io \
         --set image.tag=$CI_APPLICATION_TAG \
+        --set backend.replicaCount=5 \
+        --set frontend.replicaCount=5 \
         --set secrets.NEXT_PUBLIC_GOOGLE_API="$NEXT_PUBLIC_GOOGLE_API" \
         --set ingress.hosts[0]="$AUTO_DEVOPS_WEB_DOMAIN" \
         --set namespace=$KUBE_NAMESPACE \
@@ -297,13 +386,13 @@ production:
   artifacts:
     paths: [ environment_url.txt ]
   needs:
-    - job: staging
+    - job: app-preview
   rules:
     - if: $CI_COMMIT_BRANCH == 'main'
       when: manual
 
 ui-chrome-tests:
-  image: cypress/browsers:node-20.9.0-chrome-118.0.5993.88-1-ff-118.0.2-edge-118.0.2088.46-1
+  image: cypress/included:cypress-13.13.1-node-20.15.1-chrome-126.0.6478.126-1-ff-128.0-edge-126.0.2592.102-1
   stage: test
   cache:
     key: ${CI_COMMIT_REF_SLUG}
@@ -317,6 +406,12 @@ ui-chrome-tests:
     - yarn install --frozen-lockfile
     # start the server in the background
     - yarn run build
-    - yarn run start &
+    - yarn run start 
     # run Cypress tests in parallel
-    - npx cypress run --browser chrome --config video=false || true
+    - npx cypress run 
+  artifacts:
+    when: on_failure
+    paths:
+      - ${PWD}/frontend/cypress/videos/**/*.mp4
+      - ${PWD}/frontend/cypress/screenshots/**/*.png
+    expire_in: 1 day

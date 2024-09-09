@@ -4,7 +4,7 @@ import {Type} from 'class-transformer'
 export class createNoteDto {
   @IsNotEmpty()
   note_title: string;
-  @IsNotEmpty()
+  @IsOptional()
   note_tag: string[];
   @IsNotEmpty()
   note_content: string;

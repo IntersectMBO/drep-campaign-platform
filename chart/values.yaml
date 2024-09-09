@@ -43,7 +43,6 @@ ingress:
     kubernetes.io/ingress.class: traefik,
     cert-manager.io/cluster-issuer: letsencrypt-issuer,
     traefik.ingress.kubernetes.io/router.entrypoints: "websecure,web",
-    traefik.ingress.kubernetes.io/router.middlewares: "traefik-redirect-http-to-https@kubernetescrd,traefik-default-headers@kubernetescrd"
   }
   hosts:
     - sancho.1694.io

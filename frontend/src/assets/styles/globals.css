@@ -7,7 +7,7 @@ html {
 }
 
 body {
-  @apply relative bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF] ;
+  @apply relative bg-gradient-to-b from-[#E9EFFF] to-[#FFFFFF];
 }
 
 .base_container {
@@ -30,17 +30,17 @@ body {
   overflow: hidden;
 }
 .img_container {
-  #main{
-    @apply max-w-[450px] max-h-[450px] ;
+  #main {
+    @apply max-h-[450px] max-w-[450px];
   }
-  #inverse{
-    @apply max-w-[150px] max-h-[150px] ;
+  #inverse {
+    @apply max-h-[150px] max-w-[150px];
   }
-  #dull{
-    @apply max-w-[200px] max-h-[200px] ;
+  #dull {
+    @apply max-h-[200px] max-w-[200px];
   }
-  #rainbow{
-    @apply max-w-[300px] max-h-[300px] ;
+  #rainbow {
+    @apply max-h-[300px] max-w-[300px];
   }
 }
 .table_container tbody tr {
@@ -123,20 +123,22 @@ body {
 }
 
 .mdxeditor {
-  @apply min-h-40 w-full rounded-xl bg-white ;
- 
+  @apply min-h-40 w-full rounded-xl bg-white;
 }
 .mdxeditor-toolbar {
   @apply bg-black;
 }
-.mdxeditor-diff-source-wrapper{
+.mdxeditor-diff-source-wrapper {
   @apply bg-white;
 }
 .dual-bg {
-  background-image: url('/img/doublecoin-top.png'), url('/img/doublecoin-bottom.png');
-  background-position: top right, bottom right;
+  background-image: url('/img/doublecoin-top.png'),
+    url('/img/doublecoin-bottom.png');
+  background-position:
+    top right,
+    bottom right;
   background-repeat: no-repeat, no-repeat;
-  background-size: auto, auto; 
+  background-size: auto, auto;
 }
 
 #acknowledgements details {
@@ -158,3 +160,40 @@ body {
   text-align: left !important;
 }
 
+/* width */
+::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 0.6rem;
+  -webkit-border-radius: 0.6rem;
+  -moz-border-radius: 0.6rem;
+  -ms-border-radius: 0.6rem;
+  -o-border-radius: 0.6rem;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+.loader {
+  width: 35px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  animation: l5 1s infinite linear alternate;
+}
+@keyframes l5 {
+    0%  {box-shadow: 60px 0 #0033AD, -60px 0 #4340ff;background: #0033AD }
+    33% {box-shadow: 60px 0 #0033AD, -60px 0 #4340ff;background: #4340ff}
+    66% {box-shadow: 60px 0 #4340ff,-60px 0 #0033AD; background: #4340ff}
+    100%{box-shadow: 60px 0 #4340ff,-60px 0 #0033AD; background: #0033AD }
+}

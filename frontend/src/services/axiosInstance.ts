@@ -1,11 +1,11 @@
 import axios from 'axios';
-import { PATHS, urls } from '../constants';
+import { urls } from '@/constants';
 
 const baseURL = urls.baseServerUrl;
 
 const axiosInstance = axios.create({
   baseURL,
-  timeout: 5000,
+  timeout: 30000,
 });
 //can also intercept to navigate to an error page
 export const SetupInterceptors = () =>

@@ -1,7 +1,13 @@
 import { useCardano } from '@/context/walletContext';
 import { useScreenDimension } from '@/hooks';
-import { convertString } from '@/lib';
+import {
+  convertString,
+  formatAsCurrency,
+  formattedAda,
+  lovelaceToAda,
+} from '@/lib';
 import React from 'react';
+import HoverText from './HoverText';
 const ViewProfileAction = () => {
   return (
     <div className="flex w-fit flex-row items-center gap-2 rounded-full bg-gray-200 px-3 py-1 text-sm">
@@ -36,8 +42,15 @@ const DrepDelegatorslist = ({ delegators }: { delegators: any[] }) => {
                   </div>
 
                   <div className="flex min-w-40 flex-col items-center justify-start">
-                    <p className="font-bold">Voting Power</p>
-                    <p> ₳ {Number(delegator.votingPower).toFixed(2)}</p>
+                    <p className="font-bold">Active Stake</p>
+                    <div>
+                      <HoverText
+                        shortText={formattedAda(delegator?.votingPower, 2)}
+                        longText={formatAsCurrency(
+                          lovelaceToAda(delegator?.votingPower),
+                        )}
+                      />
+                    </div>
                   </div>
 
                   <div className="flex min-w-40 flex-col items-center justify-start">

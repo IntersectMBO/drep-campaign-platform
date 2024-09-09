@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
 import UpdateNotePostForm from '../molecules/UpdateNotePostForm';
 import { usePostUpdateNoteMutation } from '@/hooks/usePostUpdateNoteMutation';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
@@ -13,10 +12,10 @@ import { useGlobalNotifications } from '@/context/globalNotificationContext';
 const FormSchema = z.object({
   postTitle: z
     .string()
-    .min(3, 'Post Title cant be less than 3 chars')
-    .max(12, "Post Title can't be more than 12 chars"),
-  postTag: z.array(z.string()),
-  postText: z.string().min(10, 'Post Text cant be less than 10 chars'),
+    .min(3, 'Title cant be less than 3 chars')
+    .max(255, "Title can't be more than 255 chars"),
+  postTag: z.array(z.string()).nullable().optional(),
+  postText: z.string().min(10, 'Content cant be less than 10 chars'),
   postVisibility: z.string().min(1, "Visibilty status can't be empty"),
 });
 type InputType = z.infer<typeof FormSchema>;

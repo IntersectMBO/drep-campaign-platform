@@ -1,6 +1,7 @@
 import React from 'react';
 import Button from '../atoms/Button';
 import Link from 'next/link';
+import { Avatar } from '@mui/material';
 interface ConversationsCardProps {
   conversations?: GithubComment[];
 }
@@ -40,12 +41,12 @@ const ConversationsCard = ({ conversations }: ConversationsCardProps) => {
               className={`grid-item-${index + 1} flex max-h-fit flex-col gap-3`}
             >
               <div className="flex flex-row items-center justify-start gap-5 rounded-full">
-                <img
+                <Avatar
                   src={item.user.avatar_url}
                   alt={item.user.login}
-                  width={'25%'}
-                  className="rounded-full"
-                />
+                  variant='circular'
+                >
+                </Avatar>
                 <p className="text-2xl font-bold">{item.user.login}</p>
               </div>
               <p>{item.body}</p>

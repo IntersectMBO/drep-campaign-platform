@@ -57,8 +57,8 @@ const CustomAutocomplete = ({
           />
         )}
       />
-      <div className="text-sm text-red-700" data-testid="error-msg">
-        {errors[id] && errors[id].message}
+      <div className="text-sm text-red-500" data-testid="error-msg">
+        <span>{errors[id] && errors[id].message}</span>
       </div>
     </div>
   );

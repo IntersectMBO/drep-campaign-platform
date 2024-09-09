@@ -1,29 +1,23 @@
 import { useCardano } from '@/context/walletContext';
 import { useGetAdaHolderCurrentDelegationQuery } from '@/hooks/useGetAdaHolderCurrentDelegationQuery';
 import { useGetSingleDRepViaVoterIdQuery } from '@/hooks/useGetSingleDRepViaVoterIdQuery';
-import { formattedAda, shortenAddress } from '@/lib';
-import { Box, Typography } from '@mui/material';
-import { memo } from 'react';
+import { formattedAda, handleCopyText, shortenAddress } from '@/lib';
+import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import ViewDRepTableBtn from './ViewDRepTableButton';
-import { useRouter } from 'next/navigation';
 import Button from '../atoms/Button';
 import Link from 'next/link';
+import CopyToClipBoardIcon from '../atoms/svgs/CopyToClipBoardIcon';
 
 type DelegatedToProps = {
   className?: string;
 };
 
-export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
+export const DelegatedTo = ({ className }: DelegatedToProps) => {
   const { stakeKey } = useCardano();
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
   const { DRep } = useGetSingleDRepViaVoterIdQuery(
     currentDelegation?.drep_view,
   );
-
-  const router = useRouter();
-  const navToDRepList = () => {
-    router.push('/dreps/list');
-  };
 
   return (
     <Box
@@ -32,7 +26,7 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
       <Box className="flex w-full justify-start">
         <Typography
           fontSize="0.85rem"
-          fontWeight={600}
+          fontWeight={500}
           className="w-auto rounded-3xl bg-gray-800 px-2 py-1"
         >
           {!!currentDelegation?.drep_view ? 'Delegating' : 'Not Delegating'}
@@ -42,16 +36,32 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
         {currentDelegation && DRep && (
           <>
             <Box>
+              {/* Disabled due to model changes */}
+              {/* <Typography fontSize="0.85rem" fontWeight={600}>
+                Delegated to: {DRep?.drep_name ? `(${DRep.drep_name})` : ''}
+              </Typography> */}
               <Typography fontSize="0.85rem" fontWeight={600}>
-                Delegated to:
+                Delegated
               </Typography>
-              <Typography
-                fontSize="0.75rem"
-                fontWeight={600}
-                className="overflow-hidden text-gray-300"
-              >
-                {shortenAddress(currentDelegation?.drep_view, 12)}
-              </Typography>
+              <Box className="flex items-center overflow-hidden text-gray-300">
+                <Link href={`/dreps/${currentDelegation?.drep_view}`}>
+                  <Typography fontSize="0.75rem" fontWeight={600}>
+                    {shortenAddress(currentDelegation?.drep_view, 12)}
+                  </Typography>
+                </Link>
+                <Tooltip title="Copy DRep ID">
+                  <IconButton
+                    size="small"
+                    onClick={() => handleCopyText(currentDelegation?.drep_view)}
+                  >
+                    <CopyToClipBoardIcon
+                      color="#d1d5db"
+                      width={14}
+                      height={14}
+                    />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
             <Box>
               <Typography fontSize="0.85rem" fontWeight={600}>
@@ -80,9 +90,11 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
                 the GovTool website.
               </Typography>
             </Box>
-            <Link href="/dreps/list">
-              <ViewDRepTableBtn size="small"></ViewDRepTableBtn>
-            </Link>
+            <Box className="flex justify-end">
+              <Link href="/dreps/list">
+                <ViewDRepTableBtn size="small"></ViewDRepTableBtn>
+              </Link>
+            </Box>
           </Box>
         )}
       </Box>
@@ -100,4 +112,4 @@ export const DelegatedTo = memo(({ className }: DelegatedToProps) => {
       )}
     </Box>
   );
-});
+};

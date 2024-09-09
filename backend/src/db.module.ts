@@ -7,6 +7,7 @@ import { Reaction } from './entities/reaction.entity';
 import { Note } from './entities/note.entity';
 import { Comment } from './entities/comment.entity';
 import { Signature } from './entities/signatures.entity';
+import { Metadata } from './entities/metadata.entity';
 
 @Module({
   imports: [
@@ -18,10 +19,18 @@ import { Signature } from './entities/signatures.entity';
         type: 'postgres',
         host: configService.get('DATABASE_HOST', 'web_db'),
         port: configService.get('DATABASE_PORT', 5432),
-        username: configService.get('DATABASE_USERNAME', 'voltaire'),
+        username: configService.get('DATABASE_USERNAME', 'postgres'),
         password: configService.get('DATABASE_PASSWORD', 'postgres'),
         database: configService.get('DATABASE_NAME', '1694'),
-        entities: [Drep, Note, Attachment, Comment, Reaction, Signature],
+        entities: [
+          Drep,
+          Note,
+          Attachment,
+          Comment,
+          Reaction,
+          Signature,
+          Metadata,
+        ],
         synchronize: true,
       }),
     }),

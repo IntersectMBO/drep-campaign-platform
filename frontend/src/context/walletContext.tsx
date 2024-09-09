@@ -14,14 +14,18 @@ import {
   TransactionUnspentOutput,
   TransactionUnspentOutputs,
   Value,
-  StakeCredential,
   TransactionBuilder,
   TransactionBuilderConfigBuilder,
   LinearFee,
   BigNum,
   TransactionOutput,
   TransactionWitnessSet,
-} from "@emurgo/cardano-serialization-lib-asmjs";
+  Certificate,
+  Ed25519KeyHash,
+  DrepUpdate,
+  Credential,
+  CertificatesBuilder,
+} from '@emurgo/cardano-serialization-lib-asmjs';
 import { Buffer } from 'buffer';
 
 import {
@@ -31,9 +35,12 @@ import {
   setItemToLocalStorage,
   removeItemFromLocalStorage,
 } from '@/lib';
-import { CardanoApiWallet, Protocol, VoterInfo } from '@/models/wallet';
+import { CardanoApiWallet, Protocol } from '@/models/wallet';
 import { useSharedContext } from './sharedContext';
 import getEpochParams from '@/services/requests/getEpochParams';
+import { generateAnchor } from '@/lib/generateAnchor';
+import { CONFIGURED_NETWORK_ID } from '@/constants';
+import getFirstEpoch from '@/services/requests/getFIrstEpoch';
 
 interface Props {
   children: React.ReactNode;
@@ -44,24 +51,16 @@ interface EnableResponse {
   stakeKey?: boolean;
   error?: string;
 }
-const TIME_TO_EXPIRE_TRANSACTION = 3 * 60 * 1000; // 3 MINUTES
-const REFRESH_TIME = 15 * 1000; // 15 SECONDS
-
-type TransactionHistoryItem = {
-  transactionHash: string;
-  time?: Date;
-};
-
 interface CardanoContext {
   address?: string;
   latestEpoch?: number;
+  firstEpoch?: number;
   balance?: string;
   disconnectWallet: () => Promise<void>;
   enable: (walletName: string) => Promise<EnableResponse>;
   isEnableLoading: string | null;
   isEnabling: boolean;
   error?: string;
-  voter: VoterInfo | undefined;
   isEnabled: boolean;
   pubDRepKey: string;
   dRepID: string;
@@ -77,12 +76,16 @@ interface CardanoContext {
   dRepIDBech32: string;
   isGettingSignatures: boolean;
   isMainnet: boolean;
-  stakeKey?: string;
-  stakeKeyBech32?: string;
-  setVoter: (key: undefined | VoterInfo) => void;
+  stakeKey?: string | undefined;
+  stakeKeyBech32?: string | undefined;
   setStakeKey: (key: string) => void;
   loginSignTransaction: () => Promise<any>;
   loginHardwareWalletTransaction: () => Promise<any>;
+  buildDRepUpdateCert: (
+    cip95MetadataURL?: string,
+    cip95MetadataHash?: string,
+  ) => Promise<Certificate>;
+  signAndSubmitTransaction: (certBuilder?: any) => Promise<any>;
   stakeKeys: string[];
   walletApi?: CardanoApiWallet;
   delegatedDRepID?: string;
@@ -101,11 +104,12 @@ type Utxos = {
 const CardanoContext = createContext<CardanoContext>({} as CardanoContext);
 CardanoContext.displayName = 'CardanoContext';
 
+const ALLOWED_NET = CONFIGURED_NETWORK_ID;
+
 function CardanoProvider(props: Props) {
   const { sharedState, updateSharedState } = useSharedContext();
   const [isEnabled, setIsEnabled] = useState(false);
   const [isEnableLoading, setIsEnableLoading] = useState<string | null>(null);
-  const [voter, setVoter] = useState<VoterInfo | undefined>(undefined);
   const [walletApi, setWalletApi] = useState<CardanoApiWallet | undefined>(
     undefined,
   );
@@ -114,9 +118,9 @@ function CardanoProvider(props: Props) {
   const [pubDRepKey, setPubDRepKey] = useState<string>('');
   const [dRepID, setDRepID] = useState<string>('');
   const [dRepIDBech32, setDRepIDBech32] = useState<string>('');
-  const [stakeKey, setStakeKey] = useState<string | undefined>(undefined);
+  const [stakeKey, setStakeKey] = useState<string | undefined>(null);
   const [stakeKeyBech32, setStakeKeyBech32] = useState<string | undefined>(
-    undefined,
+    null,
   );
   const [stakeKeys, setStakeKeys] = useState<string[]>([]);
   const [isMainnet, setIsMainnet] = useState<boolean>(false);
@@ -127,6 +131,7 @@ function CardanoProvider(props: Props) {
   } | null>(null);
 
   const [latestEpoch, setLatestEpoch] = useState<number>(0);
+  const [firstEpoch, setFirstEpoch] = useState<number>(0);
   const [registeredStakeKeysListState, setRegisteredPubStakeKeysState] =
     useState<string[]>([]);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -151,12 +156,29 @@ function CardanoProvider(props: Props) {
       if (existingWalletAPI && currentWalletEnabled) {
         setWalletApi(existingWalletAPI);
         await enable(currentWalletEnabled);
+      } else {
+        setStakeKey(undefined);
+        setStakeKeyBech32(undefined);
       }
     };
     enableCurrentWallet();
     const getLatestEpoch = async () => {
-      const protocol = await getEpochParams();
-      setLatestEpoch(protocol.epoch);
+      const [protocolResult, firstEpochResult] = await Promise.allSettled([
+        getEpochParams(),
+        getFirstEpoch(),
+      ]);
+
+      if (protocolResult.status === 'fulfilled') {
+        setLatestEpoch(protocolResult.value.epoch);
+      } else {
+        console.error('Failed to fetch epoch params:', protocolResult.reason);
+      }
+
+      if (firstEpochResult.status === 'fulfilled') {
+        setFirstEpoch(firstEpochResult.value.no);
+      } else {
+        console.error('Failed to fetch first epoch:', firstEpochResult.reason);
+      }
     };
     getLatestEpoch();
   }, []);
@@ -317,7 +339,12 @@ function CardanoProvider(props: Props) {
             throw new Error('errors.walletNoCIP95FunctionsEnabled');
           }
           const network = await enabledApi.getNetworkId();
-          setIsMainnet(network == 1);
+          // if (network !== ALLOWED_NET) {
+          //   throw new Error(
+          //     'Currently supported networks are preview and Sancho testnet',
+          //   );
+          // }
+          setIsMainnet(network === 1);
           //Check and set wallet balance
           await getBalance(enabledApi);
           // Check and set wallet address
@@ -343,8 +370,7 @@ function CardanoProvider(props: Props) {
           if (registeredStakeKeysList.length > 0) {
             stakeKeysList = registeredStakeKeysList.map((stakeKey) => {
               const stakeKeyHash = PublicKey.from_hex(stakeKey).hash();
-              const stakeCredential =
-                StakeCredential.from_keyhash(stakeKeyHash);
+              const stakeCredential = Credential.from_keyhash(stakeKeyHash);
               if (network === 1)
                 return RewardAddress.new(1, stakeCredential)
                   .to_address()
@@ -358,8 +384,7 @@ function CardanoProvider(props: Props) {
             console.warn('warnings.usingUnregisteredStakeKeys');
             stakeKeysList = unregisteredStakeKeysList.map((stakeKey) => {
               const stakeKeyHash = PublicKey.from_hex(stakeKey).hash();
-              const stakeCredential =
-                StakeCredential.from_keyhash(stakeKeyHash);
+              const stakeCredential = Credential.from_keyhash(stakeKeyHash);
               if (network === 1)
                 return RewardAddress.new(1, stakeCredential)
                   .to_address()
@@ -404,7 +429,7 @@ function CardanoProvider(props: Props) {
           setItemToLocalStorage(`${WALLET_LS_KEY}_name`, walletName);
           setItemToLocalStorage(`${WALLET_LS_KEY}_api`, enabledApi);
           setIsEnabling(false);
-          updateSharedState({ isWalletListModalOpen: false });
+          updateSharedState({ isWalletListModalOpen: false, dRepIDBech32: dRepIDs?.dRepIDBech32 || '' });
           return { status: 'ok', stakeKey: stakeKeySet };
         } catch (e) {
           console.error(e);
@@ -418,14 +443,14 @@ function CardanoProvider(props: Props) {
           setIsEnabling(false);
           throw {
             status: 'ERROR',
-            error: `${e == undefined ? 'errors.somethingWentWrong' : e}`,
+            error: `${e == undefined ? 'Something went wrong' : e}`,
           };
         } finally {
           setIsEnableLoading(null);
         }
       }
       setIsEnabling(false);
-      throw { status: 'ERROR', error: 'errors.somethingWentWrong' };
+      throw { status: 'ERROR', error: 'Something went wrong' };
     },
     [isEnabled, stakeKeys],
   );
@@ -544,7 +569,100 @@ function CardanoProvider(props: Props) {
       throw new Error(error);
     }
   };
-  //for hardware wallets, an expired txn is signed to get signature
+  const signAndSubmitTransaction = async (certBuilder?: any) => {
+    if (!walletApi) throw new Error('Wallet not connected');
+    try {
+      const txBuilder = await initTransactionBuilder();
+      if (certBuilder) {
+        if (certBuilder instanceof Certificate) {
+          const builder = CertificatesBuilder.new();
+          builder.add(certBuilder);
+          txBuilder.set_certs_builder(builder);
+        } else {
+          txBuilder.set_certs_builder(certBuilder);
+        }
+      }
+      //sample recipient address
+      const shelleyOutputAddress = Address.from_bech32(walletState.usedAddress);
+      const shelleyChangeAddress = Address.from_bech32(
+        walletState.changeAddress,
+      );
+
+      // 1 million lovelace/ 1ADA
+      txBuilder.add_output(
+        TransactionOutput.new(
+          shelleyOutputAddress,
+          Value.new(BigNum.from_str('1000000')),
+        ),
+      );
+
+      // Find the available UTXOs in the wallet and
+      // use them as Inputs
+      const utxos = await getUtxos(walletApi);
+      const txUnspentOutputs = await getTxUnspentOutputs(utxos);
+      txBuilder.add_inputs_from(txUnspentOutputs, 1);
+      // calculate the min fee required and send any change to an address
+      txBuilder.add_change_if_needed(shelleyChangeAddress);
+      //expiry of 1 minute
+      //txBuilder.set_ttl_bignum(BigNum.from_str((1.5 * 60).toString()));
+      // once the transaction is ready, we build it to get the tx body without witnesses
+      const txBody = txBuilder.build();
+      // Tx witness
+      const transactionWitnessSet = TransactionWitnessSet.new();
+      const tx = Transaction.new(
+        txBody,
+        TransactionWitnessSet.from_bytes(transactionWitnessSet.to_bytes()),
+      );
+
+      let txVkeyWitnesses = await walletApi.signTx(
+        Buffer.from(tx.to_bytes() as any, 'utf8').toString('hex'),
+        true,
+      );
+      txVkeyWitnesses = TransactionWitnessSet.from_bytes(
+        Buffer.from(txVkeyWitnesses, 'hex'),
+      );
+      transactionWitnessSet.set_vkeys(txVkeyWitnesses.vkeys());
+      const signedTx = Transaction.new(tx.body(), transactionWitnessSet);
+      // Submit built signed transaction to chain, via wallet's submit transaction endpoint
+      const result = await walletApi.submitTx(signedTx.to_hex());
+      // Set results so they can be rendered
+      const resultHash = result;
+      const { signature, vkey } = JSON.parse(
+        signedTx.witness_set().vkeys().get(0).to_json(),
+      );
+      console.log(signedTx.to_hex(), 'signed tx cbor');
+      return { resultHash, signature, vkey };
+    } catch (error) {
+      throw new Error(error);
+    }
+  };
+  const buildDRepUpdateCert = useCallback(
+    async (
+      cip95MetadataURL?: string,
+      cip95MetadataHash?: string,
+    ): Promise<Certificate> => {
+      try {
+        // Get wallet's DRep key
+        const dRepKeyHash = Ed25519KeyHash.from_hex(dRepID);
+        const dRepCred = Credential.from_keyhash(dRepKeyHash);
+
+        let dRepUpdateCert;
+        // If there is an anchor
+        if (cip95MetadataURL && cip95MetadataHash) {
+          const anchor = generateAnchor(cip95MetadataURL, cip95MetadataHash);
+          // Create cert object using one Ada as the deposit
+          dRepUpdateCert = DrepUpdate.new_with_anchor(dRepCred, anchor);
+        } else {
+          dRepUpdateCert = DrepUpdate.new(dRepCred);
+        }
+        return Certificate.new_drep_update(dRepUpdateCert);
+      } catch (e) {
+        console.error(e);
+        throw e;
+      }
+    },
+    [dRepID],
+  );
   const disconnectWallet = useCallback(async () => {
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_name`);
     removeItemFromLocalStorage(`${WALLET_LS_KEY}_stake_key`);
@@ -553,7 +671,6 @@ function CardanoProvider(props: Props) {
     setAddress(undefined);
     setStakeKey(undefined);
     setStakeKeyBech32(undefined);
-    setVoter(undefined);
     setDelegatedDRepID(undefined);
     setPubDRepKey(undefined);
     setDRepID(undefined);
@@ -566,12 +683,13 @@ function CardanoProvider(props: Props) {
       address,
       walletState,
       enable,
-      voter,
       isEnabled,
       isMainnet,
       disconnectWallet,
       loginSignTransaction,
       loginHardwareWalletTransaction,
+      buildDRepUpdateCert,
+      signAndSubmitTransaction,
       loginCredentials,
       dRepID,
       dRepIDBech32,
@@ -579,8 +697,8 @@ function CardanoProvider(props: Props) {
       stakeKey,
       stakeKeyBech32,
       isGettingSignatures,
-      setVoter,
       latestEpoch,
+      firstEpoch,
       setStakeKey,
       stakeKeys,
       walletApi,
@@ -596,18 +714,17 @@ function CardanoProvider(props: Props) {
       enable,
       isEnabling,
       walletState,
-      voter,
       isEnabled,
       isMainnet,
       disconnectWallet,
       dRepID,
       dRepIDBech32,
       latestEpoch,
+      firstEpoch,
       pubDRepKey,
       isGettingSignatures,
       stakeKey,
       stakeKeyBech32,
-      setVoter,
       setStakeKey,
       stakeKeys,
       walletApi,

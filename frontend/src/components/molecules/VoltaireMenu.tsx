@@ -3,6 +3,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Grow from '@mui/material/Grow';
 import { Box } from '@mui/material';
+import { urls } from '@/constants';
 
 export default function VoltaireMenu() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -17,46 +18,53 @@ export default function VoltaireMenu() {
   };
   const menuItems = [
     {
-      label: 'Voltaire',
-      text: 'Explore the revised on-chain governance system for Cardano’s future.',
-      href: '#',
-      svg: '/svgs/voltaire_nav/loader.svg',
-    },
-    {
-      label: 'Sancho Gov Tool',
-      text: 'Delegate your voting power or become a DRep on SanchoNet.',
-      href: '#',
-      svg: '/svgs/voltaire_nav/notification.svg',
-    },
-    {
-      label: 'Lido Nation',
-      text: 'Discover the power of decentralization with Lido Nation.',
-      href: 'https://www.lidonation.com/',
-      svg: '/svgs/voltaire_nav/wave.svg',
+      label: 'GovTool',
+      text: 'Register to become a DRep, delegate voting power to DReps, & review & vote on governance actions.',
+      href: `${urls.govToolUrl}`,
+      svg: '/img/logos/govtool-logo.png',
+      bgColor: 'bg-white',
     },
     {
       label: 'Cardano',
-      text: 'Drive global change with Cardano’s innovative blockchain technology.',
-      href: '#',
-      svg: '/svgs/voltaire_nav/search.svg',
-    },
-    {
-      label: 'Catalyst Explorer',
-      text: 'Collaborate and research for groundbreaking advancements in Cardano.',
-      href: '#',
-      svg: '/svgs/voltaire_nav/search.svg',
-    },
-    {
-      label: 'Cardano CIPs',
-      text: 'Contribute to the evolution of Cardano with Cardano Improvement Proposals.',
-      href: '#',
-      svg: '/svgs/voltaire_nav/secondary-search.svg',
+      text: 'Learn more about Cardano proof-of-stake blockchain platform.',
+      href: '//cardano.org/',
+      svg: '/img/logos/cardano-logo.png',
+      bgColor: 'bg-primary-300',
     },
     {
       label: 'Proposal Discussion Forum',
-      text: 'Engage in discussions, solve doubts, and improve governance.',
-      href: '#',
-      svg: '/svgs/voltaire_nav/search.svg',
+      text: 'Engage in community-driven governance conversations and decision-making.',
+      href: `${urls.govToolUrl}/proposal_discussion`,
+      svg: '/img/faces/img2.png',
+      bgColor: 'bg-complementary-200',
+    },
+    {
+      label: 'Intersect',
+      text: 'Intersect is a member-based organization for the Cardano ecosystem.',
+      href: '//www.intersectmbo.org/',
+      svg: '/img/logos/intersect-logo.png',
+      bgColor: 'bg-destructive-400',
+    },
+    {
+      label: 'Catalyst Explorer',
+      text: 'Explore the world/’s largest decentralized innovation engine for solving real-world challenges.',
+      href: '//catalystexplorer.com/',
+      svg: '/svgs/black-search.svg',
+      bgColor: 'bg-secondary-300',
+    },
+    {
+      label: 'Cardano CIPs',
+      text: 'Explore Cardano Improvement Proposals: to change the Cardano ecosystem, processes, or environment.',
+      href: '//cips.cardano.org/',
+      svg: '/svgs/arrow-up-double-underline.svg',
+      bgColor: 'bg-extra_red',
+    },
+    {
+      label: 'Lido Nation',
+      text: 'Blockchain Education in plain English, Kiswahili, and Español.',
+      href: '//www.lidonation.com/',
+      svg: '/img/logos/lido-logo.png',
+      bgColor: 'bg-blue-100',
     },
   ];
 
@@ -70,7 +78,7 @@ export default function VoltaireMenu() {
         onClick={handleClick}
         className="cursor-pointer text-gray-800"
       >
-        Voltaire
+        Ecosystem
       </p>
 
       {!!menuItems && (
@@ -96,8 +104,6 @@ export default function VoltaireMenu() {
               borderRadius: '0 0 1rem 1rem',
               boxShadow: '1px 2px 11px 0 rgba(0, 18, 61, 0.37)',
               bgcolor: '#F3F5FF',
-              paddingX: '0.75rem',
-              paddingY: '0.5rem',
             },
             '.MuiMenu-list': { padding: 0 },
           }}
@@ -107,7 +113,6 @@ export default function VoltaireMenu() {
               <a key={index + item.label} href={item?.href} target="_blank">
                 <MenuItem
                   onClick={handleClose}
-                  key={index}
                   sx={{
                     '&:hover': {
                       backgroundColor: '#FFC19D',
@@ -115,11 +120,17 @@ export default function VoltaireMenu() {
                   }}
                 >
                   <Box className="flex max-w-60 gap-4">
-                    <img
-                      alt={`${item.label} svg`}
-                      src={item.svg}
-                      className="mt-1 h-12 w-12"
-                    />
+                    <Box
+                      className={`mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg align-middle ${item.bgColor}`}
+                    >
+                      <div className="h-5 w-5 rounded-full">
+                        <img
+                          alt={`${item.label} svg`}
+                          src={item.svg}
+                          className="h-full w-full rounded-full"
+                        />
+                      </div>
+                    </Box>
                     <Box className="flex flex-col text-wrap text-complementary-500">
                       <p className="p-0 text-base font-normal">{item.label}</p>
                       <p className="text-xs font-normal leading-4">

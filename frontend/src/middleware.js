@@ -4,7 +4,6 @@ import { locales } from './constants';
 import { cookies } from 'next/headers';
 import { decodeToken } from './lib/utils';
 import { NextResponse } from 'next/server';
-import { getItemFromLocalStorage } from './lib/localStorage';
 // Export the middleware configuration to define supported locales and the default locale.
 // This setup applies internationalization strategies across the application.
 export default createMiddleware({

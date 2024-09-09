@@ -1,78 +1,87 @@
 import React, { useEffect, useState } from 'react';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
-import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
-import UpdateProfileForm from '../molecules/UpdateProfileForm';
-import { getSingleDRep } from '@/services/requests/getSingleDrep';
-import { usePostUpdateDrepMutation } from '@/hooks/usePostUpdateDRepMutation';
-import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
-import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
+import { getItemFromLocalStorage, removeItemFromLocalStorage } from '@/lib';
+import MetadataEditor from '../atoms/MetadataEditor';
+import MetadataViewer from '../atoms/MetadataViewer';
+import Button from '../atoms/Button';
+import SubmitMetadataModal from '../atoms/SubmitMetadataModal';
+import { useRouter } from 'next/navigation';
+import { renderJSONLDToJSONArr } from '@/lib/metadataProcessor';
+import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
 const FormSchema = z.object({
-  metadata: z.string(),
+  metadata: z.string().optional(),
 });
 type InputType = z.infer<typeof FormSchema>;
 
 const UpdateProfileStep4 = () => {
-  const {
-    register,
-    handleSubmit,
-    getValues,
-    formState: { errors },
-    setValue,
-  } = useForm<InputType>({
+  const { handleSubmit, setValue } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
-  const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
-  const { setIsNotDRepErrorModalOpen, drepId , setStep4Status, setNewDrepId} = useDRepContext();
-  const { addChangesSavedAlert } = useGlobalNotifications();
-  const updateDrepMutation = usePostUpdateDrepMutation();
+  const { dRepIDBech32 } = useCardano();
+  const { setIsNotDRepErrorModalOpen, setStep4Status, metadataJsonLd } =
+    useDRepContext();
+  const router = useRouter();
+  const [canEdit, setCanEdit] = useState(false);
+  const [isAwaitingSubmission, setIsAwaitingSubmission] = useState(false);
+  const { addChangesSavedAlert, addSuccessAlert } = useGlobalNotifications();
+  const [isMetadataLoading, setIsMetadataLoading] = useState(false);
+  const [metadataJson, setMetadataJson] = useState(null);
+  const [metadataError, setMetadataError] = useState<string | null>(null);
+  const [metadata, setMetadata] = useState<any>(null);
+  const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
+  const [refresh, setRefresh] = useState(false);
   useEffect(() => {
-      const getDRep = async () => {
-        try {
-          let drep;
-          if (drepId) {
-            drep = await getSingleDRep(drepId);
-          }else if(dRepIDBech32){
-            drep = await getSingleDRepViaVoterId(dRepIDBech32);
-          }
-          setValue('metadata', drep.drep_metadata);
-          setNewDrepId(drep.drep_id);
-          if(drep.drep_metadata){
-            setStep4Status('update')
-          } else setStep4Status('active')
-        } catch (error) {
-          console.log(error);
-        }
-      };
-      getDRep();
-      return () => {
-        if(Boolean(getValues('metadata'))){
-          setStep4Status('success')
-        } else setStep4Status('pending')
+    const processMetadata = async () => {
+      try {
+        if (!metadataJsonLd) return;
+        setIsMetadataLoading(true);
+        const convertedMetadata = renderJSONLDToJSONArr(metadataJsonLd);
+        setMetadataJson(convertedMetadata);
+        setMetadata(metadataJsonLd);
+        setValue('metadata', JSON.stringify(convertedMetadata));
+        setIsMetadataLoading(false);
+        if (metadataJsonLd) {
+          setStep4Status('update');
+        } else setStep4Status('active');
+        setIsMetadataLoading(false);
+        return;
+      } catch (error) {
+        console.log(error);
+        setMetadata(null);
+        setMetadataError('Metadata Unprocessable');
+      } finally {
+        setIsMetadataLoading(false);
       }
-    }, [dRepIDBech32]);
+    };
+    processMetadata();
+  }, [metadataJsonLd, refresh]);
+
+  const resetDraft = async () => {
+    removeItemFromLocalStorage('isUpdating');
+    await deleteItemFromIndexedDB('metadataJsonLd');
+    await deleteItemFromIndexedDB('metadataJsonHash');
+  };
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
         setIsNotDRepErrorModalOpen(true);
         return;
       }
-      const stakeAddress = Address.from_bytes(
-        Buffer.from(stakeKey, 'hex'),
-      ).to_bech32();
-      const formData = new FormData();
-      formData.append('metadata', data.metadata);
-      const res = await updateDrepMutation.mutateAsync({
-        drepId: drepId,
-        drep: formData as drepInput,
-      });
+      //is local change
+      if (getItemFromLocalStorage('isUpdating')) {
+        setIsSubmittingMetadata(true);
+        setIsAwaitingSubmission(true);
+      } else {
+        //just redirect to success page
+        router.push('/dreps/workflow/profile/success');
+      }
       addChangesSavedAlert();
     } catch (error) {
       console.log(error);
@@ -102,18 +111,47 @@ const UpdateProfileStep4 = () => {
           </div>
         )}
         <p className="text-base font-normal text-gray-800">
-          Share a Hash link of your metadata.
+          Complete your profile by submitting your metadata. You can include
+          extra fields. This may or may not be supported in GovTool.
         </p>
+      </div>
+      <div className="flex flex-col gap-5">
+        <MetadataViewer
+          metadata={metadata}
+          metadataError={metadataError}
+          isMetadataLoading={isMetadataLoading}
+        />
+        <Button className="w-fit" handleClick={() => setCanEdit(true)}>
+          Edit Metadata
+        </Button>
       </div>
       <form id="profile_form" onSubmit={handleSubmit(saveProfile, onError)}>
         <div className="flex flex-col gap-1">
-          <label>Hash Link</label>
-          <input
-            type="text"
-            className={`rounded-full border border-zinc-100 py-3 pl-5 pr-3`}
-            {...register('metadata')}
-            placeholder="Hash Link"
-          />
+          {canEdit && (
+            <MetadataEditor
+              onClose={() => {
+                setCanEdit(false);
+              }}
+              initialMetadata={metadataJson}
+              onSuccessfulSubmit={() => {
+                setRefresh(!refresh);
+              }}
+            />
+          )}
+          {isSubmittingMetadata && (
+            <SubmitMetadataModal
+              onClose={() => setIsSubmittingMetadata(false)}
+              onSuccessfulSubmit={() => {
+                if (isAwaitingSubmission) {
+                  addSuccessAlert(
+                    'Metadata updated successfully. It will probably take few minutes to reflect',
+                  );
+                  resetDraft();
+                  router.push('/dreps/workflow/profile/success');
+                }
+              }}
+            />
+          )}
         </div>
         <ProfileSubmitArea isUpdate />
       </form>

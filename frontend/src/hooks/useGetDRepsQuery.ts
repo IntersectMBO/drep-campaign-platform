@@ -5,15 +5,28 @@ import { useQuery } from 'react-query';
 export const useGetDRepsQuery = (
   s?: string,
   page?: number,
-  sortBy?: string,
+  sort?: string,
   order?: string,
+  onChainStatus?: string,
+  campaignStatus?: string,
+  type?: string,
 ) => {
-  const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEYS.getAllDReps, s, page, sortBy, order],
-    queryFn: async () => await getDReps(s, page, sortBy, order),
+  const { data, isLoading, isError } = useQuery({
+    queryKey: [
+      QUERY_KEYS.getAllDRepsKey,
+      s,
+      page,
+      sort,
+      order,
+      onChainStatus,
+      campaignStatus,
+      type,
+    ],
+    queryFn: async () =>
+      await getDReps(s, page, sort, order, onChainStatus, campaignStatus, type),
     refetchOnWindowFocus: false,
     enabled: true,
   });
 
-  return { DReps: data, isDRepsLoading: isLoading };
+  return { DReps: data, isDRepsLoading: isLoading, isError };
 };
