@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from 'react';
+import React from 'react';
 import PostInput from '../atoms/PostInput';
 import PostSubmitArea from '../atoms/PostSubmitArea';
 import PostVisiblityInput from '../atoms/PostVisiblityInput';

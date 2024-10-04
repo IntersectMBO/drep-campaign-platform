@@ -10,7 +10,9 @@ import { VoterModule } from './voter/voter.module';
 import { CommentsModule } from './comments/comments.module';
 import { ReactionsModule } from './reactions/reactions.module';
 import { AuthService } from './auth/auth.service';
-import { JwtService } from '@nestjs/jwt';
+import { ProposalsModule } from './proposals/proposals.module';
+import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
+import {NotificationsModule} from "./notifications/notifications.module";
 
 @Module({
   imports: [
@@ -27,6 +29,9 @@ import { JwtService } from '@nestjs/jwt';
     VoterModule,
     CommentsModule,
     ReactionsModule,
+    ProposalsModule,
+    MiscellaneousModule,
+    NotificationsModule
   ],
   controllers: [],
   providers: [AuthService],

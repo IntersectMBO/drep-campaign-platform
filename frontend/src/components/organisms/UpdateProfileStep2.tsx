@@ -12,8 +12,7 @@ import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import ProfileSubmitArea from '../atoms/ProfileSubmitArea';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 import { getSingleDRep } from '@/services/requests/getSingleDrep';
-import Button from '../atoms/Button';
-import { Typography } from '@mui/material';
+import {Box, Typography} from '@mui/material';
 import { convertString } from '@/lib';
 import WalletConnectButton from '../molecules/WalletConnectButton';
 import LoginButton from '../molecules/LoginButton';
@@ -97,14 +96,15 @@ const UpdateProfileStep2 = () => {
       const stakeAddress = Address.from_bytes(
         Buffer.from(stakeKey, 'hex'),
       ).to_bech32();
-      const formData = new FormData();
-      formData.append('signature', data.signature);
-      formData.append('key', data.key);
-      formData.append('stake_addr', stakeAddress);
-      formData.append('voter_id', dRepIDBech32);
-      const res = await updateDrepMutation.mutateAsync({
+      const formData:drepInput = {
+        signature: data.signature,
+        stake_addr: stakeAddress,
+        key: data.key,
+        voter_id: dRepIDBech32,
+      }
+      await updateDrepMutation.mutateAsync({
         drepId: drepId,
-        drep: formData as drepInput,
+        drep: formData ,
       });
       addChangesSavedAlert();
     } catch (error) {
@@ -117,9 +117,9 @@ const UpdateProfileStep2 = () => {
   return (
     <div className="flex w-full flex-col gap-5 px-10 py-5">
       <div className="flex flex-col gap-5">
-        <h1 className="text-4xl font-bold text-zinc-800">
-          Your Unique Signature
-        </h1>
+        <Typography variant='h1' className="font-bold text-zinc-800">
+          Your Signatures
+        </Typography>
         {dRepIDBech32 && (
           <div className="flex flex-row flex-wrap gap-1 lg:flex-nowrap">
             <span className="w-full break-words text-slate-500 lg:w-fit">
@@ -136,34 +136,41 @@ const UpdateProfileStep2 = () => {
             </CopyToClipboard>
           </div>
         )}
-        <p className="text-base font-normal text-gray-800">
-          Verify your profile so as to track your connected wallets across the
-          same drep profile. Multiple signatures will be supported in future releases
-        </p>
+        <Typography variant='body1' paragraph={true}>
+          Signatures below will be able to login and manage this profile. <br />
+          Support for additional signatures coming soon.
+        </Typography>
       </div>
+      <Box>
+        <Typography className="" variant="h6">
+          Signatures
+        </Typography>
+      </Box>
       <form id="profile_form" onSubmit={handleSubmit(saveProfile, onError)}>
         <div className="flex flex-col gap-1">
           {!isEnabled ? (
             <WalletConnectButton test_name={'component'} />
           ) : (
             <>
-              <Typography className="" variant="body2" color="textSecondary">
-                Connected Wallet: {address && convertString(address, false)}
-              </Typography>
               {!signature.signature ? (
-                <div className='flex flex-col items-center justify-center'>
+                <div className="flex flex-col items-center justify-center">
                   <SwitchWithTextTrack
                     checked={!isHardware}
                     onChange={handleChange}
                   />
-                  <LoginButton isHardware={isHardware}/>
+                  <LoginButton isHardware={isHardware} />
                 </div>
               ) : (
-                <Typography className="" variant="body2" color="textSecondary">
-                  Signature:{' '}
-                  {signature.signature &&
-                    convertString(signature.signature, false)}
-                </Typography>
+                <Box>
+                    <Typography className="" variant="body2" color="textSecondary">
+                    Signature:{' '}
+                    {signature.signature &&
+                      convertString(signature.signature, false)}
+                  </Typography>
+                  <Typography className="" variant="body2" color="textSecondary">
+                    Wallet: {address && convertString(address, false)}
+                  </Typography>
+                </Box>
               )}
             </>
           )}

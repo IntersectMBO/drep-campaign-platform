@@ -1,13 +1,15 @@
 import React from 'react';
 interface StatusProps {
   status:
-  | 'Verified'
-  | 'Unverified'
-  | 'Claimed'
-  | 'Active'
-  | 'Inactive'
-  | 'Not claimed'
-  | 'Not registered';
+    | 'Verified'
+    | 'Unverified'
+    | 'Claimed'
+    | 'Active'
+    | 'Inactive'
+    | 'Not claimed'
+    | 'Not registered'
+    | 'Scripted'
+    | 'Voting Option';
 }
 const StatusChip = ({ status }: StatusProps) => {
   let statusClass = '';
@@ -22,10 +24,16 @@ const StatusChip = ({ status }: StatusProps) => {
       statusClass = 'bg-orange-500 text-white';
       break;
     case 'Active':
-      statusClass = 'bg-teal-100 text-zinc-800';
+      statusClass = 'bg-success text-zinc-800';
       break;
     case 'Inactive':
       statusClass = 'bg-gray-800 text-white';
+      break;
+    case 'Scripted':
+      statusClass = 'bg-blue-800 text-white';
+      break;
+    case 'Voting Option':
+      statusClass = 'bg-blue-800 text-white';
       break;
     default:
       statusClass = 'bg-gray-800 text-white'; // Default to gray if status is not recognized
@@ -33,7 +41,7 @@ const StatusChip = ({ status }: StatusProps) => {
 
   return (
     <div
-      className={`text-nowrap rounded-full px-2 py-1 text-center text-sm font-normal  ${statusClass}`}
+      className={`text-nowrap rounded-full px-1.5 py-0.5 text-center text-xs font-normal  ${statusClass}`}
     >
       {status}
     </div>

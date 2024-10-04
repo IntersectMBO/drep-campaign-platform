@@ -13,7 +13,7 @@ const EpochTimelineCard = ({ epoch }: EpochTimelineCardProps) => {
           </div>
           <div>
             {epoch?.start_time && (
-              <p>{new Date(epoch?.start_time).toLocaleDateString('en-GB')}</p>
+              <p className='text-xs'>{new Date(epoch?.start_time).toDateString()}</p>
             )}
           </div>
         </div>

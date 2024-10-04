@@ -17,12 +17,17 @@ export class NoteService {
     private reactionsService: ReactionsService,
     private commentsService: CommentsService,
   ) {}
-  async getAllNotes(stakeKeyBech32?: string, delegation?: Delegation,beforeNote?: number, afterNote?: number) {
+  async getAllNotes(
+    stakeKeyBech32?: string,
+    delegation?: Delegation,
+    currentNote?: number,
+    request?: string,
+  ) {
     let allNotes = await this.getNotesWithVisibility(
       delegation,
       stakeKeyBech32,
-      beforeNote,
-      afterNote
+      currentNote,
+      request,
     );
 
     // Used Promise.all to ensure all asynchronous operations complete
@@ -41,8 +46,8 @@ export class NoteService {
         return { ...note, reactions: reactions, comments: comments };
       }),
     );
-    
-    return allNotes
+
+    return allNotes;
   }
 
   async getSingleNote(noteId: string) {
@@ -92,7 +97,12 @@ export class NoteService {
     }
   }
 
-  private async getNotesWithVisibility(delegation?, stakeKeyBech32?: string, beforeNote?: number, afterNote?: number) {
+  private async getNotesWithVisibility(
+    delegation?,
+    stakeKeyBech32?: string,
+    currentNote?: number,
+    request?: string,
+  ) {
     const queryBuilder = this.voltaireService
       .getRepository('Note')
       .createQueryBuilder('note')
@@ -104,13 +114,16 @@ export class NoteService {
     queryBuilder.where('note.note_visibility = :everyone', {
       everyone: 'everyone',
     });
-    if (beforeNote) {
-     queryBuilder.where('note.id > :beforeNote', { beforeNote });
+    if (currentNote) {
+      if (request === 'before') {
+        queryBuilder.where('note.id <= :currentNote', { currentNote: Number(currentNote) });
+      } else if (request === 'after') {
+        queryBuilder.where('note.id <= :currentNote', {
+          currentNote: Number(currentNote) + 20,
+        });
+      }
     }
-    if (afterNote) {
-     queryBuilder.where('note.id < :afterNote', { afterNote });
-    }
-    
+
     // 'delegators' visibility
     if (delegation) {
       queryBuilder.orWhere(

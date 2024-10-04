@@ -50,10 +50,11 @@ export function ModalWrapper({
 export const BaseWrapper = styled("div")<Pick<Props, "variant">>`
   box-shadow: 1px 2px 11px 0px #00123d5e;
   max-height: 90vh;
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   display: flex;
+  z-index: 99999;
   flex-direction: column;
   background: #fbfbff;
   border-radius: 24px;

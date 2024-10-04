@@ -39,7 +39,7 @@ Follow these steps to set up and run your Next.js project in development mode on
    - `NEXT_PUBLIC_` **Prefix**: In Next.js, any environment variable that should be exposed to the browser side of the application must be prefixed with NEXT*PUBLIC*. This prefix tells Next.js to include the variable in the JavaScript bundle sent to the browser. Without this prefix, environment variables are only available in the Node.js environment, meaning they can't be accessed from client-side code.
 
    - For this Next.js project, you should at least configure the following variable:
-     - `NEXT_PUBLIC_API_URL`: This is used in Next.js applications to specify the base URL of the API that the frontend application should communicate with
+     - `NEXT_PUBLIC_BASE_URL_API`: This is used in Next.js applications to specify the base URL of the API that the frontend application should communicate with
 
 4. **Start the frontend in development mode:**
 
@@ -89,7 +89,7 @@ Docker Compose facilitates the running of multi-container Docker applications. B
 
 2. **Review and update the docker compose configuration**
 
-   - Open your `docker-compose.yaml` file to review the configurations for the Next.js frontend service. The most crucial part for the frontend service configuration is the environment variable `NEXT_PUBLIC_API_URL`. This variable enables your Next.js application to communicate with the Strapi backend service.
+   - Open your `docker-compose.yaml` file to review the configurations for the Next.js frontend service. The most crucial part for the frontend service configuration is the environment variable `NEXT_PUBLIC_BASE_URL_API`. This variable enables your Next.js application to communicate with the Strapi backend service.
 
 3. **Environment variables:**
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Button from '../atoms/Button';
-import { useScreenDimension } from '@/hooks';
 import { HtmlTooltip } from '../atoms/HoverChip';
 import { urls } from '@/constants';
 import axiosInstance from '@/services/axiosInstance';
@@ -122,10 +121,7 @@ const MultipartDataForm = ({
           formData.append('parentEntity', 'note');
           formData.append('parentId', null);
           const mimeType = file.type;
-          const res = await axiosInstance.post(
-            `${urls.baseServerUrl}/api/attachments/add`,
-            formData,
-          );
+          const res = await axiosInstance.post(`/attachments/add`, formData);
           return { name: res.data.name, type: mimeType };
         }),
       );
@@ -133,8 +129,8 @@ const MultipartDataForm = ({
       insertedFiles.forEach((file) => {
         const encodedFileName = encodeURIComponent(file.name);
         const markdown = file.type.includes('pdf')
-          ? `[pdf](${urls.baseServerUrl}/api/attachments/${encodedFileName})`
-          : `![image](${urls.baseServerUrl}/api/attachments/${encodedFileName})`;
+          ? `[pdf](${urls.baseServerUrl}/attachments/${encodedFileName})`
+          : `![image](${urls.baseServerUrl}/attachments/${encodedFileName})`;
         if (editor)
           editor.focus(
             () => {

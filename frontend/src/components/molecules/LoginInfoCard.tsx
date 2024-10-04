@@ -3,13 +3,11 @@ import { useCardano } from '@/context/walletContext';
 import './MoleculeStyles.css';
 import { useDRepContext } from '@/context/drepContext';
 import { removeItemFromLocalStorage } from '@/lib';
-import Cookies from 'js-cookie'
 export const LoginInfoCard = () => {
   const { loginCredentials } = useCardano();
-  const {setIsLoggedIn}=useDRepContext()
-  const onClickLogout = async () => {
+  const { setIsLoggedIn } = useDRepContext();
+  const onClickLogout = () => {
     removeItemFromLocalStorage('token');
-    Cookies.remove('token', { path: '/' });
     setIsLoggedIn(false);
   };
 

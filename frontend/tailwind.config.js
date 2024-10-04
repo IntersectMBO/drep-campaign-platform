@@ -70,6 +70,7 @@ module.exports = {
         extra_red: '#FF4D4D',
         extra_yellow: '#FFC14C',
         extra_gray: '#F3F5FF',
+        success: '#6FDF8E',
       },
     },
   },

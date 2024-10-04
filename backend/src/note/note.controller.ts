@@ -10,7 +10,7 @@ export class NoteController {
     private voterService: VoterService,
   ) {}
   @Get('/all')
-  async getAllNotes(@Query('stakeKeys') stakeKeys?: any, @Query('beforeNoteCursor') beforeNote?: number, @Query('afterNoteCursor') afterNote?: number) {
+  async getAllNotes(@Query('stakeKeys') stakeKeys?: any, @Query('currentNoteCursor') currentNote?: number, @Query('request') request?: string) {
     const { stakeKey, stakeKeyBech32 } = stakeKeys || {};
 
     let delegation = null;
@@ -20,7 +20,7 @@ export class NoteController {
         await this.voterService.getAdaHolderCurrentDelegation(stakeKey);
     }
 
-    return this.noteService.getAllNotes(stakeKeyBech32, delegation,beforeNote, afterNote);
+    return this.noteService.getAllNotes(stakeKeyBech32, delegation,currentNote, request);
   }
   @Get('/:id/single')
   getSingleNote(@Param('id') noteId: string) {

@@ -5,15 +5,15 @@ import { useQuery } from 'react-query';
 import { StakeKeys } from '../../types/commonTypes';
 
 type GetNotesProps = {
-  beforeNote?: number;
-  afterNote?: number;
+  currentNote?: number;
+  request?: string;
 }
-export const useGetNotesQuery = ({ beforeNote, afterNote }: GetNotesProps = {}) => {
+export const useGetNotesQuery = ({ currentNote, request }: GetNotesProps = {}) => {
   const { stakeKey, stakeKeyBech32 } = useCardano();
   const stakeKeys: StakeKeys = { stakeKey, stakeKeyBech32 };
   const { data, isLoading, refetch, isFetching, isPreviousData } = useQuery({
-    queryKey: [QUERY_KEYS.getNotesKey, stakeKeys, beforeNote, afterNote],
-    queryFn: async () => await getNotes(stakeKeys, beforeNote, afterNote),
+    queryKey: [QUERY_KEYS.getNotesKey, stakeKeys, currentNote,request],
+    queryFn: async () => await getNotes(stakeKeys, currentNote,request),
     refetchOnWindowFocus: false,
     enabled: true,
     keepPreviousData: true,

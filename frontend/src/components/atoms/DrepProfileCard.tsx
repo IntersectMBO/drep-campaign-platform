@@ -1,12 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Button from './Button';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { Typography, Skeleton } from '@mui/material';
+import {
+  Typography,
+  Skeleton,
+  AccordionSummary,
+  Accordion,
+  AccordionDetails,
+} from '@mui/material';
 import Link from 'next/link';
-import { convertString } from '@/lib';
+import {
+  convertString,
+  formattedAda,
+  getItemFromLocalStorage,
+  removeItemFromLocalStorage,
+} from '@/lib';
 import { useScreenDimension } from '@/hooks';
-import { useRouter } from 'next/navigation';
 import { useCardano } from '@/context/walletContext';
+import MetadataViewer from './MetadataViewer';
+import { isActive } from '../molecules/DRepsTable';
+import { processExternalMetadata } from '@/lib/metadataProcessor';
+import DRepSocialLinks from './DRepSocialLinks';
+import MetadataEditor from './MetadataEditor';
+import SubmitMetadataModal from './SubmitMetadataModal';
+import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
+import DRepAvatarCard from './DRepAvatarCard';
+import { useDRepContext } from '@/context/drepContext';
 
 interface StatusProps {
   status:
@@ -53,28 +73,164 @@ const StatusChip = ({ status }: StatusProps) => {
 
 const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   const { isMobile } = useScreenDimension();
+  const { setLoginModalOpen, isLoggedIn } = useDRepContext();
   const { dRepIDBech32 } = useCardano();
-  const router = useRouter()
+  const [status, setStatus] = useState<any>('Inactive');
+  const [isMetadataLoading, setIsMetadataLoading] = useState(false);
+  const [metadataUrl, setMetadataUrl] = useState<string | null>(null);
+  const [metadataError, setMetadataError] = useState<string | null>(null);
+  const [metadata, setMetadata] = useState<any>(null);
+  const [metadataJson, setMetadataJson] = useState<any>(null);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
+  const [canEdit, setCanEdit] = useState(false);
+  const { addSuccessAlert } = useGlobalNotifications();
+  const [isSubmittingMetadata, setIsSubmittingMetadata] = useState(false);
+  const [socialLinks, setSocialLinks] = useState<any>(null);
+  const [hoveredOnWarning, setHoveredOnWarning] = useState(false);
+  const ctaActions = [
+    {
+      label: metadata ? 'Edit Metadata' : 'Set up Metadata',
+      action: () => setCanEdit(true),
+    },
+    {
+      label: 'Login to update',
+      action: () => setLoginModalOpen(true),
+    },
+  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      const metadataUrl = drep?.cexplorerDetails?.metadata_url;
+      setMetadataUrl(metadataUrl);
+      if (!metadataUrl) return;
+      try {
+        setIsMetadataLoading(true);
+        setMetadataError(null);
+        const { jsonLdData, modifiedJson } = await processExternalMetadata({
+          metadataUrl,
+        });
+        setMetadata(jsonLdData);
+        setMetadataJson(modifiedJson);
+        const metadataBody = jsonLdData?.body;
+        const imageUrl = metadataBody?.image?.contentUrl;
+        if (imageUrl) {
+          setImageSrc(imageUrl);
+        }
+        if (
+          metadataBody?.references &&
+          Array.isArray(metadataBody?.references) &&
+          metadataBody?.references.length > 0
+        ) {
+          setSocialLinks(metadataBody?.references);
+        }
+
+        const name = metadataBody?.givenName || metadataBody?.dRepName;
+        setName(name?.['@value'] || name);
+      } catch (error) {
+        console.log(error);
+        setMetadata(null);
+        setMetadataError(
+          'Metadata Unprocessable. Probably took long to load or has invalid content.',
+        );
+      } finally {
+        setIsMetadataLoading(false);
+      }
+    };
+    const checkStatus = () => {
+      let status;
+      if (drep?.type !== 'voting_option') {
+        status = isActive(
+          drep?.cexplorerDetails?.epoch_no,
+          drep?.cexplorerDetails?.active_until,
+        )
+          ? 'Active'
+          : 'Inactive';
+        setStatus(status);
+      }
+    };
+    checkStatus();
+    fetchData();
+  }, []);
+  const renderUnsavedChanges = () => {
+    const slider = (
+      <Accordion>
+        <AccordionSummary
+          expandIcon={
+            <img
+              src="/svgs/chevron-down.svg"
+              alt="expand"
+              className="h-5 w-5"
+            />
+          }
+        >
+          <div className="flex items-center gap-2">
+            <img
+              onClick={() => setHoveredOnWarning(!hoveredOnWarning)}
+              src="/svgs/toastsvgs/alert-triangle.svg"
+              alt="Warning"
+              className="h-8 w-8 animate-pulse cursor-pointer"
+            />
+            <Typography variant="body1">Unsaved Changes</Typography>
+          </div>
+        </AccordionSummary>
+        <AccordionDetails>
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-red-500">
+              Your changes are still locally saved. Its recommended to submit to
+              avoid losing your changes.
+            </p>
+            <Button
+              handleClick={() => {
+                setIsSubmittingMetadata(true);
+              }}
+              className="w-full"
+            >
+              Submit Changes
+            </Button>
+            <Button
+              variant="outlined"
+              bgColor="transparent"
+              handleClick={() => {
+                resetDraft();
+                window.location.reload();
+              }}
+              className="w-full"
+            >
+              Discard Changes
+            </Button>
+          </div>
+        </AccordionDetails>
+      </Accordion>
+    );
+
+    if (getItemFromLocalStorage('isUpdating') && !isSubmittingMetadata) {
+      return slider;
+    }
+    return null;
+  };
+
+  const resetDraft = async () => {
+    removeItemFromLocalStorage('isUpdating');
+    await deleteItemFromIndexedDB('metadataJsonLd');
+    await deleteItemFromIndexedDB('metadataJsonHash');
+  };
+
+  const liveVotingPower = drep?.delegators.reduce(
+    (total, delegator) => total + Number(delegator?.votingPower),
+    0,
+  );
+
   return (
     <div className="flex w-full flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
-      <div className="flex max-w-52 items-center justify-center rounded-md">
-        {state ? (
-          <Skeleton
-            animation={'wave'}
-            variant="circular"
-            width={150}
-            height={150}
-          />
-        ) : (
-          <img
-            className="w-full"
-            src={`${drep?.attachment_url ? drep.attachment_url : '/svgs/user-circle.svg'}`}
-            alt=""
-          />
-        )}
-      </div>
-      <div>
-        <Typography variant="h4">
+      <DRepAvatarCard state={state} imageSrc={imageSrc} />
+      <div className="w-full">
+        <Typography
+          variant="h4"
+          sx={{
+            whiteSpace: 'normal',
+            wordBreak: 'break-word',
+          }}
+        >
           {state ? (
             <Skeleton
               animation={'wave'}
@@ -84,27 +240,40 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
             />
           ) : (
             drep &&
-            (drep?.drep_name
-              ? drep.drep_name
+            (name
+              ? name
               : drep?.cexplorerDetails?.view &&
                 convertString(drep?.cexplorerDetails?.view, isMobile))
           )}
         </Typography>
       </div>
       <div className="flex flex-row gap-2">
-        <StatusChip status="Active" />
+        <StatusChip status={status} />
         <StatusChip status="Verified" />
       </div>
-      <div>
-        <Typography variant="h6">Voting power</Typography>
-        <p className="flex items-center gap-3 font-normal">
-          ₳{' '}
-          {state ? (
-            <Skeleton animation={'wave'} width={50} height={20} />
-          ) : (
-            drep?.cexplorerDetails?.amount || 0
-          )}
-        </p>
+      <div className="flex items-center gap-4 lg:justify-between lg:gap-0">
+        <div>
+          <Typography variant="h6">Active Voting power</Typography>
+          <p className="flex items-center gap-3 font-normal">
+            ₳{' '}
+            {state ? (
+              <Skeleton animation={'wave'} width={50} height={20} />
+            ) : (
+              formattedAda(drep?.cexplorerDetails?.amount, 2) || 0
+            )}
+          </p>
+        </div>
+        {/*<div>*/}
+        {/*  <Typography variant="h6">Live Voting power</Typography>*/}
+        {/*  <p className="flex items-center gap-3 font-normal">*/}
+        {/*    ₳{' '}*/}
+        {/*    {state ? (*/}
+        {/*      <Skeleton animation={'wave'} width={50} height={20} />*/}
+        {/*    ) : (*/}
+        {/*      formattedAda(liveVotingPower, 2)*/}
+        {/*    )}*/}
+        {/*  </p>*/}
+        {/*</div>*/}
       </div>
       <div>
         <Typography variant="h6">Total delegation</Typography>
@@ -137,59 +306,68 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           <img src="/svgs/copy.svg" alt="copy" />
         </CopyToClipboard>
       </div>
-      <div className="flex flex-row gap-2">
-        <Link href={drep ? drep?.drep_social?.github || '#' : '#'}>
-          <img className="w-full" src="/svgs/github-dark.svg" alt="" />
-        </Link>
-        <Link href={drep ? drep?.drep_social?.x || '#' : '#'}>
-          <img className="w-full" src="/svgs/twitter.svg" alt="" />
-        </Link>
-        <Link href={drep ? drep?.drep_social?.facebook || '#' : '#'}>
-          <img className="w-full" src="/svgs/fb-dark.svg" alt="" />
-        </Link>
-        <Link href={drep ? drep?.drep_social?.instagram || '#' : '#'}>
-          <img className="w-full" src="/svgs/ig-dark.svg" alt="" />
-        </Link>
+      <DRepSocialLinks links={socialLinks} />
+      <div>
+        {state ? (
+          <Skeleton animation={'wave'} width={150} height={20} />
+        ) : (
+          <MetadataViewer
+            metadata={metadata}
+            isMetadataLoading={isMetadataLoading}
+            metadataError={metadataError}
+            metadataUrl={metadataUrl}
+          />
+        )}
       </div>
       <div>
-        <Typography variant="h6">Bio</Typography>
-        <p>
-          {' '}
-          {state ? (
-            <Skeleton animation={'wave'} width={150} height={20} />
-          ) : (
-            drep?.drep_bio || 'Empty'
-          )}
-        </p>
-      </div>
-      <div>
-        <Typography variant="h6">Statement</Typography>
-        <p>
-          {' '}
-          {state ? (
-            <Skeleton animation={'wave'} width={150} height={20} />
-          ) : (
-            drep?.drep_platform_statement || 'Empty'
-          )}
-        </p>
-      </div>
-      <div>
-        <Typography variant="h6">Metadata</Typography>
-        <p>None</p>
+        {canEdit && (
+          <MetadataEditor
+            onClose={() => {
+              setCanEdit(false);
+            }}
+            initialMetadata={metadataJson}
+            onSuccessfulSubmit={() => {
+              setIsSubmittingMetadata(true);
+            }}
+          />
+        )}
+        {isSubmittingMetadata && (
+          <SubmitMetadataModal
+            onClose={() => setIsSubmittingMetadata(false)}
+            onSuccessfulSubmit={() => {
+              addSuccessAlert(
+                'Metadata updated successfully. It will probably take few minutes to reflect',
+              );
+              resetDraft();
+            }}
+          />
+        )}
+        {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
+          drep?.signature_drepVoterId == dRepIDBech32) &&
+          renderUnsavedChanges()}
       </div>
       {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
         drep?.signature_drepVoterId == dRepIDBech32) && (
         <div className="flex max-w-prose flex-col gap-2">
-          <Button>Set up Metadata</Button>
           <Button
-            variant="outlined"
-            bgColor="transparent"
-            handleClick={() => {
-              router.push(`/dreps/workflow/profile/update/step1`);
-            }}
+            handleClick={
+              isLoggedIn ? ctaActions[0].action : ctaActions[1].action
+            }
+            className="w-full"
           >
-            Edit Profile
+            {isLoggedIn ? ctaActions[0].label : ctaActions[1].label}
           </Button>
+          {isLoggedIn && (
+            <Link href={`/dreps/workflow/profile/update/step1`}>
+              <Button
+                className="w-full"
+                variant="outlined"
+                bgColor="transparent"
+              >
+                Edit Profile
+              </Button>
+            </Link>
+          )}
         </div>
       )}
     </div>

@@ -7,3 +7,4 @@ export * from './paths';
 export * from './locales';
 export * from './urls';
 export * from './icons';
+export * from "./regex";

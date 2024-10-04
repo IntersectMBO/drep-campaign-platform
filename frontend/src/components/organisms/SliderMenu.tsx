@@ -1,44 +1,40 @@
-import { Box, Grid, IconButton, SwipeableDrawer } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Box, Drawer, Grid, IconButton } from '@mui/material';
 import { useDRepContext } from '@/context/drepContext';
+import { useCardano } from '@/context/walletContext';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
 import { Background } from '../atoms/Background';
-import { LoginInfoCard } from '../molecules/LoginInfoCard';
-import Button from '../atoms/Button';
+import WalletConnectButton from '@/components/molecules/WalletConnectButton';
+import { WalletInfoCard } from '@/components/molecules';
+import VoltaireMenu from '../molecules/VoltaireMenu';
+import DRepMenu from '../molecules/DRepMenu';
+import { useScreenDimension } from '@/hooks';
+
 interface SliderMenuProps {
-  options: { name: string; path: string }[];
+  isOpen: boolean;
   handleClose: () => void;
 }
 
 const DRAWER_PADDING = 2;
-// 8 is number of multiple in Material UI 2 is left and right side
 const CALCULATED_DRAWER_PADDING = DRAWER_PADDING * 8 * 2;
 
-export const SliderMenu = ({ options, handleClose }: SliderMenuProps) => {
-  const [screenWidth, setScreenWidth] = useState<number>(0);
-  const {
-    isMobileDrawerOpen,
-    setIsMobileDrawerOpen,
-    currentLocale,
-    isLoggedIn,
-    setLoginModalOpen,
-  } = useDRepContext();
+export const SliderMenu = ({ isOpen, handleClose }: SliderMenuProps) => {
+  const { currentLocale } = useDRepContext();
+  const { screenWidth } = useScreenDimension();
+  const { isEnabled } = useCardano();
   const pathname = usePathname();
   const [activeLink, setActiveLink] = useState(null);
-
+  const [currentPath, setCurrentPath] = useState(pathname);
   useEffect(() => {
-    // Setting the active link based on the current pathname
     setActiveLink(pathname);
-    setScreenWidth(window.innerWidth);
+    if (isOpen && pathname !== currentPath) {
+      handleClose();
+    }
   }, [pathname]);
+
   return (
-    <SwipeableDrawer
-      anchor="right"
-      onClose={handleClose}
-      onOpen={() => setIsMobileDrawerOpen(true)}
-      open={isMobileDrawerOpen}
-    >
+    <Drawer anchor="right" onClose={handleClose} open={isOpen}>
       <Background>
         <Box
           sx={{
@@ -65,7 +61,7 @@ export const SliderMenu = ({ options, handleClose }: SliderMenuProps) => {
                 onClick={handleClose}
                 sx={{ padding: 0 }}
               >
-                <img src={'/svgs/close.svg'} />
+                <img src={'/svgs/close.svg'} alt="Close" />
               </IconButton>
             </Box>
             <Grid
@@ -76,17 +72,10 @@ export const SliderMenu = ({ options, handleClose }: SliderMenuProps) => {
               className="flex flex-col items-center text-center"
             >
               <Grid item>
-                {isLoggedIn ? (
-                  <LoginInfoCard />
+                {!isEnabled ? (
+                  <WalletConnectButton test_name={'mobile-menu'} />
                 ) : (
-                  <Button
-                    handleClick={() => {
-                      setIsMobileDrawerOpen(false);
-                      setLoginModalOpen(true);
-                    }}
-                  >
-                    Login
-                  </Button>
+                  <WalletInfoCard test_name={'mobile-menu'} />
                 )}
               </Grid>
               <Grid item>
@@ -101,25 +90,21 @@ export const SliderMenu = ({ options, handleClose }: SliderMenuProps) => {
                   CIP
                 </Link>
               </Grid>
-              {options.slice(0, 1).map((option, index) => (
-                <Grid item key={index + option.name + option.path + option}>
-                  <Link
-                    key={index + option.name + option.path + option}
-                    href={option.path}
-                    className={`${
-                      activeLink === `/${currentLocale}${option.path}`
-                        ? 'text-orange-500'
-                        : 'text-gray-800'
-                    }`}
-                  >
-                    {option.name}
-                  </Link>
-                </Grid>
-              ))}
+              <Grid item>
+                <DRepMenu />
+              </Grid>
+              <Grid item>
+                <VoltaireMenu />
+              </Grid>
+              {/* <Grid item>
+                <div className="cursor-pointer">
+                  <img src="/svgs/bell.svg" alt="Notifications" />
+                </div>
+              </Grid> */}
             </Grid>
           </Box>
         </Box>
       </Background>
-    </SwipeableDrawer>
+    </Drawer>
   );
 };

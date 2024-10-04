@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import { Chip, Typography } from '@mui/material';
 import Button from '@/components/atoms/Button';
 import { postAddReaction } from '@/services/requests/postAddReaction';
@@ -33,28 +33,9 @@ const SingleNote = ({
     thumbsdown: 0,
     rocket: 0,
   };
-  const currentReactions = {
-    like: {
-      count: 0,
-      hasLiked: false,
-    },
-    thumbsup: {
-      count: 0,
-      hasLiked: false,
-    },
-    thumbsdown: {
-      count: 0,
-      hasLiked: false,
-    },
-    rocket: {
-      count: 0,
-      hasLiked: false,
-    },
-  };
   // Count initial reactions
 
   const [reactions, setReactions] = useState(initialReactions);
-  const [currentRxns, setCurrentRxns] = useState(currentReactions);
   const [userReactions, setUserReactions] = useState({});
   const [isCommenting, setIsCommenting] = useState(false);
   const [showResponses, setShowResponses] = useState(false);
@@ -75,33 +56,6 @@ const SingleNote = ({
   });
   // Update user reactions whenever currentVoter changes
   useEffect(() => {
-    const updateReactions = (reactions) => {
-      setCurrentRxns(prevRxns => {
-        const updatedRxns = {...prevRxns};
-    
-        // // Reset all counts to 0 and hasLiked to false
-        // Object.keys(updatedRxns).forEach(key => {
-        //   updatedRxns[key] = { count: 0, hasLiked: false };
-        // });
-    
-        // Process each reaction in the array
-        reactions.forEach(reaction => {
-          if (updatedRxns.hasOwnProperty(reaction.type)) {
-            updatedRxns[reaction.type].count++;
-            
-            // Assuming the current user's address is stored in a variable called `currentUserAddress`
-            if (reaction.voter === currentVoter) {
-              updatedRxns[reaction.type].hasLiked = true;
-            }
-          }
-        });
-    
-        return updatedRxns;
-      });
-    };
-    
-    // Usage:
-    updateReactions(note.reactions);
     const updatedUserReactions = note.reactions.reduce((acc, reaction) => {
       if (reaction.voter === currentVoter) {
         acc[reaction.type] = true;
@@ -111,7 +65,7 @@ const SingleNote = ({
     const updatedReactions = note.reactions.reduce((acc, reaction) => {
       acc[reaction.type] = (acc[reaction.type] || 0) + 1;
       return acc;
-    }, reactions);
+    }, initialReactions);
 
     setUserReactions(updatedUserReactions);
     setReactions(updatedReactions);
@@ -242,20 +196,22 @@ const SingleNote = ({
               return React.cloneElement(item, { key: index });
             }
           })}
-        <div className="flex flex-col gap-1">
-          <p className="text-sm">Tags</p>
-          <div className="flex flex-wrap gap-1">
-            {note.note_note_tag.split(',').map((tag) => (
-              <Chip
-                key={tag}
-                label={tag}
-                variant="outlined"
-                color="primary"
-                className="w-fit text-black"
-              />
-            ))}
+        {!!note.note_note_tag && (
+          <div className="flex flex-col gap-1">
+            <p className="text-sm">Tags</p>
+            <div className="flex flex-wrap gap-1">
+              {note.note_note_tag.split(',').map((tag) => (
+                <Chip
+                  key={tag}
+                  label={tag}
+                  variant="outlined"
+                  color="primary"
+                  className="w-fit text-black"
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <div className="flex items-center gap-5 bg-[#F3F5FF] px-5 py-1">
         <p className="text-sm">Submission Date:</p>
@@ -278,30 +234,27 @@ const SingleNote = ({
           </Button>
         </div>
         <div className="flex gap-5">
-          {Object.keys(reactionIcons).map((type) => {
-            console.log(currentReactions)
-            return (
+          {Object.keys(reactionIcons).map((type) => (
+            <div
+              key={type}
+              className="flex flex-row-reverse items-center gap-1"
+            >
+              <div>{reactions[type]}</div>
               <div
-                key={type}
-                className="flex flex-row-reverse items-center gap-1"
+                className="cursor-pointer"
+                onClick={() => handleReaction(type)}
               >
-                <div>{currentReactions[type].count}</div>
-                <div
-                  className="cursor-pointer"
-                  onClick={() => handleReaction(type)}
-                >
-                  <img
-                    src={
-                      userReactions[type]
-                        ? reactionFilledIcons[type]
-                        : reactionIcons[type]
-                    }
-                    alt={type}
-                  />
-                </div>
+                <img
+                  src={
+                    userReactions[type]
+                      ? reactionFilledIcons[type]
+                      : reactionIcons[type]
+                  }
+                  alt={type}
+                />
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
       {isCommenting && (
@@ -342,4 +295,4 @@ const SingleNote = ({
   );
 };
 
-export default SingleNote;
+export default memo(SingleNote);

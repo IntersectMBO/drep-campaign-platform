@@ -21,9 +21,9 @@ const ChevronsLeftIcon = ({
     <path
       d="M11 7L6 12L11 17M17 7L12 12L17 17"
       stroke={color}
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
   </svg>
 );

@@ -59,7 +59,7 @@ const MarkdownEditor = ({ control, errors, name }: MarkdownEditorProps) => {
               />
             ) : (
               <div className="min-h-40 w-full overflow-auto rounded-b-xl border p-2">
-                {parts.map((item, index) => {
+                {parts && parts.map((item, index) => {
                   if (typeof item === 'string') {
                     return (
                       <Typography
@@ -75,7 +75,7 @@ const MarkdownEditor = ({ control, errors, name }: MarkdownEditorProps) => {
               </div>
             )}
             {errors[name] && (
-              <span className="text-red-500">{errors[name].message}</span>
+              <span className="text-red-500 text-sm">{errors[name].message}</span>
             )}
           </div>
         );

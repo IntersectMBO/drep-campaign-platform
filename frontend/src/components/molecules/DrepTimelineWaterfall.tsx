@@ -11,12 +11,12 @@ import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import EpochTimelineCard from '../atoms/EpochTimelineCard';
 import DrepVoteTimelineCard from '../atoms/DrepVoteTimelineCard';
+import Link from 'next/link';
+import { urls } from '@/constants';
+import { ProfileClaimedChip } from './ProfileClaimedChip';
+import DrepDelegatorCard from '../atoms/DrepDelegatorCard';
 
-export default function DrepTimelineWaterfall({
-  activity = [],
-}: {
-  activity: any[];
-}) {
+const DrepTimelineWaterfall = ({ activity = [] }: { activity: any[] }) => {
   const { isMobile, screenWidth } = useScreenDimension();
   const { stakeKeyBech32, isEnabled } = useCardano();
   const { isLoggedIn } = useDRepContext();
@@ -36,12 +36,9 @@ export default function DrepTimelineWaterfall({
       {activity &&
         activity.length > 0 &&
         activity.map((item, epochIndex) => (
-          <>
+          <React.Fragment key={epochIndex}>
             {item.type === 'note' && (
-              <div
-                className="flex w-full flex-col items-center space-y-2"
-                key={epochIndex}
-              >
+              <div className="flex w-full flex-col items-center space-y-2">
                 <TimelineSeparator>
                   <TimelineDot />
                   <TimelineConnector
@@ -57,13 +54,16 @@ export default function DrepTimelineWaterfall({
                     isLoggedIn={isLoggedIn}
                   />
                 </div>
+                <TimelineSeparator>
+                  <TimelineConnector
+                    className="h-10 border-2 border-dotted border-gray-300"
+                    sx={{ backgroundColor: 'white' }}
+                  />
+                </TimelineSeparator>
               </div>
             )}
             {item.type === 'epoch' && (
-              <div
-                className="flex w-full flex-col items-center space-y-2"
-                key={epochIndex}
-              >
+              <div className="flex w-full flex-col items-center space-y-2">
                 <TimelineSeparator>
                   <TimelineDot />
                   <TimelineConnector
@@ -72,6 +72,12 @@ export default function DrepTimelineWaterfall({
                   />
                 </TimelineSeparator>
                 <EpochTimelineCard epoch={item} />
+                <TimelineSeparator>
+                  <TimelineConnector
+                    className="h-10 border-2 border-dotted border-gray-300"
+                    sx={{ backgroundColor: 'white' }}
+                  />
+                </TimelineSeparator>
               </div>
             )}
             {item.type === 'registration' && (
@@ -83,14 +89,34 @@ export default function DrepTimelineWaterfall({
                     sx={{ backgroundColor: 'white' }}
                   />
                 </TimelineSeparator>
-                <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500">
-                  <img src="/svgs/loader.svg" alt="" />
-                  <p>Registered, Epoch {item?.epoch_no}</p>
-                </div>
+                <Link
+                  href={`${urls.cexplorerUrl}/tx/${item?.tx_hash}`}
+                  target="_blank"
+                >
+                  <div className="flex flex-row items-center justify-center gap-2 text-nowrap text-gray-500 hover:cursor-pointer hover:text-gray-800">
+                    <img src="/svgs/external-link.svg" alt="" />
+                    <p>Registered, Epoch {item?.epoch_no}</p>
+                  </div>
+                </Link>
+              </div>
+            )}
+            {item.type === 'claimed_profile' && (
+              <div className="flex w-full flex-col items-center space-y-2">
+                <TimelineSeparator>
+                  <TimelineDot />
+                  <TimelineConnector
+                    className="h-10 border-2 border-dotted border-gray-300"
+                    sx={{ backgroundColor: 'white' }}
+                  />
+                </TimelineSeparator>
+                <ProfileClaimedChip
+                  claimedAddress={item.claimedDRepId}
+                  dateOfClaim={item.timestamp}
+                />
               </div>
             )}
             {item.type === 'voting_activity' && (
-              <TimelineItem key={epochIndex}>
+              <TimelineItem>
                 <TimelineSeparator>
                   <TimelineDot />
                   <TimelineConnector
@@ -103,8 +129,23 @@ export default function DrepTimelineWaterfall({
                 </TimelineContent>
               </TimelineItem>
             )}
-          </>
+            {item.type === 'delegation' && (
+              <TimelineItem>
+                <TimelineSeparator>
+                  <TimelineDot />
+                  <TimelineConnector
+                    className="h-10 border-2 border-dotted border-gray-300"
+                    sx={{ backgroundColor: 'white' }}
+                  />
+                </TimelineSeparator>
+                <TimelineContent>
+                  <DrepDelegatorCard item={item} />
+                </TimelineContent>
+              </TimelineItem>
+            )}
+          </React.Fragment>
         ))}
     </Timeline>
   );
-}
+};
+export default React.memo(DrepTimelineWaterfall);

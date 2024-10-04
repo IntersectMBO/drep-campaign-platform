@@ -3,6 +3,7 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 import { useCardano } from '@/context/walletContext';
 import './MoleculeStyles.css';
 import { useDRepContext } from '@/context/drepContext';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
 export interface WalletOption {
   icon: string;
   label: string;
@@ -14,13 +15,18 @@ export interface WalletOption {
 export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
   const { enable, isEnableLoading } = useCardano();
   const { setIsWalletListModalOpen } = useDRepContext();
-
+  const { addErrorAlert } = useGlobalNotifications();
   const { dataTestId, icon, label, name, cip95Available } = props;
 
   const enableByWalletName = useCallback(async () => {
-    if (isEnableLoading) return;
-    await enable(name);
-    setIsWalletListModalOpen(false)
+    try {
+      if (isEnableLoading) return;
+      await enable(name);
+      setIsWalletListModalOpen(false);
+    } catch (error) {
+      addErrorAlert(String(error?.error ? error?.error : error));
+      console.log(error);
+    }
   }, [enable, isEnableLoading]);
 
   return (

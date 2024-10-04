@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import Jimp from 'jimp';
 import {
   Attachment,
@@ -7,12 +7,23 @@ import {
 } from 'src/entities/attachment.entity';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { lastValueFrom } from 'rxjs';
+import {
+  IPFSPinResponse,
+  IPFSPinStatusResponse,
+  IPFSResponse,
+} from 'src/common/types';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
 
 @Injectable()
 export class AttachmentService {
   constructor(
     @InjectDataSource('default')
     private voltaireService: DataSource,
+    private httpService: HttpService,
+    private configService: ConfigService,
   ) {}
   async parseMimeType(mimeType: string) {
     switch (mimeType) {
@@ -98,17 +109,19 @@ export class AttachmentService {
         parentid: !String(parentId).includes('null') ? parentId : null,
         attachmentType: await this.parseMimeType(mimeType),
       };
-  
-      const attachmentRepo = await this.voltaireService.getRepository('Attachment');
+
+      const attachmentRepo =
+        await this.voltaireService.getRepository('Attachment');
       const createdAttachment = attachmentRepo.create(newAttachment);
-      const res = await attachmentRepo.save(createdAttachment) as Attachment;
+      const res = (await attachmentRepo.save(createdAttachment)) as Attachment;
       return res;
-  
     } catch (error) {
       //duplicate key value violates unique constraint
       if (error.code === '23505') {
         try {
-          const existingAttachment =await this.voltaireService.getRepository('Attachment').findOneBy({ name: attachment.originalname });
+          const existingAttachment = await this.voltaireService
+            .getRepository('Attachment')
+            .findOneBy({ name: attachment.originalname });
           return existingAttachment;
         } catch (findError) {
           console.log('Error finding existing attachment:', findError);
@@ -120,7 +133,7 @@ export class AttachmentService {
       }
     }
   }
-  
+
   async getSingleAttachment(attachmentId: number) {
     try {
       const attachment = await this.voltaireService
@@ -179,6 +192,126 @@ export class AttachmentService {
       return true;
     } catch (error) {
       console.log(error);
+    }
+  }
+  async uploadAttachmentToIPFS(
+    attachment: Express.Multer.File | Buffer | Uint8Array | Blob | FormData,
+  ): Promise<IPFSResponse> {
+    try {
+      const res = await lastValueFrom(
+        this.httpService.post(
+          'https://ipfs.blockfrost.io/api/v0/ipfs/add',
+          attachment,
+          {
+            headers: {
+              project_id: this.configService.get<string>(
+                'BLOCKFROST_IPFS_PROJECT_ID',
+              ),
+            },
+          },
+        ),
+      );
+      const ipfsRes = res.data as IPFSResponse;
+      //then auto-pin the attachment
+      const ipfsPinStatus =await this.pinAttachmentToIPFS(ipfsRes.ipfs_hash) as IPFSPinResponse;
+      return {
+        ...ipfsRes,
+        state: ipfsPinStatus.state
+      }
+    } catch (error) {
+      console.error(error.response.data || error.response || error);
+      throw new HttpException(error.response.data, error.response.status);
+    }
+  }
+  async pinAttachmentToIPFS(hash: string): Promise<IPFSPinResponse> {
+    try {
+      const res = await lastValueFrom(
+        this.httpService.post(
+          `https://ipfs.blockfrost.io/api/v0/ipfs/pin/add/${hash}`,
+          {},
+          {
+            headers: {
+              project_id: this.configService.get<string>(
+                'BLOCKFROST_IPFS_PROJECT_ID',
+              ),
+            },
+          },
+        ),
+      );
+      return res.data;
+    } catch (error) {
+      console.error(error.response.data || error.response || error);
+      throw new HttpException(error.response.data, error.response.status);
+    }
+  }
+  async checkPinStatus(hash: string): Promise<IPFSPinStatusResponse> {
+    try {
+      const res = await lastValueFrom(
+        this.httpService.get(
+          `https://ipfs.blockfrost.io/api/v0/ipfs/pin/list/${hash}`,
+          {
+            headers: {
+              project_id: this.configService.get<string>(
+                'BLOCKFROST_IPFS_PROJECT_ID',
+              ),
+            },
+          },
+        ),
+      );
+      return res.data;
+    } catch (error) {
+      console.error(error.response.data || error.response || error);
+      throw new HttpException(error.response.data, error.response.status);
+    }
+  }
+  async unpinAttachmentFromIPFS(hash: string): Promise<IPFSPinResponse> {
+    try {
+      const res = await lastValueFrom(
+        this.httpService.post(
+          `https://ipfs.blockfrost.io/api/v0/ipfs/pin/remove/${hash}`,
+          {},
+          {
+            headers: {
+              project_id: this.configService.get<string>(
+                'BLOCKFROST_IPFS_PROJECT_ID',
+              ),
+            },
+          },
+        ),
+      );
+      return res.data;
+    } catch (error) {
+      console.error(error.response.data || error.response || error);
+      throw new HttpException(error.response.data, error.response.status);
+    }
+  }
+  async getAttachmentFromIPFS(hash: string, res: Response): Promise<any> {
+    try {
+      const response = await lastValueFrom(
+        this.httpService.get(
+          `https://ipfs.blockfrost.io/api/v0/ipfs/gateway/${hash}`,
+          {
+            headers: {
+              project_id: this.configService.get<string>(
+                'BLOCKFROST_IPFS_PROJECT_ID',
+              ),
+            },
+            responseType: 'stream', // Used stream to handle large files or non-JSON data
+          },
+        ),
+      );
+
+      for (const [key, value] of Object.entries(response.headers)) {
+        res.setHeader(key, value as string);
+      }
+      // Stream the data directly to the client
+      return response.data.pipe(res);
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.response.statusText || 'An error occured',
+        error.response.status,
+      );
     }
   }
 }

@@ -12,10 +12,10 @@ import { useGlobalNotifications } from '@/context/globalNotificationContext';
 const FormSchema = z.object({
   postTitle: z
     .string()
-    .min(3, 'Post Title cant be less than 3 chars')
-    .max(12, "Post Title can't be more than 12 chars"),
-  postTag: z.array(z.string()),
-  postText: z.string().min(10, 'Post Text cant be less than 10 chars'),
+    .min(3, 'Title cant be less than 3 chars')
+    .max(255, "Title can't be more than 255 chars"),
+  postTag: z.array(z.string()).optional(),
+  postText: z.string().min(10, 'Content cant be less than 10 chars'),
   postVisibility: z.string().min(1, "Visibility status can't be empty"),
 });
 
@@ -31,7 +31,7 @@ const NewNoteForm = () => {
     resolver: zodResolver(FormSchema),
     defaultValues: { postText: '' },
   });
-  const { isEnabled, dRepIDBech32, stakeKey } = useCardano();
+  const { dRepIDBech32, stakeKey } = useCardano();
   const router = useRouter();
   const mutation = usePostNewNoteMutation();
   const { setIsNotDRepErrorModalOpen } = useDRepContext();

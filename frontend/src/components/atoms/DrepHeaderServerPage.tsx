@@ -4,7 +4,6 @@ import React from 'react';
 
 const ServerPage = ({ children }) => {
     const headersList = headers();
-    console.log(headersList)
     const redirectCause = headersList.get('x-status-reason');
     return (
         <div>

@@ -17,7 +17,6 @@ const ProfileSubmitArea = ({ isUpdate, isDisabled=false }: ProfileSubmitAreaProp
     setStep2Status,
     setStep3Status,
     setStep4Status,
-    setStep5Status,
   } = useDRepContext();
 
   const handleNavigate = (step: number) => {
@@ -44,16 +43,9 @@ const ProfileSubmitArea = ({ isUpdate, isDisabled=false }: ProfileSubmitAreaProp
     } else if (currentRegistrationStep === 3) {
       setStep4Status('active');
       setCurrentRegistrationStep(4);
-      router.push(
-        `/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`,
-      );
-    } else if (currentRegistrationStep === 4) {
-      setStep5Status('active');
-      setCurrentRegistrationStep(5);
       router.push(`/dreps/workflow/profile/update/step${currentRegistrationStep + 1}`)
-    } else if (currentRegistrationStep === 5) {
-      setStep5Status('success');
-      router.push('/dreps/workflow/profile/success')
+    } else if (currentRegistrationStep === 4) {
+      setStep4Status('success');
     }
   };
   return (

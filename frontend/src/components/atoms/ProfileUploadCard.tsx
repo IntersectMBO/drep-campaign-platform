@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Button from './Button';
+import { useGlobalNotifications } from '@/context/globalNotificationContext';
 interface ProfileUploadCardProps {
   registerUrl: any;
   control: any;
@@ -13,8 +14,11 @@ const ProfileUploadCard = ({
   isUpdate,
   currentProfileUrl,
 }: ProfileUploadCardProps) => {
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+
   const [files, setFiles] = useState(null);
   const hiddenInputRef = useRef(null);
+  const { addErrorAlert } = useGlobalNotifications();
   const [preview, setPreview] = useState(null);
   const [isOverlay, setIsOverlay] = useState(false);
   const {
@@ -24,17 +28,27 @@ const ProfileUploadCard = ({
     ...rest
   } = registerUrl('profileUrl');
   useEffect(() => {
-    if (isUpdate && currentProfileUrl) {
-      setPreview(currentProfileUrl);
+    if (currentProfileUrl) {
+      const cleanedUrl = decodeURIComponent(currentProfileUrl).replace(
+        /^"|"$/g,
+        '',
+      );
+      setPreview(cleanedUrl);
     }
   }, [currentProfileUrl]);
   const preventDefault = (e) => {
     e.preventDefault();
     e.stopPropagation();
   };
+
   const handleFileSelect = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        addErrorAlert('File size is too large. Max is 5MB');
+        handleRemove();
+        return;
+      }
       setFiles(file);
       previewFile(file);
     } else {
@@ -51,16 +65,20 @@ const ProfileUploadCard = ({
     e.stopPropagation();
     const file = e.dataTransfer.files[0];
     if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        addErrorAlert('File size is too large. Max is 5MB');
+        return;
+      }
       setFiles(file);
       previewFile(file);
-      setProfileUrl('profileUrl', e.dataTransfer.files);
+      setProfileUrl('profileUrl', file);
     }
   };
   const handleRemove = () => {
     setFiles(null);
     setPreview(null);
     hiddenInputRef.current.value = '';
-    setProfileUrl('profileUrl', null);
+    setProfileUrl('profileUrl', '');
     setIsOverlay(false);
   };
   return (
@@ -82,7 +100,7 @@ const ProfileUploadCard = ({
           onMouseEnter={() => setIsOverlay(true)}
           onMouseLeave={() => setIsOverlay(false)}
         >
-          <img src={preview} alt="Profile"/>
+          <img src={preview as string} alt="Profile" />
           <div
             className={`absolute left-0 top-0 flex h-full w-full flex-col items-center justify-center  bg-slate-500 ${isOverlay ? 'opacity-90' : 'hidden'} cursor-pointer text-sm `}
             onClick={handleRemove}
@@ -91,7 +109,7 @@ const ProfileUploadCard = ({
           </div>
         </div>
       )}
-      <p className="text-[11px] font-medium text-slate-500 mb-4">
+      <p className="mb-4 text-[11px] font-medium text-slate-500">
         Drag and drop your photo or
       </p>
       <Button handleClick={() => document.getElementById('fileInput').click()}>

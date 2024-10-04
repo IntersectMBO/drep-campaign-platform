@@ -8,7 +8,7 @@ export class Note extends BaseEntity {
   @Column({ unique: true, nullable: false })
   note_title: string;
 
-  @Column('simple-array')
+  @Column('simple-array', { nullable: true })
   note_tag: string[];
 
   @Column({ nullable: false })
@@ -20,6 +20,8 @@ export class Note extends BaseEntity {
   @Column()
   note_visibility: string;
 
-  @OneToMany(() => Reaction, (reaction) => reaction.note, {onDelete: 'CASCADE'})
+  @OneToMany(() => Reaction, (reaction) => reaction.note, {
+    onDelete: 'CASCADE',
+  })
   reactions: Reaction[];
 }
