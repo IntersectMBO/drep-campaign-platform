@@ -4,7 +4,11 @@ import { ModalContents, ModalHeader, ModalWrapper } from '../atoms';
 import type { WalletOption } from '../molecules';
 import { WalletOptionButton } from '../molecules';
 import { useDRepContext } from '@/context/drepContext';
-export function ChooseWalletModal() {
+export function ChooseWalletModal({
+  hideCloseButton,
+}: {
+  hideCloseButton: boolean;
+}) {
   const { setIsWalletListModalOpen } = useDRepContext();
   const walletOptions: WalletOption[] = useMemo(() => {
     if (!window.cardano) return [];
@@ -38,6 +42,7 @@ export function ChooseWalletModal() {
   return (
     <ModalWrapper
       dataTestId="connect-your-wallet-modal"
+      hideCloseButton={hideCloseButton}
       onClose={() => setIsWalletListModalOpen(false)}
     >
       <ModalHeader>Connect Your Wallet</ModalHeader>

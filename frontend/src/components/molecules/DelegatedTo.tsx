@@ -13,7 +13,7 @@ type DelegatedToProps = {
 };
 
 export const DelegatedTo = ({ className }: DelegatedToProps) => {
-  const { stakeKey } = useCardano();
+  const { stakeKey, stakeKeyBech32 } = useCardano();
   const { currentDelegation } = useGetAdaHolderCurrentDelegationQuery(stakeKey);
   const { DRep } = useGetSingleDRepViaVoterIdQuery(
     currentDelegation?.drep_view,
@@ -73,7 +73,7 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
                 fontWeight={600}
                 className="overflow-hidden text-gray-300"
               >
-                ₳ {formattedAda(DRep?.cexplorerDetails?.amount, 2)}
+                ₳ {formattedAda(DRep?.voting_power, 2)}
               </Typography>
             </Box>
           </>
@@ -98,10 +98,11 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
           </Box>
         )}
       </Box>
-      {currentDelegation && (
+      <Link href={stakeKeyBech32 ? `/voters/${stakeKeyBech32}` : '#'}>
         <Button
           variant="outlined"
           size="small"
+          className='w-full'
           sx={{
             color: 'white',
             borderColor: 'white',
@@ -109,7 +110,7 @@ export const DelegatedTo = ({ className }: DelegatedToProps) => {
         >
           View Profile
         </Button>
-      )}
+      </Link>
     </Box>
   );
 };

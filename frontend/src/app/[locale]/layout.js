@@ -10,6 +10,7 @@ import dynamic from 'next/dynamic';
 import '@fontsource/poppins';
 import { ThemeProvider } from '@mui/material';
 import theme from '@/assets/theme';
+import PageBanner from '@/components/atoms/PageBanner';
 const poppins = Poppins({
   weight: '400',
   style: 'normal',
@@ -62,7 +63,10 @@ async function RootLayout({ children, params: { locale } }) {
         <NextIntlClientProvider locale={locale} messages={messages}>
           <AppRouterCacheProvider>
             <ThemeProvider theme={theme}>
-              <AppContextProvider>{children}</AppContextProvider>
+              <AppContextProvider>
+                <PageBanner />
+                {children}
+                </AppContextProvider>
             </ThemeProvider>
           </AppRouterCacheProvider>
           <SprigClientScriptLoader />

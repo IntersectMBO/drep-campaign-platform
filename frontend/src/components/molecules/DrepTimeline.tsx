@@ -15,13 +15,13 @@ import { useGetDRepTimelineQuery } from '@/hooks/useGetDRepTimelineQuery';
 import DRepTimelineLoader from '../Loaders/DRepTimelineLoader';
 import ReloadIcon from '../atoms/svgs/ReloadIcon';
 import { formatNumberTimeToReadable } from '@/lib';
-import {Box, Fade, Grow} from '@mui/material';
+import { Box, Fade, Grow } from '@mui/material';
 import DRepTimeLIneFilters from './DRepTimeLineFilters';
 import DatabaseNullIcon from '../atoms/svgs/DatabaseNullIcon';
 import { useScreenDimension } from '@/hooks';
-import Typography from "@mui/material/Typography";
+import Typography from '@mui/material/Typography';
 
-const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
+const DrepTimeline = ({ drep }: { drep: any }) => {
   const { drepid } = useParams();
   const [filterValues, setFilterValues] = useState<string[]>(null);
   const {
@@ -47,7 +47,7 @@ const DrepTimeline = ({ cexplorerDetails }: { cexplorerDetails: any }) => {
   const pathName = usePathname();
   const { replace } = useRouter();
   const params = new URLSearchParams(searchParams);
-const  {isMobile}=useScreenDimension();
+  const { isMobile } = useScreenDimension();
   const startTimeFormatted = formatNumberTimeToReadable(timelineStartTime);
   const endTimeFormatted = formatNumberTimeToReadable(timelineEndTime);
 
@@ -162,18 +162,20 @@ const  {isMobile}=useScreenDimension();
     <div className="flex h-full w-full flex-col gap-5 bg-white px-5 py-3">
       <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
         <div className="flex w-full justify-between">
-          <Typography variant='h4'>Timeline</Typography>
+          <Typography variant="h4">Timeline</Typography>
           <div className="flex items-center gap-4">
-            {cexplorerDetails?.view == dRepIDBech32 && (
+            {drep?.view == dRepIDBech32 && drep?.drep_id && (
               <Button size="medium" className="flex w-fit items-center">
                 <Link href={`/dreps/workflow/notes/new`}>
-                {
-                  isMobile?(
-                    <img src="/svgs/file-plus.svg" alt="plus" title='Add a note'/>
-                  ):(
-                    "Add a note"
-                  )
-                }
+                  {isMobile ? (
+                    <img
+                      src="/svgs/file-plus.svg"
+                      alt="plus"
+                      title="Add a note"
+                    />
+                  ) : (
+                    'Add a note'
+                  )}
                 </Link>
               </Button>
             )}
@@ -198,16 +200,30 @@ const  {isMobile}=useScreenDimension();
                   onClick={loadNewerData}
                 >
                   <ReloadIcon color="black" width={20} height={18} />
-                  <Typography variant='body1' paragraph={true} className="text-base font-medium text-orange-500 ">
+                  <Typography
+                    variant="body1"
+                    paragraph={true}
+                    className="text-base font-medium text-orange-500 "
+                  >
                     Load Newer
                   </Typography>
                 </div>
               )}
               <Box className="flex flex-col items-center">
                 {isAtLatestPoint && DRepActivity.length > 0 && (
-                  <Typography variant='body1' paragraph={true} className="text-gray-500">You're all caught up!</Typography>
+                  <Typography
+                    variant="body1"
+                    paragraph={true}
+                    className="text-gray-500"
+                  >
+                    You're all caught up!
+                  </Typography>
                 )}
-                <Typography  variant='body1' paragraph={true} className="text-sm">
+                <Typography
+                  variant="body1"
+                  paragraph={true}
+                  className="text-sm"
+                >
                   Showing results from{' '}
                   <span className="font-semibold">{startTimeFormatted}</span> to{' '}
                   <span className="font-semibold">{endTimeFormatted}</span>

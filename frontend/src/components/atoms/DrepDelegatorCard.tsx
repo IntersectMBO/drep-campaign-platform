@@ -41,9 +41,17 @@ const DrepDelegatorCard = ({ item }: { item: DelegationData }) => {
       <p className="text-sm font-bold">
         {formatTotalStake(item?.total_stake, item?.added_power)} ₳
       </p>
-      <p className="text-base">
-        {shortenAddress(item?.stake_address, addressLength)}
-      </p>
+      <Link
+        prefetch={false}
+        href={
+          item?.stake_address ? `/voters/${item?.stake_address}` : '#'
+        }
+        className="hover:font-medium"
+      >
+        <p className="text-base">
+          {shortenAddress(item?.stake_address, addressLength)}
+        </p>
+      </Link>
       <div className="flex w-full items-center justify-center">
         {!!item.previous_drep ? (
           isPreviousTargetDRep ? (

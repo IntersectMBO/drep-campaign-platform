@@ -18,12 +18,16 @@ export class CommentsController {
     @Param('parentEntity') parentEntity: string,
     @Body('comment') comment: string,
     @Body('voter') voter: string,
+    @Body('rootEntity') rootEntity: string,
+    @Body('rootEntityId') rootEntityId: number,
   ) {
     return this.commentsService.insertComment(
       parentId,
       parentEntity,
       comment,
       voter,
+      rootEntity,
+      rootEntityId,
     );
   }
 

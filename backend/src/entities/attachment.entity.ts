@@ -1,12 +1,8 @@
-import {
-  Column,
-  Entity,
-  ManyToOne,
-} from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 import { Note } from './note.entity';
 import { Drep } from './drep.entity';
 import { Comment } from './comment.entity';
-import { BaseEntity } from 'src/global';
+import { BaseEntity } from '../global';
 export enum AttachmentTypeName {
   Link = 'link',
   PDF = 'pdf',
@@ -24,9 +20,9 @@ export enum AttachmentParentEntityType {
 }
 @Entity()
 export class Attachment extends BaseEntity {
-  @Column({nullable: false, unique: true})
+  @Column({ nullable: false, unique: true })
   name: string;
-  
+
   @Column({ type: 'bytea' })
   url: Uint8Array;
 

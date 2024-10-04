@@ -11,14 +11,14 @@ import { ReactionsService } from 'src/reactions/reactions.service';
 import { VoterService } from 'src/voter/voter.service';
 import { AuthService } from 'src/auth/auth.service';
 import { HttpModule } from '@nestjs/axios';
-import { Metadata } from 'src/entities/metadata.entity';
+import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 
 @Module({
   imports: [
     HttpModule.register({
       maxRedirects: 5,
     }),
-    TypeOrmModule.forFeature([Drep, Attachment, Note, Metadata], 'default'),
+    TypeOrmModule.forFeature([Drep, Attachment, Note], 'default'),
     TypeOrmModule.forFeature([], 'dbsync'),
   ],
   controllers: [DrepController],
@@ -29,6 +29,7 @@ import { Metadata } from 'src/entities/metadata.entity';
     ReactionsService,
     VoterService,
     AuthService,
+    BlockfrostService,
   ],
 })
 export class DrepModule {}

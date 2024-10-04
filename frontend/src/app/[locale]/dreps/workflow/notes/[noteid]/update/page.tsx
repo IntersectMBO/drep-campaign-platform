@@ -9,21 +9,25 @@ import React, { useEffect, useState } from 'react';
 const page = (params: { params: { noteid: number } }) => {
   const { isEnabled } = useCardano();
   const [initialValues, setInitialValues] = useState(null);
-  const { setIsWalletListModalOpen } = useDRepContext();
+  const { setIsWalletListModalOpen, setHideCloseButtonOnWalletListModal } = useDRepContext();
   //displays or hides modal only if in form page
   useEffect(() => {
-    const fetchNoteandCheckLogin = async () => {
+    const fetchNoteAndCheckLogin = async () => {
       try {
-        if (!isEnabled) setIsWalletListModalOpen(true);
+        if (!isEnabled) {
+          setIsWalletListModalOpen(true)
+          setHideCloseButtonOnWalletListModal(true);
+        }
         const note = await getSingleNote(params.params.noteid);
         setInitialValues(note);
       } catch (error) {
         console.log(error);
       }
     };
-    fetchNoteandCheckLogin();
+    fetchNoteAndCheckLogin();
     return () => {
       setIsWalletListModalOpen(false);
+      setHideCloseButtonOnWalletListModal(false);
     };
   }, []);
   return (
@@ -34,7 +38,7 @@ const page = (params: { params: { noteid: number } }) => {
             <h2 className="w-[85%] shrink grow basis-0 text-4xl font-bold leading-10">
               Update Note
             </h2>
-            <div className="flex items-center justify-center w-[15%] text-base font-medium leading-4 text-center">
+            <div className="flex w-[15%] items-center justify-center text-center text-base font-medium leading-4">
               <ViewDraftsButton isUpdating={true} />
             </div>
           </div>

@@ -3,21 +3,40 @@ import ViewDraftsButton from '@/components/molecules/ViewDraftsButton';
 import NewNoteForm from '@/components/organisms/NewNoteForm';
 import { useDRepContext } from '@/context/drepContext';
 import { useCardano } from '@/context/walletContext';
-import React, { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
+import React, { useCallback, useEffect } from 'react';
 
 const page = () => {
   const { isEnabled } = useCardano();
-  const { setIsWalletListModalOpen } = useDRepContext();
-  //displays or hides modal only if in form page
+  const pathname = usePathname();
+  const {
+    setIsWalletListModalOpen,
+    isLoggedIn,
+    setLoginModalOpen,
+    isWalletListModalOpen,
+    loginModalOpen,
+    currentLocale,
+    setHideCloseButtonOnWalletListModal,
+    setHideCloseButtonOnLoginModal
+  } = useDRepContext();
+
+  const checkAccess = useCallback(() => {
+    if (!pathname.includes(`/${currentLocale}/dreps/workflow/notes/new`)) {
+      return;
+    }
+    if (!isEnabled) {
+      setIsWalletListModalOpen(true);
+      setHideCloseButtonOnWalletListModal(true);
+    } else if (isEnabled && !isLoggedIn) {
+      setLoginModalOpen(true);
+      setHideCloseButtonOnLoginModal(true);
+    }
+  }, [isEnabled, isLoggedIn, isWalletListModalOpen, loginModalOpen]);
+
   useEffect(() => {
-    const checkLogin = () => {
-      if (!isEnabled) setIsWalletListModalOpen(true);
-    };
-    checkLogin();
-    return () => {
-      setIsWalletListModalOpen(false);
-    };
-  }, []);
+    checkAccess();
+  }, [checkAccess]);
+
   return (
     <div className="drep_radial_bg flex items-center justify-center">
       <div className="form_container h-full ">

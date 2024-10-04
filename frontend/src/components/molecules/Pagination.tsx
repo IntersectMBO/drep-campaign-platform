@@ -4,28 +4,53 @@ import ChevronsRightIcon from '../atoms/svgs/ChevronsRightIcon';
 import ChevronRightIcon from '../atoms/svgs/ChevronRightIcon';
 import ChevronLeftIcon from '../atoms/svgs/ChevronLeftIcon';
 import ChevronsLeftIcon from '../atoms/svgs/ChevronsLeftIcon';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 type PaginationProps = {
   currentPage: number;
   totalPages: number;
   totalItems: number;
-  moveToFirstPage?: Function;
-  moveToPreviousPage?: Function;
-  moveToNextPage?: Function;
-  moveToLastPage?: Function;
+  dataType: string;
 };
 
 const Pagination = ({
   currentPage,
   totalPages,
   totalItems,
-  moveToFirstPage,
-  moveToPreviousPage,
-  moveToNextPage,
-  moveToLastPage,
+  dataType
 }: PaginationProps) => {
+  const searchParams = useSearchParams();
+  const pathName = usePathname();
+  const { replace } = useRouter();
+
   const isLastPage = currentPage === totalPages;
   const isFirstPage = currentPage === 1;
+
+  function moveToPage(targetPage: number) {
+    const params = new URLSearchParams(searchParams);
+
+    if (currentPage !== targetPage) {
+      params.set('page', targetPage.toString());
+    }
+    replace(`${pathName}?${params.toString()}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function moveToFirstPage(firstPage: number) {
+    moveToPage(firstPage);
+  }
+
+  function moveToLastPage(lastPage: number) {
+    moveToPage(lastPage);
+  }
+
+  function moveToPreviousPage(previousPage: number) {
+    moveToPage(previousPage);
+  }
+
+  function moveToNextPage(nextPage: number) {
+    moveToPage(nextPage);
+  }
 
   return (
     <>
@@ -92,7 +117,7 @@ const Pagination = ({
             </Box>
           </Box>
           <span className="textColor2 mr-2 text-sm">
-            Total DReps: {totalItems}
+            Total {dataType}: {totalItems}
           </span>
         </Box>
       )}

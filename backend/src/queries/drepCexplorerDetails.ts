@@ -15,28 +15,45 @@ export const getDrepCexplorerDetailsQuery: string = `
           tx AS reg_tx ON dr.tx_id = reg_tx.id 
         LEFT JOIN 
           block AS reg_tx_bk ON reg_tx.block_id = reg_tx_bk.id
-      )
-      , RankedRows AS (
-        WITH latest_delegations AS (
+      ),
+      LatestDelegation AS (
           SELECT 
             dv.addr_id,
-            MAX(b.time) as latest_time
+            dv.drep_hash_id,
+            ROW_NUMBER() OVER (PARTITION BY dv.addr_id ORDER BY b.time DESC) AS row_num
           FROM 
             delegation_vote dv
           JOIN 
             tx ON dv.tx_id = tx.id
           JOIN 
             block b ON tx.block_id = b.id
+        ),
+      DRepDelegationData AS (
+          SELECT 
+            dh.id AS drep_hash_id,
+            COUNT(DISTINCT ld.addr_id) AS vote_count,
+            SUM(tx_out.value) AS live_stake
+          FROM 
+            drep_hash dh
+          JOIN 
+            LatestDelegation ld ON dh.id = ld.drep_hash_id AND ld.row_num = 1
+          JOIN 
+            stake_address sa ON ld.addr_id = sa.id
+          JOIN 
+            tx_out ON sa.id = tx_out.stake_address_id
+          WHERE 
+            tx_out.consumed_by_tx_id IS NULL
           GROUP BY 
-            dv.addr_id
-        )
+            dh.id
+        ),
+      RankedRows AS (
         SELECT 
           dh.id AS drep_hash_id, 
           dh.raw, 
           dh.view,
           dh.has_script, 
           dd.id AS drep_distr_id, 
-          dd.amount, 
+          COALESCE(dd.amount, null) AS voting_power,
           dd.epoch_no, 
           dd.active_until,
           lr.deposit, 
@@ -44,14 +61,9 @@ export const getDrepCexplorerDetailsQuery: string = `
           lr.voting_anchor_id AS reg_voting_anchor_id,  
           lr.metadata_url,
           sa.view AS stake_address,
-          (
-            SELECT COUNT(DISTINCT dv_inner.addr_id)
-            FROM delegation_vote dv_inner
-            JOIN latest_delegations ld ON dv_inner.addr_id = ld.addr_id
-            JOIN tx ON dv_inner.tx_id = tx.id
-            JOIN block b ON tx.block_id = b.id AND b.time = ld.latest_time
-            WHERE dv_inner.drep_hash_id = dh.id
-          ) AS delegation_vote_count,
+          (lr.deposit iS NOT NULL AND lr.deposit < 0) AS retired,
+          COALESCE(dd_data.vote_count, 0) AS delegation_vote_count,
+          COALESCE(dd_data.live_stake, null) AS live_stake,
           ROW_NUMBER() OVER (PARTITION BY dh.id ORDER BY dd.epoch_no DESC) AS RowNum
         FROM 
           drep_hash AS dh
@@ -62,7 +74,9 @@ export const getDrepCexplorerDetailsQuery: string = `
         LEFT JOIN 
           delegation_vote AS dv ON dh.id = dv.drep_hash_id 
         LEFT JOIN 
-          stake_address AS sa ON dv.addr_id = sa.id 
+          stake_address AS sa ON dv.addr_id = sa.id
+        LEFT JOIN 
+          DRepDelegationData dd_data ON dd_data.drep_hash_id = dh.id 
         WHERE 
           dh.view = $1
       )
@@ -71,8 +85,10 @@ export const getDrepCexplorerDetailsQuery: string = `
         view,
         delegation_vote_count,
         stake_address,
-        amount,
+        voting_power,
+        live_stake,
         epoch_no,
+        retired,
         active_until,
         deposit,
         metadata_url,

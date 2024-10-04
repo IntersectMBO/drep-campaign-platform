@@ -21,7 +21,10 @@ export const WalletOptionButton: FC<WalletOption> = ({ ...props }) => {
   const enableByWalletName = useCallback(async () => {
     try {
       if (isEnableLoading) return;
-      await enable(name);
+      const res = await enable(name);
+      if (res.status === 'WRONG_NETWORK') {
+        return;
+      }
       setIsWalletListModalOpen(false);
     } catch (error) {
       addErrorAlert(String(error?.error ? error?.error : error));

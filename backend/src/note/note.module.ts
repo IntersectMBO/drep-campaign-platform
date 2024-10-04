@@ -9,8 +9,8 @@ import { ReactionsService } from 'src/reactions/reactions.service';
 import { CommentsService } from 'src/comments/comments.service';
 import { VoterService } from 'src/voter/voter.service';
 import { AuthService } from 'src/auth/auth.service';
-import { JwtService } from '@nestjs/jwt';
-import { HttpModule, HttpService } from '@nestjs/axios';
+import { HttpModule } from '@nestjs/axios';
+import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 
 @Module({
   imports: [
@@ -29,6 +29,7 @@ import { HttpModule, HttpService } from '@nestjs/axios';
     CommentsService,
     VoterService,
     AuthService,
+    BlockfrostService,
   ],
 })
 export class NoteModule {}

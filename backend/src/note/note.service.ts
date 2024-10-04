@@ -1,11 +1,11 @@
-import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { AttachmentService } from 'src/attachment/attachment.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
 import { CommentsService } from 'src/comments/comments.service';
-import { Delegation, StakeKeys } from 'src/common/types';
+import { Delegation } from 'src/common/types';
 import { DrepService } from 'src/drep/drep.service';
 import { createNoteDto } from 'src/dto';
 import { ReactionsService } from 'src/reactions/reactions.service';
+import { VoterService } from 'src/voter/voter.service';
 import { DataSource } from 'typeorm';
 @Injectable()
 export class NoteService {
@@ -13,9 +13,9 @@ export class NoteService {
     @InjectDataSource('default')
     private voltaireService: DataSource,
     private drepService: DrepService,
-    private attachmentService: AttachmentService,
     private reactionsService: ReactionsService,
     private commentsService: CommentsService,
+    private voterService: VoterService,
   ) {}
   async getAllNotes(
     stakeKeyBech32?: string,
@@ -58,19 +58,32 @@ export class NoteService {
     if (!note) {
       throw new NotFoundException('Note not found!');
     }
-    return note;
+    const reactions = await this.reactionsService.getReactions(note.id, 'note');
+    const comments = await this.commentsService.getComments(note.id, 'note');
+    return { ...note, reactions: reactions, comments: comments };
   }
   async registerNote(noteDto: createNoteDto) {
-    const isPresent = await this.drepService.getSingleDrepViaVoterID(
-      noteDto.voter,
-    );
-    if (isPresent) {
-      const modifiedNoteDto = { ...noteDto, voter: isPresent.drep_id };
+    try {
+      const isDRepPresent = await this.drepService.getSingleDrepViaVoterID(
+        noteDto.drep,
+      );
+      const author = await this.voltaireService
+        .getRepository('Signature')
+        .findOne({ where: { stakeKey: noteDto.stake_addr } });
+      if (!author) {
+        return new NotFoundException('Author details not found!');
+      }
+      const modifiedNoteDto = {
+        ...noteDto,
+        drep: isDRepPresent.drep_id,
+        author: author.id,
+      };
       const res = await this.voltaireService
         .getRepository('Note')
         .insert(modifiedNoteDto);
       return { noteAdded: res.identifiers[0].id };
-    } else {
+    } catch (error) {
+      console.log(error);
       return new NotFoundException('DRep associated with note not found!');
     }
   }
@@ -82,11 +95,9 @@ export class NoteService {
     if (!foundNote) {
       throw new NotFoundException('Note to be updated not found!');
     }
-    const isPresent = await this.drepService.getSingleDrepViaVoterID(
-      note.voter,
-    );
+    const isPresent = await this.drepService.getSingleDrepViaVoterID(note.drep);
     if (isPresent) {
-      const modifiedNote = { ...note, voter: isPresent.drep_id };
+      const modifiedNote = { ...note, drep: isPresent.drep_id };
       // Iterate through the properties of the note object
       Object.keys(modifiedNote).forEach((key) => {
         foundNote[key] = modifiedNote[key];
@@ -106,17 +117,19 @@ export class NoteService {
     const queryBuilder = this.voltaireService
       .getRepository('Note')
       .createQueryBuilder('note')
-      .leftJoinAndSelect('note.voter', 'drep')
+      .leftJoinAndSelect('note.drep', 'drep')
       .leftJoin('drep.signatures', 'signature')
       .orderBy('note.createdAt', 'DESC') // Order by createdAt descending
       .limit(20); // limit per req
     // Basic query for notes with visibility 'everyone'
-    queryBuilder.where('note.note_visibility = :everyone', {
+    queryBuilder.where('note.visibility = :everyone', {
       everyone: 'everyone',
     });
     if (currentNote) {
       if (request === 'before') {
-        queryBuilder.where('note.id <= :currentNote', { currentNote: Number(currentNote) });
+        queryBuilder.where('note.id <= :currentNote', {
+          currentNote: Number(currentNote),
+        });
       } else if (request === 'after') {
         queryBuilder.where('note.id <= :currentNote', {
           currentNote: Number(currentNote) + 20,
@@ -127,7 +140,7 @@ export class NoteService {
     // 'delegators' visibility
     if (delegation) {
       queryBuilder.orWhere(
-        'note.note_visibility = :delegators AND signature.drepVoterId = :drepVoterId',
+        'note.visibility = :delegators AND signature.voterId = :drepVoterId',
         {
           delegators: 'delegators',
           drepVoterId: delegation.drep_view,
@@ -137,7 +150,7 @@ export class NoteService {
     // 'myself' visibility
     if (stakeKeyBech32) {
       queryBuilder.orWhere(
-        'note.note_visibility = :myself AND signature.drepStakeKey = :stakeKeyBech32',
+        'note.visibility = :myself AND signature.stakeKey = :stakeKeyBech32',
         {
           myself: 'myself',
           stakeKeyBech32: stakeKeyBech32,

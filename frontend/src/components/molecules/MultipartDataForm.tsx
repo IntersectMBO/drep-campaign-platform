@@ -273,7 +273,7 @@ const MultipartDataForm = ({
                   setFiles(null);
                 }}
                 variant="outlined"
-                bgColor="transparent"
+                bgcolor="transparent"
               >
                 <p>Cancel</p>
               </Button>
@@ -355,7 +355,7 @@ const MultipartDataForm = ({
                 setFiles(null);
               }}
               variant="outlined"
-              bgColor="transparent"
+              bgcolor="transparent"
             >
               <p>Cancel</p>
             </Button>

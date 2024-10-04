@@ -9,6 +9,7 @@ export const useGetDRepsQuery = (
   order?: string,
   onChainStatus?: string,
   campaignStatus?: string,
+  includeRetired?: string,
   type?: string,
 ) => {
   const { data, isLoading, isError } = useQuery({
@@ -20,10 +21,11 @@ export const useGetDRepsQuery = (
       order,
       onChainStatus,
       campaignStatus,
+      includeRetired,
       type,
     ],
     queryFn: async () =>
-      await getDReps(s, page, sort, order, onChainStatus, campaignStatus, type),
+      await getDReps(s, page, sort, order, onChainStatus, campaignStatus, includeRetired, type),
     refetchOnWindowFocus: false,
     enabled: true,
   });

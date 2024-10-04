@@ -24,18 +24,15 @@ export const getDRepDelegatorsHistory = (addrIds: []) => {
                 SELECT COALESCE(SUM(txo.value), 0)
                 FROM tx_out txo
                 LEFT JOIN tx ON txo.tx_id = tx.id
-                LEFT JOIN block b2 ON tx.block_id = b2.id
-                LEFT JOIN tx_in txi ON (txo.tx_id = txi.tx_out_id AND txo.index = txi.tx_out_index)
-                WHERE txi IS NULL
+                WHERE txo.consumed_by_tx_id IS NULL
                 AND txo.stake_address_id = sa.id
-                AND b2.time::DATE <= b.time::DATE
+                
             ) 
             + COALESCE(
                 (
                     SELECT SUM(amount)
                     FROM reward
                     WHERE addr_id = sa.id
-                    AND earned_epoch <= b.epoch_no
                     AND type <> 'refund'
                 ), 0
             ) 
@@ -44,7 +41,6 @@ export const getDRepDelegatorsHistory = (addrIds: []) => {
                     SELECT SUM(amount)
                     FROM reward_rest
                     WHERE addr_id = sa.id
-                    AND earned_epoch <= b.epoch_no
                 ), 0
             ) 
             + COALESCE(
@@ -52,7 +48,6 @@ export const getDRepDelegatorsHistory = (addrIds: []) => {
                     SELECT SUM(amount)
                     FROM reward
                     WHERE addr_id = sa.id
-                    AND earned_epoch <= b.epoch_no
                     AND type = 'refund'
                 ), 0
             ) 
@@ -61,9 +56,7 @@ export const getDRepDelegatorsHistory = (addrIds: []) => {
                     SELECT SUM(amount)
                     FROM withdrawal
                     LEFT JOIN tx tx_w ON withdrawal.tx_id = tx_w.id
-                    LEFT JOIN block b2 ON tx_w.block_id = b2.id
                     WHERE addr_id = sa.id
-                    AND b2.epoch_no <= b.epoch_no
                 ), 0
             )
         )::TEXT AS total_stake,

@@ -1,9 +1,29 @@
-import axiosInstance from "../axiosInstance";
+import axiosInstance from '../axiosInstance';
 
-export const postAddComment = async ({parentId, parentEntity, comment, voter}: {parentId: number, parentEntity: string, comment: string, voter: string}) => {
-    const response = await axiosInstance.post(`/comments/${parentId}/${parentEntity}/add`, {
-        comment,
-        voter
-    });
-    return response.data;
-}
+type AddCommentParams = {
+  rootEntity: string;
+  rootEntityId: number;
+  parentId: number;
+  parentEntity: string;
+  comment: string;
+  voter: string;
+};
+export const postAddComment = async ({
+  rootEntity,
+  rootEntityId,
+  parentId,
+  parentEntity,
+  comment,
+  voter,
+}: AddCommentParams) => {
+  const response = await axiosInstance.post(
+    `/comments/${parentId}/${parentEntity}/add`,
+    {
+      comment,
+      voter,
+      rootEntity,
+      rootEntityId,
+    },
+  );
+  return response.data;
+};

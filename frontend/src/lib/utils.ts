@@ -94,3 +94,12 @@ export async function sha256(file: File) {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
+
+export function percentageDifference(newNumber: number, oldNumber: number, fixed = 2) {
+  const percent = (newNumber - oldNumber) / oldNumber * 100;
+  if (!isNaN(percent)) {
+    return Number(percent.toFixed(fixed));
+  }
+
+  return null;
+}

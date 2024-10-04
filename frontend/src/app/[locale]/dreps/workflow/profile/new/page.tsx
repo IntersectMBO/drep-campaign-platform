@@ -1,5 +1,4 @@
 'use client';
-import SetupProgressBar from '@/components/atoms/SetupProgressBar';
 import NewProfile from '@/components/organisms/NewProfile';
 import { useDRepContext } from '@/context/drepContext';
 import { useCardano } from '@/context/walletContext';
@@ -8,13 +7,14 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
 
 const page = () => {
-  const { setIsWalletListModalOpen, setStep1Status, setNewDrepId } =
+  const { setIsWalletListModalOpen, setStep1Status, setNewDrepId, setHideCloseButtonOnWalletListModal } =
     useDRepContext();
   const { isEnabled, dRepIDBech32 } = useCardano();
   const router = useRouter();
   useEffect(() => {
     if (!isEnabled) {
       setIsWalletListModalOpen(true);
+      setHideCloseButtonOnWalletListModal(true)
     } else if (dRepIDBech32) {
       const checkIfExistingDRep = async () => {
         try {
@@ -35,6 +35,10 @@ const page = () => {
       };
       checkIfExistingDRep();
     }
+    return () => {
+      setIsWalletListModalOpen(false);
+      setHideCloseButtonOnWalletListModal(false);
+    };
   }, [isEnabled, dRepIDBech32]);
   return <NewProfile />;
 };

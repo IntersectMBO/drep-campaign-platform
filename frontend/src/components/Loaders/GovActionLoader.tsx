@@ -6,7 +6,6 @@ function GovActionLoader() {
     <Box
       sx={{
         width: '100%',
-        maxWidth: 300,
         bgcolor: 'rgba(0, 0, 0, 0.11)',
         borderRadius: '8px',
         padding: '12px',
@@ -41,6 +40,8 @@ function GovActionLoader() {
         className="rounded-xl"
       />
 
+      <Skeleton variant="text" width="80%" height={20} />
+      <Skeleton variant="text" width="50%" height={20} />
       <Skeleton variant="text" width="50%" height={20} />
     </Box>
   );

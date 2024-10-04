@@ -19,7 +19,10 @@ import { useScreenDimension } from '@/hooks';
 import { useCardano } from '@/context/walletContext';
 import MetadataViewer from './MetadataViewer';
 import { isActive } from '../molecules/DRepsTable';
-import { processExternalMetadata } from '@/lib/metadataProcessor';
+import {
+  processExternalMetadata,
+  renderJSONLDToJSONArr,
+} from '@/lib/metadataProcessor';
 import DRepSocialLinks from './DRepSocialLinks';
 import MetadataEditor from './MetadataEditor';
 import SubmitMetadataModal from './SubmitMetadataModal';
@@ -27,6 +30,7 @@ import { deleteItemFromIndexedDB } from '@/lib/indexedDb';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import DRepAvatarCard from './DRepAvatarCard';
 import { useDRepContext } from '@/context/drepContext';
+import { getDRepMetadata } from '@/services/requests/getDRepMetadata';
 
 interface StatusProps {
   status:
@@ -100,32 +104,36 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
   ];
   useEffect(() => {
     const fetchData = async () => {
-      const metadataUrl = drep?.cexplorerDetails?.metadata_url;
-      setMetadataUrl(metadataUrl);
-      if (!metadataUrl) return;
-      try {
-        setIsMetadataLoading(true);
-        setMetadataError(null);
-        const { jsonLdData, modifiedJson } = await processExternalMetadata({
-          metadataUrl,
-        });
-        setMetadata(jsonLdData);
-        setMetadataJson(modifiedJson);
-        const metadataBody = jsonLdData?.body;
-        const imageUrl = metadataBody?.image?.contentUrl;
-        if (imageUrl) {
-          setImageSrc(imageUrl);
-        }
-        if (
-          metadataBody?.references &&
-          Array.isArray(metadataBody?.references) &&
-          metadataBody?.references.length > 0
-        ) {
-          setSocialLinks(metadataBody?.references);
-        }
+      if (!drep) return;
+      
+      setIsMetadataLoading(true);
+      setMetadataError(null);
 
-        const name = metadataBody?.givenName || metadataBody?.dRepName;
-        setName(name?.['@value'] || name);
+      const metadataUrl = drep?.metadata_url;
+      setMetadataUrl(metadataUrl);
+
+      try {
+        const voterId = drep?.view;
+
+        try {
+          const res = await getDRepMetadata(voterId);
+          setMetadata(res.metadata);
+
+          const modifiedJson = renderJSONLDToJSONArr(res.metadata);
+          setMetadataJson(modifiedJson);
+
+          setMetadataEntries(res?.metadata?.body);
+        } catch (error) {
+          if (error.response && error.response.status === 404) {
+            const { jsonLdData, modifiedJson } = await processExternalMetadata({
+              metadataUrl,
+            });
+            setMetadata(jsonLdData);
+            setMetadataJson(modifiedJson);
+
+            setMetadataEntries(jsonLdData?.body);
+          }
+        }
       } catch (error) {
         console.log(error);
         setMetadata(null);
@@ -136,21 +144,40 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
         setIsMetadataLoading(false);
       }
     };
+
     const checkStatus = () => {
       let status;
       if (drep?.type !== 'voting_option') {
         status = isActive(
-          drep?.cexplorerDetails?.epoch_no,
-          drep?.cexplorerDetails?.active_until,
+          drep?.epoch_no,
+          drep?.active_until,
         )
           ? 'Active'
           : 'Inactive';
         setStatus(status);
       }
     };
+
     checkStatus();
     fetchData();
   }, []);
+
+  const setMetadataEntries = (metadataBody) => {
+    const imageUrl = metadataBody?.image?.contentUrl;
+    if (imageUrl) {
+      setImageSrc(imageUrl);
+    }
+    if (
+      metadataBody?.references &&
+      Array.isArray(metadataBody?.references) &&
+      metadataBody?.references.length > 0
+    ) {
+      setSocialLinks(metadataBody?.references);
+    }
+    const name = metadataBody?.givenName || metadataBody?.dRepName;
+    setName(name?.['@value'] || name);
+  };
+
   const renderUnsavedChanges = () => {
     const slider = (
       <Accordion>
@@ -189,7 +216,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
             </Button>
             <Button
               variant="outlined"
-              bgColor="transparent"
+              bgcolor="transparent"
               handleClick={() => {
                 resetDraft();
                 window.location.reload();
@@ -215,11 +242,6 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
     await deleteItemFromIndexedDB('metadataJsonHash');
   };
 
-  const liveVotingPower = drep?.delegators.reduce(
-    (total, delegator) => total + Number(delegator?.votingPower),
-    0,
-  );
-
   return (
     <div className="flex w-full flex-col gap-5 bg-white bg-opacity-50 px-5 py-10">
       <DRepAvatarCard state={state} imageSrc={imageSrc} />
@@ -242,8 +264,8 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
             drep &&
             (name
               ? name
-              : drep?.cexplorerDetails?.view &&
-                convertString(drep?.cexplorerDetails?.view, isMobile))
+              : drep?.view &&
+                convertString(drep?.view, isMobile))
           )}
         </Typography>
       </div>
@@ -251,29 +273,31 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
         <StatusChip status={status} />
         <StatusChip status="Verified" />
       </div>
-      <div className="flex items-center gap-4 lg:justify-between lg:gap-0">
+      <div className="flex items-center gap-4">
         <div>
-          <Typography variant="h6">Active Voting power</Typography>
+          <Typography variant="h6">Voting power</Typography>
           <p className="flex items-center gap-3 font-normal">
-            ₳{' '}
             {state ? (
               <Skeleton animation={'wave'} width={50} height={20} />
+            ) : drep?.voting_power != null ? (
+              `₳ ${formattedAda(drep?.voting_power, 2)}`
             ) : (
-              formattedAda(drep?.cexplorerDetails?.amount, 2) || 0
+              '-'
             )}
           </p>
         </div>
-        {/*<div>*/}
-        {/*  <Typography variant="h6">Live Voting power</Typography>*/}
-        {/*  <p className="flex items-center gap-3 font-normal">*/}
-        {/*    ₳{' '}*/}
-        {/*    {state ? (*/}
-        {/*      <Skeleton animation={'wave'} width={50} height={20} />*/}
-        {/*    ) : (*/}
-        {/*      formattedAda(liveVotingPower, 2)*/}
-        {/*    )}*/}
-        {/*  </p>*/}
-        {/*</div>*/}
+        <div>
+          <Typography variant="h6">Live Stake</Typography>
+          <p className="flex items-center gap-3 font-normal">
+            {state ? (
+              <Skeleton animation={'wave'} width={50} height={20} />
+            ) : drep?.live_stake != null ? (
+              `₳ ${formattedAda(drep?.live_stake, 2)}`
+            ) : (
+              '-'
+            )}
+          </p>
+        </div>
       </div>
       <div>
         <Typography variant="h6">Total delegation</Typography>
@@ -282,7 +306,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           {state ? (
             <Skeleton animation={'wave'} width={100} height={20} />
           ) : (
-            `${drep?.cexplorerDetails?.delegation_vote_count || 0} ${drep?.cexplorerDetails?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
+            `${drep?.delegation_vote_count || 0} ${drep?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
           )}
         </p>
       </div>
@@ -292,12 +316,12 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
           {state ? (
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
-            drep?.cexplorerDetails?.view &&
-            convertString(drep?.cexplorerDetails?.view, true)
+            drep?.view &&
+            convertString(drep?.view, true)
           )}
         </p>
         <CopyToClipboard
-          text={drep?.cexplorerDetails?.view}
+          text={drep?.view}
           onCopy={() => {
             console.log('copied!');
           }}
@@ -342,12 +366,12 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
             }}
           />
         )}
-        {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
-          drep?.signature_drepVoterId == dRepIDBech32) &&
+        {(drep?.view == dRepIDBech32 ||
+          drep?.signature_voterId == dRepIDBech32) &&
           renderUnsavedChanges()}
       </div>
-      {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
-        drep?.signature_drepVoterId == dRepIDBech32) && (
+      {(drep?.view == dRepIDBech32 ||
+        drep?.signature_voterId == dRepIDBech32) && (
         <div className="flex max-w-prose flex-col gap-2">
           <Button
             handleClick={
@@ -362,7 +386,7 @@ const DrepProfileCard = ({ drep, state }: { drep: any; state: boolean }) => {
               <Button
                 className="w-full"
                 variant="outlined"
-                bgColor="transparent"
+                bgcolor="transparent"
               >
                 Edit Profile
               </Button>

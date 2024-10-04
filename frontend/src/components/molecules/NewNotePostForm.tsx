@@ -4,7 +4,7 @@ import PostSubmitArea from '../atoms/PostSubmitArea';
 import PostVisiblityInput from '../atoms/PostVisiblityInput';
 import CustomAutocomplete from '../atoms/PostAutoComplete';
 import MarkdownEditor from '../atoms/MarkdownEditor';
-const NewNotePostForm = ({ register, control, errors }) => {
+const NewNotePostForm = ({ register, control, errors, isLoading }) => {
   return (
     <div className="mt-3 flex flex-col gap-3">
       <PostInput
@@ -26,7 +26,7 @@ const NewNotePostForm = ({ register, control, errors }) => {
       />
       <MarkdownEditor name="postText" control={control} errors={errors} />
       <PostVisiblityInput registerVisibility={register} errors={errors} />
-      <PostSubmitArea showViewTimeline={false} />
+      <PostSubmitArea showViewTimeline={false} isLoading={isLoading} />
     </div>
   );
 };

@@ -20,7 +20,7 @@ export interface ButtonProps {
     | 'success'
     | 'warning';
   width?: number | string;
-  bgColor?: string;
+  bgcolor?: string;
   id?: string;
   disabled?: boolean;
   borderRadius?: string;
@@ -37,7 +37,7 @@ const Button: React.FC<ButtonProps> = ({
   color = 'primary',
   id,
   width,
-  bgColor,
+  bgcolor,
   disabled,
   borderRadius,
   sx,
@@ -62,7 +62,7 @@ const Button: React.FC<ButtonProps> = ({
       style={{
         height: buttonHeight,
         width: width,
-        backgroundColor: bgColor,
+        backgroundColor: bgcolor,
         borderRadius: borderRadius,
         ...sx,
       }}

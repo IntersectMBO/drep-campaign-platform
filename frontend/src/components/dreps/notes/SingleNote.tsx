@@ -5,14 +5,16 @@ import { postAddReaction } from '@/services/requests/postAddReaction';
 import { postRemoveReaction } from '@/services/requests/postRemoveReaction';
 import SingleNoteResponses from './SingleNoteResponses';
 import { useDRepContext } from '@/context/drepContext';
-import PostTextareaInput from '@/components/atoms/PostTextareaInput';
 import { z } from 'zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { postAddComment } from '@/services/requests/postAddComment';
-import { useGetNotesQuery } from '@/hooks/useGetNotesQuery';
-import { processNoteContent } from '@/lib/noteContentProcessor/processNoteContent';
 import * as marked from 'marked';
+import { useGetSingleNoteQuery } from '@/hooks/useGetSingleNoteQuery';
+import { processContent } from '@/lib/ContentProcessor/processContent';
+import MarkdownEditor from '@/components/atoms/MarkdownEditor';
+import DisplayParsedContent from '@/components/atoms/DisplayParsedContent';
+
 const SingleNote = ({
   note,
   currentVoter,
@@ -25,7 +27,7 @@ const SingleNote = ({
   isLoggedIn: boolean;
 }) => {
   const { setIsWalletListModalOpen, setLoginModalOpen } = useDRepContext();
-  const { refetch } = useGetNotesQuery();
+
   // Initial reaction state from the note prop
   const initialReactions = {
     like: 0,
@@ -34,15 +36,24 @@ const SingleNote = ({
     rocket: 0,
   };
   // Count initial reactions
-
+  const [performReload, setPerformReload] = useState(false);
+  const [currentComments, setCurrentComments] = useState(note?.comments || []);
   const [reactions, setReactions] = useState(initialReactions);
   const [userReactions, setUserReactions] = useState({});
   const [isCommenting, setIsCommenting] = useState(false);
   const [showResponses, setShowResponses] = useState(false);
+  const [latestComment, setLatestComment] = useState<number | null>(null);
+  const { Note, isNoteLoading } = useGetSingleNoteQuery(
+    note?.note_id,
+    performReload,
+  );
+
   const FormSchema = z.object({
-    comment: z.string(),
+    comment: z.string().min(1, 'Comment is required'),
   });
+
   type InputType = z.infer<typeof FormSchema>;
+
   const {
     handleSubmit,
     reset,
@@ -62,14 +73,29 @@ const SingleNote = ({
       }
       return acc;
     }, {});
-    const updatedReactions = note.reactions.reduce((acc, reaction) => {
-      acc[reaction.type] = (acc[reaction.type] || 0) + 1;
-      return acc;
-    }, initialReactions);
 
+    const updatedReactionsCount = {
+      like: note.reactions.filter((reaction) => reaction.type === 'like')
+        .length,
+      thumbsup: note.reactions.filter(
+        (reaction) => reaction.type === 'thumbsup',
+      ).length,
+      thumbsdown: note.reactions.filter(
+        (reaction) => reaction.type === 'thumbsdown',
+      ).length,
+      rocket: note.reactions.filter((reaction) => reaction.type === 'rocket')
+        .length,
+    };
     setUserReactions(updatedUserReactions);
-    setReactions(updatedReactions);
+    setReactions(updatedReactionsCount);
   }, [currentVoter, note.reactions]);
+
+  useEffect(() => {
+    if (Note && !isNoteLoading) {
+      setCurrentComments(Note.comments);
+    }
+  }, [Note, isNoteLoading]);
+
   const startCommenting = () => {
     if (!isEnabled) {
       setIsWalletListModalOpen(true);
@@ -81,6 +107,24 @@ const SingleNote = ({
     }
     setIsCommenting(true);
   };
+
+  const countTotalComments = (comments) => {
+    // If there are no comments, return 0
+    if (!comments || comments.length === 0) return 0;
+
+    let totalCount = comments.length; // Counting top-level comments
+
+    // Loop through each comment
+    comments.forEach((comment) => {
+      // Recursively count the responses (nested comments)
+      if (comment.comments && comment.comments.length > 0) {
+        totalCount += countTotalComments(comment.comments); // Add nested comment count
+      }
+    });
+
+    return totalCount;
+  };
+
   const handleReaction = async (type) => {
     //to prevent orphan reaction till say wallet is done connecting
     if (!isEnabled) {
@@ -94,7 +138,7 @@ const SingleNote = ({
     if (userReactions[type]) {
       // User has already reacted, so remove the reaction
       try {
-        const res = await postRemoveReaction({
+        await postRemoveReaction({
           type,
           parentId: note.note_id,
           parentEntity: 'note',
@@ -118,7 +162,7 @@ const SingleNote = ({
     } else {
       // User has not reacted, so add the reaction
       try {
-        const res = await postAddReaction({
+        await postAddReaction({
           type,
           parentId: note.note_id,
           parentEntity: 'note',
@@ -142,26 +186,37 @@ const SingleNote = ({
     }
   };
 
+  const handleRefetch = () => {
+    setPerformReload(true);
+    setTimeout(() => {
+      setPerformReload(false);
+    }, 100);
+  };
+
   const saveComment: SubmitHandler<InputType> = async (data) => {
     try {
       const { comment } = data;
       const res = await postAddComment({
+        rootEntity: 'note',
+        rootEntityId: note.note_id,
         parentId: note.note_id,
         parentEntity: 'note',
         comment,
         voter: currentVoter,
       });
+      setLatestComment(res.id as number);
       reset({ comment: '' });
       setIsCommenting(false);
-      refetch();
+      handleRefetch();
+      setShowResponses(true);
     } catch (error) {
       console.log(error);
     }
   };
 
   const noteContent = useMemo(
-    () => processNoteContent(note.note_note_content),
-    [note.note_note_content],
+    () => processContent(note.note_content),
+    [note.note_content],
   );
 
   const reactionIcons = {
@@ -181,21 +236,9 @@ const SingleNote = ({
     <div className="flex flex-col gap-3 rounded-xl bg-white bg-opacity-70 shadow-md">
       <div className="flex flex-col gap-3 p-5">
         <Typography className="font-black" variant="h5">
-          {note.note_note_title}
+          {note.note_title}
         </Typography>
-        {!!noteContent &&
-          noteContent.map((item, index) => {
-            if (typeof item === 'string') {
-              return (
-                <Typography
-                  key={index}
-                  dangerouslySetInnerHTML={{ __html: marked.parse(item) }}
-                ></Typography>
-              );
-            } else if (React.isValidElement(item)) {
-              return React.cloneElement(item, { key: index });
-            }
-          })}
+        {!!noteContent && <DisplayParsedContent content={noteContent} />}
         {!!note.note_note_tag && (
           <div className="flex flex-col gap-1">
             <p className="text-sm">Tags</p>
@@ -213,7 +256,7 @@ const SingleNote = ({
           </div>
         )}
       </div>
-      <div className="flex items-center gap-5 bg-[#F3F5FF] px-5 py-1">
+      <div className="flex items-center gap-5 bg-extra_gray px-5 py-1">
         <p className="text-sm">Submission Date:</p>
         <p className="text-sm">
           {new Date(note.note_createdAt).toDateString()}
@@ -227,10 +270,16 @@ const SingleNote = ({
           )}
           <Button
             variant="outlined"
-            bgColor="transparent"
-            handleClick={() => setShowResponses(!showResponses)}
+            bgcolor="transparent"
+            handleClick={() => {
+              setShowResponses(!showResponses);
+              if (latestComment) {
+                setLatestComment(null);
+              }
+            }}
           >
-            {showResponses ? 'Hide' : 'View'} Responses
+            {showResponses ? 'Hide' : 'View'} Responses (
+            {countTotalComments(currentComments)})
           </Button>
         </div>
         <div className="flex gap-5">
@@ -262,16 +311,11 @@ const SingleNote = ({
           onSubmit={handleSubmit(saveComment, (error) => console.log(error))}
           className="flex flex-col gap-1 px-5 py-1"
         >
-          <PostTextareaInput
-            control={control}
-            errors={errors}
-            name="comment"
-            label=""
-          />
+          <MarkdownEditor name="comment" control={control} errors={errors} />
           <div className="flex flex-row items-center justify-center gap-2 sm:justify-end lg:gap-3">
             <Button type="submit">Comment</Button>
             <Button
-              bgColor="transparent"
+              bgcolor="transparent"
               variant="outlined"
               handleClick={() => setIsCommenting(false)}
             >
@@ -284,10 +328,13 @@ const SingleNote = ({
         <>
           <hr />
           <SingleNoteResponses
-            comments={note?.comments}
+            noteId={note.note_id}
+            comments={currentComments}
             currentVoter={currentVoter}
             isEnabled={isEnabled}
             isLoggedIn={isLoggedIn}
+            handleRefetch={handleRefetch}
+            latestComment={latestComment}
           />
         </>
       )}

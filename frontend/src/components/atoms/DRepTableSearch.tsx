@@ -3,8 +3,8 @@
 import React from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useDebouncedCallback } from 'use-debounce';
-import DRepListSort from '../molecules/DRepListSort';
 import DRepListFilters from '../molecules/DRepListFilters';
+import ListSort from '../molecules/ListSort';
 
 const DRepTableSearch = () => {
   const searchParams = useSearchParams();
@@ -37,7 +37,32 @@ const DRepTableSearch = () => {
           placeholder="Search..."
         />
       </div>
-      <DRepListSort />
+      <ListSort
+        tableType="DReps"
+        sortOptions={[
+          {
+            category: 'Active Voting Power',
+            options: [
+              { label: 'Highest to Lowest', value: 'voting_power-desc' },
+              { label: 'Lowest to Highest', value: 'voting_power-asc' },
+            ],
+          },
+          {
+            category: 'Live Voting Power',
+            options: [
+              { label: 'Highest to Lowest', value: 'live_stake-desc' },
+              { label: 'Lowest to Highest', value: 'live_stake-asc' },
+            ],
+          },
+          {
+            category: 'Delegators Count',
+            options: [
+              { label: 'Highest to Lowest', value: 'delegators-desc' },
+              { label: 'Lowest to Highest', value: 'delegators-asc' },
+            ],
+          },
+        ]}
+      />
       <DRepListFilters />
     </div>
   );

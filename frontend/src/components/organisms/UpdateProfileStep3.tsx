@@ -272,7 +272,7 @@ const UpdateProfileStep3 = () => {
           handleClick={handleAddReference}
           aria-valuetext="add reference"
           className="flex w-full items-center gap-3 rounded-xl border border-dotted shadow-md"
-          bgColor="transparent"
+          bgcolor="transparent"
           variant="outlined"
         >
           <img src="/svgs/circle-plus.svg" alt="add" className="h-5 w-5" />

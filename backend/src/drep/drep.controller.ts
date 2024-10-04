@@ -14,7 +14,6 @@ import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
 import { DrepService } from './drep.service';
 import { VoterService } from 'src/voter/voter.service';
 import { Delegation, StakeKeys } from 'src/common/types';
-import { Response } from 'express';
 
 @Controller('dreps')
 export class DrepController {
@@ -33,6 +32,7 @@ export class DrepController {
     @Query('order') order?: string,
     @Query('onChainStatus') onChainStatus?: 'active' | 'inactive',
     @Query('campaignStatus') campaignStatus?: 'claimed' | 'unclaimed',
+    @Query('includeRetired') includeRetired?: 'true' | 'undefined',
     @Query('type') type?: 'has_script', // add more types if needed
   ) {
     return this.drepService.getAllDReps(
@@ -43,7 +43,8 @@ export class DrepController {
       order,
       onChainStatus,
       campaignStatus,
-      type
+      Boolean(includeRetired),
+      type,
     );
   }
   @Get('epochs/latest/parameters')
@@ -82,7 +83,7 @@ export class DrepController {
 
     if (drepId) {
       drep = await this.drepService.getSingleDrepViaID(drepId);
-      drepVoterId = drep.signature_drepVoterId;
+      drepVoterId = drep.signature_voterId;
     } else if (drepVoterId) {
       drep = await this.drepService.getSingleDrepViaVoterID(drepVoterId);
     }
@@ -92,15 +93,15 @@ export class DrepController {
         await this.voterService.getAdaHolderCurrentDelegation(stakeKey);
     }
 
-    const drepTimeline = await this.drepService.getDrepTimeline(
+    const drepTimeline = await this.drepService.getDrepTimeline({
       drep,
       drepVoterId,
       stakeKeyBech32,
       delegation,
-      startTimeCursor,
-      endTimeCursor,
+      beforeDate: startTimeCursor,
+      tillDate: endTimeCursor,
       filterValues,
-    );
+    });
 
     return drepTimeline;
   }
@@ -113,31 +114,25 @@ export class DrepController {
   updateDetails(@Param('id') drepId: number, @Body() drep: createDrepDto) {
     return this.drepService.updateDrepInfo(drepId, drep);
   }
+
+  @Get(':voterId/metadata')
+  getMetadata(@Param('voterId') voterId: string) {
+    return this.drepService.getMetadata(voterId);
+  }
+
   @Get('/metadata/external')
   getExternalMetadata(@Query('metadataUrl') metadataUrl: string) {
     return this.drepService.getMetadataFromExternalLink(metadataUrl);
   }
-  @Get(':drepId/metadata/:hash')
-  getMetadata(
-    @Param('drepId') drepId: number,
-    @Param('hash') hash: string,
-    @Res() res: Response,
-  ) {
-    return this.drepService.getMetadata(drepId, hash, res);
-  }
+
   @Post('metadata/validate')
   validateMetadata(@Body() metadataBody: ValidateMetadataDTO) {
     return this.drepService.validateMetadata(metadataBody);
   }
 
   @Post('metadata/save')
-  saveMetadata(
-    @Body('metadata') metadata: any,
-    @Body('hash') hash: string,
-    @Body('drepId') drepId: number,
-    @Body('name') name: string,
-  ) {
-    return this.drepService.saveMetadata(metadata, hash, drepId, name);
+  saveMetadata(@Body('metadata') metadata: any) {
+    return this.drepService.saveMetadata(metadata);
   }
   @Get(':voterId/stats')
   getStats(@Param('voterId') voterId: string) {
@@ -147,5 +142,24 @@ export class DrepController {
   @Get(':voterId/is-registered')
   isRegistered(@Param('voterId') voterId: string) {
     return this.drepService.isDrepRegistered(voterId);
+  }
+
+  @Get(':voterId/delegators')
+  getDrepDelegators(
+    @Param('voterId') voterId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
+    page: number,
+    @Query('perPage', new DefaultValuePipe(24), ParseIntPipe)
+    perPage: number,
+    @Query('sort') sort?: string,
+    @Query('order') order?: string,
+  ) {
+    return this.drepService.getDrepDelegatorsWithVotingPower(
+      voterId,
+      page,
+      perPage,
+      sort,
+      order,
+    );
   }
 }

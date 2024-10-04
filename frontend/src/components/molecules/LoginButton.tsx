@@ -6,7 +6,6 @@ import { CircularProgress } from '@mui/material';
 import { useDRepContext } from '@/context/drepContext';
 import { userLogin } from '@/services/requests/userLogin';
 import { setItemToLocalStorage } from '@/lib';
-import Cookies from 'js-cookie';
 const LoginButton = ({
   isHardware = false,
   loginMode = false,
@@ -20,8 +19,10 @@ const LoginButton = ({
     loginSignTransaction,
     loginHardwareWalletTransaction,
     isGettingSignatures,
+    stakeKeyBech32,
+    dRepIDBech32,
   } = useCardano();
-  const { isLoggedIn, setIsLoggedIn, setLoginModalOpen } = useDRepContext();
+  const { setIsLoggedIn, setLoginModalOpen, drepId } = useDRepContext();
   const { addErrorAlert } = useGlobalNotifications();
   const handleLogin = async () => {
     let signature;
@@ -41,13 +42,15 @@ const LoginButton = ({
 
       if (signature && key && loginMode) {
         setIsLoggedIn(true);
-        const loginCredentials = { signature, key, expiry: loginPeriod };
+        const loginCredentials = {
+          drepId,
+          voterId: dRepIDBech32,
+          stakeKey: stakeKeyBech32,
+          signature,
+          key,
+          expiry: loginPeriod,
+        };
         const { token } = await userLogin(loginCredentials);
-        Cookies.set('token', token, {
-          secure: false,
-          sameSite: 'strict',
-          path: '/',
-        });
         setItemToLocalStorage('signatures', { signature, key });
         setItemToLocalStorage('token', token);
         setIsLoggedIn(true);
