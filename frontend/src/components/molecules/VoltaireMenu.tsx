@@ -22,49 +22,49 @@ export default function VoltaireMenu() {
       text: 'Register to become a DRep, delegate voting power to DReps, & review & vote on governance actions.',
       href: `${urls.govToolUrl}`,
       svg: '/img/logos/govtool-logo.png',
-      bgColor: 'bg-white',
+      bgcolor: 'bg-white',
     },
     {
       label: 'Cardano',
       text: 'Learn more about Cardano proof-of-stake blockchain platform.',
       href: '//cardano.org/',
       svg: '/img/logos/cardano-logo.png',
-      bgColor: 'bg-primary-300',
+      bgcolor: 'bg-primary-300',
     },
     {
       label: 'Proposal Discussion Forum',
       text: 'Engage in community-driven governance conversations and decision-making.',
       href: `${urls.govToolUrl}/proposal_discussion`,
       svg: '/img/faces/img2.png',
-      bgColor: 'bg-complementary-200',
+      bgcolor: 'bg-complementary-200',
     },
     {
       label: 'Intersect',
       text: 'Intersect is a member-based organization for the Cardano ecosystem.',
       href: '//www.intersectmbo.org/',
       svg: '/img/logos/intersect-logo.png',
-      bgColor: 'bg-destructive-400',
+      bgcolor: 'bg-destructive-400',
     },
     {
       label: 'Catalyst Explorer',
       text: 'Explore the world/’s largest decentralized innovation engine for solving real-world challenges.',
       href: '//catalystexplorer.com/',
       svg: '/svgs/black-search.svg',
-      bgColor: 'bg-secondary-300',
+      bgcolor: 'bg-secondary-300',
     },
     {
       label: 'Cardano CIPs',
       text: 'Explore Cardano Improvement Proposals: to change the Cardano ecosystem, processes, or environment.',
       href: '//cips.cardano.org/',
       svg: '/svgs/arrow-up-double-underline.svg',
-      bgColor: 'bg-extra_red',
+      bgcolor: 'bg-extra_red',
     },
     {
       label: 'Lido Nation',
       text: 'Blockchain Education in plain English, Kiswahili, and Español.',
       href: '//www.lidonation.com/',
       svg: '/img/logos/lido-logo.png',
-      bgColor: 'bg-blue-100',
+      bgcolor: 'bg-blue-100',
     },
   ];
 
@@ -121,7 +121,7 @@ export default function VoltaireMenu() {
                 >
                   <Box className="flex max-w-60 gap-4">
                     <Box
-                      className={`mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg align-middle ${item.bgColor}`}
+                      className={`mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg align-middle ${item.bgcolor}`}
                     >
                       <div className="h-5 w-5 rounded-full">
                         <img

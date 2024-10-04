@@ -3,16 +3,25 @@ import { Drep } from './drep.entity';
 
 @Entity()
 export class Signature {
+  //can belong to a Drep or voter
   @PrimaryGeneratedColumn()
   id: number;
-  @ManyToOne(() => Drep, (drep) => drep.id, { onDelete: 'CASCADE' })
-  drep: number;
-  @Column()
-  drepVoterId: string;
-  @Column()
-  drepStakeKey: string;
+
+  @ManyToOne(() => Drep, (drep) => drep.id, {
+    nullable: true,
+    onDelete: 'CASCADE',
+  })
+  drep: Drep;
+
+  @Column({ nullable: true })
+  voterId: string;
+
+  @Column({ nullable: true })
+  stakeKey: string;
+
   @Column({ nullable: true, unique: false, default: null })
-  drepSignature: string;
+  signature: string;
+
   @Column({ nullable: true, unique: false, default: null })
-  drepSignatureKey: string;
+  signatureKey: string;
 }

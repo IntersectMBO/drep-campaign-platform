@@ -5,7 +5,7 @@ const ViewDraftsButton = ({isUpdating=false}:{isUpdating?: boolean}) => {
   return (
     <Button
       variant="outlined"
-      bgColor="transparent"
+      bgcolor="transparent"
       data-testid="view-drafts-button"
       borderRadius="2.6875rem"
       width={'8.6875rem'}

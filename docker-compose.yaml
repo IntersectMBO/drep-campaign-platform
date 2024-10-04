@@ -59,14 +59,16 @@ services:
   web_db:
     container_name: voltaire_db # Name of the database container
     platform: linux/amd64 # Specify the platform (important for ARM64 architectures)
-    image: postgres:16.3-alpine3.19 # Use PostgreSQL 12 on Alpine for smaller size
+    image: bitnami/postgresql:15.4.0-debian-11-r30
     restart: unless-stopped
     ports:
       - "5434:5432" # Expose port 5432 to the host
     environment: # PostgreSQL user, password, and database name
-      POSTGRES_USER: voltaire
+      POSTGRESQL_USERNAME: voltaire
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: 1694
+      POSTGRES_POSTGRES_PASSWORD: postgres_password
+      POSTGRESQL_DATABASE: 1694
+      POSTGRES_LOGGING: true
     volumes:
       - db-data:/var/lib/postgresql/data/ # Persistent storage for the database
     networks:

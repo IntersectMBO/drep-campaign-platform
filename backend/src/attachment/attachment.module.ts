@@ -5,6 +5,7 @@ import { Attachment } from 'src/entities/attachment.entity';
 import { AttachmentController } from './attachment.controller';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
+import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 
 @Module({
   imports: [
@@ -15,6 +16,6 @@ import { ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [AttachmentController],
-  providers: [AttachmentService, ConfigService],
+  providers: [AttachmentService, BlockfrostService]
 })
 export class AttachmentModule {}

@@ -12,6 +12,7 @@ import DRepSocialLinks from './DRepSocialLinks';
 import DRepAvatarCard from './DRepAvatarCard';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
+import { getDRepMetadata } from '@/services/requests/getDRepMetadata';
 
 const DrepClaimProfileCard = ({
   drep,
@@ -31,26 +32,29 @@ const DrepClaimProfileCard = ({
   const { isLoggedIn } = useDRepContext();
   useEffect(() => {
     const fetchData = async () => {
-      const metadataUrl = drep?.cexplorerDetails?.metadata_url;
+      if(!drep) return;
+      
+      setIsMetadataLoading(true);
+      setMetadataError(null);
+
+      const metadataUrl = drep?.metadata_url;
       setMetadataUrl(metadataUrl);
-      if (!metadataUrl) return;
       try {
-        setIsMetadataLoading(true);
-        setMetadataError(null);
-        const response = await getExternalMetadata({ metadataUrl });
-        const jsonLdData = response;
-        const imageUrl = jsonLdData?.body?.image?.contentUrl;
-        if (imageUrl) {
-          setImageSrc(imageUrl);
+        try {
+          const voterId = drep?.view;
+          const res = await getDRepMetadata(voterId);
+
+          setMetadataEntries(res?.metadata?.body);
+          setMetadata(res?.metadata);
+        } catch (error) {
+          if (error.response && error.response.status === 404) {
+            const response = await getExternalMetadata({ metadataUrl });
+            const jsonLdData = response;
+
+            setMetadataEntries(jsonLdData?.body);
+            setMetadata(jsonLdData);
+          }
         }
-        if (
-          jsonLdData?.body?.references &&
-          Array.isArray(jsonLdData?.body?.references) &&
-          jsonLdData?.body?.references.length > 0
-        ) {
-          setSocialLinks(jsonLdData?.body?.references);
-        }
-        setMetadata(jsonLdData);
       } catch (error) {
         setMetadata(null);
         setMetadataError(
@@ -64,8 +68,8 @@ const DrepClaimProfileCard = ({
       let status;
       if (drep?.type !== 'voting_option') {
         status = isActive(
-          drep?.cexplorerDetails?.epoch_no,
-          drep?.cexplorerDetails?.active_until,
+          drep?.epoch_no,
+          drep?.active_until,
         )
           ? 'Active'
           : 'Inactive';
@@ -76,10 +80,19 @@ const DrepClaimProfileCard = ({
     fetchData();
   }, [drep]);
 
-  const liveVotingPower = drep?.delegators.reduce(
-    (total, delegator) => total + Number(delegator?.votingPower),
-    0,
-  );
+  const setMetadataEntries = (metadataBody) => {
+    const imageUrl = metadataBody?.image?.contentUrl;
+    if (imageUrl) {
+      setImageSrc(imageUrl);
+    }
+    if (
+      metadataBody?.references &&
+      Array.isArray(metadataBody?.references) &&
+      metadataBody?.references.length > 0
+    ) {
+      setSocialLinks(metadataBody?.references);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-5 bg-white bg-opacity-50 px-5 py-10 ">
@@ -97,33 +110,38 @@ const DrepClaimProfileCard = ({
         {drep?.type !== 'scripted' && drep?.type !== 'voting_option' && (
           <StatusChip status="Not claimed" />
         )}
+        {drep?.retired && drep?.type !== 'voting_option' && (
+          <StatusChip status="Retired" />
+        )}
         <StatusChip
           status={drep?.type === 'voting_option' ? 'Active' : status}
         />
       </div>
-      <div className="flex items-center gap-4 lg:justify-between lg:gap-0">
+      <div className="flex items-center gap-4">
         <div>
-          <p className="font-bold">Active Voting power</p>
+          <p className="font-bold">Voting power</p>
           <p className="flex items-center gap-3 font-normal">
-            ₳{' '}
             {state ? (
-              <Skeleton animation={'wave'} width={100} height={20} />
+              <Skeleton animation={'wave'} width={50} height={20} />
+            ) : drep?.voting_power != null ? (
+              `₳ ${formattedAda(drep?.voting_power, 2)}`
             ) : (
-              formattedAda(drep?.cexplorerDetails?.amount, 2) || 0
+              '-'
             )}
           </p>
         </div>
-        {/*<div>*/}
-        {/*  <p className="font-bold">Live Voting power</p>*/}
-        {/*  <p className="flex items-center gap-3 font-normal">*/}
-        {/*    ₳{' '}*/}
-        {/*    {state ? (*/}
-        {/*      <Skeleton animation={'wave'} width={100} height={20} />*/}
-        {/*    ) : (*/}
-        {/*      formattedAda(liveVotingPower, 2)*/}
-        {/*    )}*/}
-        {/*  </p>*/}
-        {/*</div>*/}
+        <div>
+          <p className="font-bold">Live Stake</p>
+          <p className="flex items-center gap-3 font-normal">
+            {state ? (
+              <Skeleton animation={'wave'} width={50} height={20} />
+            ) : drep?.live_stake != null ? (
+              `₳ ${formattedAda(drep?.live_stake, 2)}`
+            ) : (
+              '-'
+            )}
+          </p>
+        </div>
       </div>
       <div>
         <p className="font-bold">Total delegation</p>
@@ -131,7 +149,7 @@ const DrepClaimProfileCard = ({
           {state ? (
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
-            `${drep?.cexplorerDetails?.delegation_vote_count || 0} ${drep?.cexplorerDetails?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
+            `${drep?.delegation_vote_count || 0} ${drep?.delegation_vote_count > 1 ? 'Delegators' : 'Delegator'}`
           )}
         </p>
       </div>
@@ -141,11 +159,11 @@ const DrepClaimProfileCard = ({
           {state ? (
             <Skeleton animation={'wave'} width={150} height={20} />
           ) : (
-            convertString(drep?.cexplorerDetails?.view || '', true)
+            convertString(drep?.view || '', true)
           )}
         </p>
         <CopyToClipboard
-          text={drep?.cexplorerDetails?.view}
+          text={drep?.view}
           onCopy={() => {
             console.log('copied!');
           }}
@@ -167,8 +185,8 @@ const DrepClaimProfileCard = ({
           />
         )}
       </div>
-      {(drep?.cexplorerDetails?.view == dRepIDBech32 ||
-        drep?.signature_drepVoterId == dRepIDBech32) &&
+      {(drep?.view == dRepIDBech32 ||
+        drep?.signature_voterId == dRepIDBech32) &&
         isLoggedIn && (
           <div className="flex max-w-prose flex-col gap-2">
             <Link href={`/dreps/workflow/profile/new`}>

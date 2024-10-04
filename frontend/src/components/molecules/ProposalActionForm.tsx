@@ -21,6 +21,7 @@ const ProposalActionForm = ({
   const [error, setError] = useState('');
   const [fetchedProposals, setFetchedProposals] = useState(null);
   const [currentHash, setCurrentHash] = useState('');
+  const [inputValue, setInputValue] = useState(currentHash);
   const formRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -42,9 +43,17 @@ const ProposalActionForm = ({
     }
   }, [Proposals]);
 
-  const handleInputChange = useDebouncedCallback((value) => {
+  const handleDebouncedInputChange = useDebouncedCallback((value) => {
+    setFetchedProposals(null);
+    setProposals(null)
     setCurrentHash(value);
   }, 300);
+
+  const handleInputChange = (value) => {
+    const trimmedValue = value.endsWith('#0') ? value.slice(0, -2) : value;
+    setInputValue(trimmedValue);
+    handleDebouncedInputChange(trimmedValue);
+  };
 
   const uploadProposal = async () => {
     try {
@@ -91,17 +100,17 @@ const ProposalActionForm = ({
       <div className="flex w-full flex-col gap-1">
         <input
           type="text"
-          defaultValue={currentHash}
+          value={inputValue}
           onChange={(e) => handleInputChange(e.target.value)}
           className={`w-full rounded-full border border-zinc-100 py-3 pl-5`}
           placeholder={'Paste proposal hash here...'}
         />
       </div>
 
-      <p className="text-start text-sm font-medium text-black">
+      <p className="text-start text-sm font-medium text-black mt-2">
         Proposals should exist on chain for addition.
       </p>
-      <div className="mt-3 flex max-h-52 flex-col gap-3 overflow-y-auto">
+      <div className="mt-3 flex max-h-52 flex-col gap-3">
         {!isProposalsFetching ? (
           fetchedProposals && fetchedProposals.length > 0 ? (
             fetchedProposals.map((proposal, index) => (
@@ -138,7 +147,7 @@ const ProposalActionForm = ({
               setProposals(null);
             }}
             variant="outlined"
-            bgColor="transparent"
+            bgcolor="transparent"
           >
             <p>Cancel</p>
           </Button>

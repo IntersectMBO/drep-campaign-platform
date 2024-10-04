@@ -87,19 +87,19 @@ describe('Create new note if wallet is connected', () => {
       expect(response.body).to.have.property('id');
       expect(response.body.id).to.be.a('number');
 
-      expect(response.body).to.have.property('note_title');
-      expect(response.body.note_title).to.contain('Update Title');
+      expect(response.body).to.have.property('title');
+      expect(response.body.title).to.contain('Update Title');
 
       expect(response.body).to.have.property('note_tag');
       expect(response.body.note_tag).to.contain('update tag');
 
-      expect(response.body).to.have.property('note_content');
-      expect(response.body.note_content).to.contain(
+      expect(response.body).to.have.property('content');
+      expect(response.body.content).to.contain(
         '<p>This is a update note.</p>',
       );
 
-      expect(response.body).to.have.property('note_visibility');
-      expect(response.body.note_visibility).to.contain('myself');
+      expect(response.body).to.have.property('visibility');
+      expect(response.body.visibility).to.contain('myself');
     });
   });
 });

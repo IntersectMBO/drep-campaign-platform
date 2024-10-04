@@ -91,7 +91,11 @@ export const getSwitchWithTextTrack = (isMobile, switchWidth) =>
     },
   }));
 
-export function UserLoginModal() {
+export function UserLoginModal({
+  hideCloseButton,
+}: {
+  hideCloseButton: boolean;
+}) {
   const { setLoginModalOpen } = useDRepContext();
   const { isEnabled } = useCardano();
   const [isChecked, setIsChecked] = useState(false);
@@ -119,6 +123,7 @@ export function UserLoginModal() {
   return (
     <ModalWrapper
       dataTestId="login-modal"
+      hideCloseButton={hideCloseButton}
       onClose={() => setLoginModalOpen(false)}
     >
       <ModalHeader

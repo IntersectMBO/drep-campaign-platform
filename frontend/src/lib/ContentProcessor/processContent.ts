@@ -3,13 +3,14 @@ import { imageProcessor } from './imageProcessor';
 import { pdfProcessor } from './pdfProcessor';
 import { youtubeVimeoProcessor } from './youtubeVimeoProcessor';
 
-export const processNoteContent = (content) => {
+
+export const processContent = (content) => {
 
   const processors = [
     pdfProcessor,
-    youtubeVimeoProcessor,
     imageProcessor,
     governanceActionProcessor,
+    youtubeVimeoProcessor,
   ];
 
   let processedContent = content;

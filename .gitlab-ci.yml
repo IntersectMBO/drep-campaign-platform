@@ -135,8 +135,8 @@ build_frontend:
       
       docker push "$CI_APPLICATION_REPOSITORY/1694.io-frontend:$CI_APPLICATION_TAG"
       docker push "$CI_APPLICATION_REPOSITORY/1694.io-frontend:latest"
-  only:
-    - branches
+  rules:
+    - if: '$DEPLOY_WEBSITE == "true"'
 
 build_backend:
   stage: build
@@ -160,8 +160,8 @@ build_backend:
         -t "$CI_APPLICATION_REPOSITORY/1694.io-backend:latest" .
       docker push "$CI_APPLICATION_REPOSITORY/1694.io-backend:$CI_APPLICATION_TAG"
       docker push "$CI_APPLICATION_REPOSITORY/1694.io-backend:latest"
-  only:
-    - branches
+  rules:
+    - if: '$DEPLOY_WEBSITE == "true"'
 
 .deploy_postgres_web: &deploy_postgres_web
   <<: *deploy_template
@@ -252,8 +252,8 @@ app-sancho:
     - job: build_backend
   environment:
     name: sancho
-  only:
-    - branches
+  rules:
+    - if: '$DEPLOY_WEBSITE == "true"'
 
 postgres-app-preview:
   <<: *deploy_postgres_web
@@ -388,7 +388,7 @@ production:
   needs:
     - job: app-preview
   rules:
-    - if: $CI_COMMIT_BRANCH == 'main'
+    - if: '$CI_COMMIT_BRANCH == "main" && ($DEPLOY_WEBSITE == "true")'
       when: manual
 
 ui-chrome-tests:

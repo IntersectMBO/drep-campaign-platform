@@ -140,6 +140,14 @@ body {
   background-repeat: no-repeat, no-repeat;
   background-size: auto, auto;
 }
+table.dreps-table .drep_always_abstain, table.dreps-table .drep_always_no_confidence {
+  @apply border my-1 px-4;
+}
+
+table.dreps-table .drep_always_abstain > td,
+table.dreps-table .drep_always_no_confidence > td {
+  @apply px-4 py-2;
+}
 
 #acknowledgements details {
   @apply border-b-2 border-b-gray-300 border-opacity-40 bg-white bg-opacity-95 p-5 lg:opacity-100;
@@ -196,4 +204,13 @@ body {
     33% {box-shadow: 60px 0 #0033AD, -60px 0 #4340ff;background: #4340ff}
     66% {box-shadow: 60px 0 #4340ff,-60px 0 #0033AD; background: #4340ff}
     100%{box-shadow: 60px 0 #4340ff,-60px 0 #0033AD; background: #0033AD }
+}
+
+
+.parsed-content a {
+  @apply text-primary-300;
+  text-decoration: none;
+}
+.parsed-content a:hover {
+  @apply text-primary-400
 }

@@ -9,6 +9,7 @@ type PageProps = {
     sort?: string;
     order?: string;
     on_chain?: string;
+    include_retired?: string;
     campaign?: string;
     type?: string;
   };
@@ -19,6 +20,7 @@ const page = ({ searchParams }: PageProps) => {
   const sort = searchParams?.sort || null;
   const order = searchParams?.order || null;
   const onChainStatus = searchParams?.on_chain || null;
+  const includeRetired = searchParams?.include_retired || null;
   const campaignStatus = searchParams?.campaign || null;
   const type = searchParams?.type || null;
 
@@ -39,6 +41,7 @@ const page = ({ searchParams }: PageProps) => {
           order={order}
           onChainStatus={onChainStatus}
           campaignStatus={campaignStatus}
+          includeRetired={includeRetired}
           type={type}
         />
       </section>

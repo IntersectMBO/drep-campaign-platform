@@ -7,7 +7,6 @@ import {  MetadataSaveResponse, MetadataStandard } from '../../../types/commonTy
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 import { useCardano } from '@/context/walletContext';
 import { CircularProgress, Tabs, Tab } from '@mui/material';
-import { useDRepContext } from '@/context/drepContext';
 import { urls } from '@/constants';
 import { getItemFromIndexedDB } from '@/lib/indexedDb';
 import { postAddMetadataAttachment } from '@/services/requests/postAddMetadataAttachment';
@@ -18,7 +17,6 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
   const [activeTab, setActiveTab] = useState('selfHost');
   const [jsonld, setJsonld] = useState<any>(null);
   const [jsonHash, setJsonHash] = useState(null);
-  const { drepId } = useDRepContext();
   const { addErrorAlert, addSuccessAlert } = useGlobalNotifications();
   const [metadataUrl, setMetadataUrl] = useState('');
 
@@ -71,9 +69,6 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
       //upload metadata to db
       const { content } = (await postAddMetadataAttachment({
         metadata: jsonld,
-        hash: jsonHash,
-        drepId,
-        name: jsonHash.slice(0, 10),
       })) as MetadataSaveResponse;
       if(!content) {
         console.log('Error saving metadata, hash not received');
@@ -108,8 +103,8 @@ const SubmitMetadataModal = ({ onClose, onSuccessfulSubmit }) => {
         currentHostedUrl,
         jsonHash,
       );
-      await signAndSubmitTransaction(updateDRepMetadataCert);
-      onSuccessfulSubmit();
+      const res = await signAndSubmitTransaction(updateDRepMetadataCert);
+      onSuccessfulSubmit(res.resultHash);
       onClose();
     } catch (error) {
       console.log(error);

@@ -10,6 +10,7 @@ import {
   Grow,
   Radio,
   RadioGroup,
+  Switch,
 } from '@mui/material';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Button from '../atoms/Button';
@@ -24,7 +25,12 @@ export default function DRepListFilters() {
   const { replace } = useRouter();
 
   useEffect(() => {
-    const value = filtersValue(['on_chain', 'campaign', 'type']);
+    const value = filtersValue([
+      'on_chain',
+      'campaign',
+      'type',
+      'include_retired',
+    ]);
     if (value) setIsFiltering(true);
   }, []);
 
@@ -164,9 +170,7 @@ export default function DRepListFilters() {
                 />
               </RadioGroup>
             </FormControl>
-
             <Divider />
-
             <FormControl>
               <span className="text-xs font-semibold">
                 Filter DReps by Campaign Status
@@ -234,6 +238,25 @@ export default function DRepListFilters() {
                 />
               </RadioGroup>
             </FormControl>
+            <Divider />
+            <FormControl>
+              <FormControlLabel
+                value="include_retired"
+                control={
+                  <Switch
+                    checked={filtersValue(['include_retired']) === 'true'}
+                    onChange={(e) => {
+                      updateFilters(
+                        'include_retired',
+                        e.target.checked ? 'true' : '',
+                      );
+                    }}
+                    name="include_retired"
+                  />
+                }
+                label={`${filtersValue(['include_retired']) === 'true' ? 'Including' : 'Excluding'} Retired DReps`}
+              />
+            </FormControl>
           </Box>
           {isFiltering && (
             <Box className="flex justify-end">
@@ -243,7 +266,12 @@ export default function DRepListFilters() {
                 }}
                 size="extraSmall"
                 handleClick={() =>
-                  resetFilters(['on_chain', 'campaign', 'type'])
+                  resetFilters([
+                    'on_chain',
+                    'campaign',
+                    'type',
+                    'include_retired',
+                  ])
                 }
               >
                 <span>Reset</span>
