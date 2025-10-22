@@ -23,13 +23,13 @@ export class CommentsService {
         comment.id,
         'comment',
       );
-      comment.comments= await this.getComments(comment.id, 'comment');
+      comment.comments = await this.getComments(comment.id, 'comment');
     }
-    const sortedComments=comments.sort(
+    const sortedComments = comments.sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
-    return sortedComments
+    return sortedComments;
   }
 
   async insertComment(
@@ -37,6 +37,8 @@ export class CommentsService {
     parentEntity: string,
     comment: string,
     voter: string,
+    rootEntity: string,
+    rootEntityId: number,
   ) {
     const newComment = this.voltaireService.getRepository('Comment').create({
       parentId,
@@ -44,6 +46,18 @@ export class CommentsService {
       content: comment,
       voter,
     });
+
+    if (rootEntity === 'note') {
+      const note = await this.voltaireService
+        .getRepository('Note')
+        .findOne({ where: { id: rootEntityId } });
+      if (note) {
+        await this.voltaireService
+          .getRepository('Note')
+          .update({ id: rootEntityId }, { updatedAt: new Date() });
+      }
+    }
+
     return this.voltaireService.getRepository('Comment').save(newComment);
   }
 

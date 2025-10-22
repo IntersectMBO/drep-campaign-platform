@@ -14,8 +14,8 @@ import {
   IPFSResponse,
 } from 'src/common/types';
 import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
+import { BlockfrostService } from 'src/blockfrost/blockfrost.service';
 
 @Injectable()
 export class AttachmentService {
@@ -23,7 +23,7 @@ export class AttachmentService {
     @InjectDataSource('default')
     private voltaireService: DataSource,
     private httpService: HttpService,
-    private configService: ConfigService,
+    private blockfrostService: BlockfrostService,
   ) {}
   async parseMimeType(mimeType: string) {
     switch (mimeType) {
@@ -200,24 +200,24 @@ export class AttachmentService {
     try {
       const res = await lastValueFrom(
         this.httpService.post(
-          'https://ipfs.blockfrost.io/api/v0/ipfs/add',
+          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/add`,
           attachment,
           {
             headers: {
-              project_id: this.configService.get<string>(
-                'BLOCKFROST_IPFS_PROJECT_ID',
-              ),
+              project_id: this.blockfrostService.blockfrostIPFSProjectID,
             },
           },
         ),
       );
       const ipfsRes = res.data as IPFSResponse;
       //then auto-pin the attachment
-      const ipfsPinStatus =await this.pinAttachmentToIPFS(ipfsRes.ipfs_hash) as IPFSPinResponse;
+      const ipfsPinStatus = (await this.pinAttachmentToIPFS(
+        ipfsRes.ipfs_hash,
+      )) as IPFSPinResponse;
       return {
         ...ipfsRes,
-        state: ipfsPinStatus.state
-      }
+        state: ipfsPinStatus.state,
+      };
     } catch (error) {
       console.error(error.response.data || error.response || error);
       throw new HttpException(error.response.data, error.response.status);
@@ -227,13 +227,11 @@ export class AttachmentService {
     try {
       const res = await lastValueFrom(
         this.httpService.post(
-          `https://ipfs.blockfrost.io/api/v0/ipfs/pin/add/${hash}`,
+          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/pin/add/${hash}`,
           {},
           {
             headers: {
-              project_id: this.configService.get<string>(
-                'BLOCKFROST_IPFS_PROJECT_ID',
-              ),
+              project_id: this.blockfrostService.blockfrostIPFSProjectID,
             },
           },
         ),
@@ -248,12 +246,10 @@ export class AttachmentService {
     try {
       const res = await lastValueFrom(
         this.httpService.get(
-          `https://ipfs.blockfrost.io/api/v0/ipfs/pin/list/${hash}`,
+          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/pin/list/${hash}`,
           {
             headers: {
-              project_id: this.configService.get<string>(
-                'BLOCKFROST_IPFS_PROJECT_ID',
-              ),
+              project_id: this.blockfrostService.blockfrostIPFSProjectID,
             },
           },
         ),
@@ -268,13 +264,11 @@ export class AttachmentService {
     try {
       const res = await lastValueFrom(
         this.httpService.post(
-          `https://ipfs.blockfrost.io/api/v0/ipfs/pin/remove/${hash}`,
+          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/pin/remove/${hash}`,
           {},
           {
             headers: {
-              project_id: this.configService.get<string>(
-                'BLOCKFROST_IPFS_PROJECT_ID',
-              ),
+              project_id: this.blockfrostService.blockfrostIPFSProjectID,
             },
           },
         ),
@@ -289,12 +283,10 @@ export class AttachmentService {
     try {
       const response = await lastValueFrom(
         this.httpService.get(
-          `https://ipfs.blockfrost.io/api/v0/ipfs/gateway/${hash}`,
+          `${this.blockfrostService.blockfrostIPFSURL}/api/v0/ipfs/gateway/${hash}`,
           {
             headers: {
-              project_id: this.configService.get<string>(
-                'BLOCKFROST_IPFS_PROJECT_ID',
-              ),
+              project_id: this.blockfrostService.blockfrostIPFSProjectID,
             },
             responseType: 'stream', // Used stream to handle large files or non-JSON data
           },

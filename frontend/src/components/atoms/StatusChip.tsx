@@ -9,7 +9,10 @@ interface StatusProps {
     | 'Not claimed'
     | 'Not registered'
     | 'Scripted'
-    | 'Voting Option';
+    | 'Voting Option'
+    | 'Delegated'
+    | 'Not Delegated'
+    | 'Retired';
 }
 const StatusChip = ({ status }: StatusProps) => {
   let statusClass = '';
@@ -23,10 +26,19 @@ const StatusChip = ({ status }: StatusProps) => {
     case 'Not registered':
       statusClass = 'bg-orange-500 text-white';
       break;
+    case 'Retired':
+      statusClass = 'bg-orange-500 text-white';
+      break;
     case 'Active':
       statusClass = 'bg-success text-zinc-800';
       break;
+    case 'Delegated':
+      statusClass = 'bg-success text-zinc-800';
+      break;
     case 'Inactive':
+      statusClass = 'bg-gray-800 text-white';
+      break;
+    case 'Not Delegated':
       statusClass = 'bg-gray-800 text-white';
       break;
     case 'Scripted':
@@ -41,7 +53,7 @@ const StatusChip = ({ status }: StatusProps) => {
 
   return (
     <div
-      className={`text-nowrap rounded-full px-1.5 py-0.5 text-center text-xs font-normal  ${statusClass}`}
+      className={`text-nowrap rounded-full px-1.5 text-center text-[10px] font-normal  ${statusClass}`}
     >
       {status}
     </div>

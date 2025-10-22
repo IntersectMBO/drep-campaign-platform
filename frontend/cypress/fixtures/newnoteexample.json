@@ -1,10 +1,10 @@
 [
   {
-    "note_title": "Sample Note Title",
+    "title": "Sample Note Title",
     "note_tag": "Sample Tag",
-    "note_content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+    "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     "stake_addr": "sample_stake_address",
     "voter": "drep18xwllqkz4zhh6gvgxc63ygxrpe6hecc4v2jax96se2mljh2lxwr",
-    "note_visibility": "everyone"
+    "visibility": "everyone"
   }
 ]

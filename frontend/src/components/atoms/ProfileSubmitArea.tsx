@@ -63,7 +63,7 @@ const ProfileSubmitArea = ({ isUpdate, isDisabled=false }: ProfileSubmitAreaProp
         </Button>
         <Button
           variant="outlined"
-          bgColor="transparent"
+          bgcolor="transparent"
           handleClick={handleNavigate}
           id="next_button"
           sx={(!isEnabled || isDisabled) && { pointerEvents: 'none' }}

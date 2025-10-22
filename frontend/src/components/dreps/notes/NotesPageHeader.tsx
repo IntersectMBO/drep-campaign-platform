@@ -17,7 +17,7 @@ function NotesPageHeader() {
         size="extraLarge"
         variant="outlined"
         width={!isMobile && '180px'}
-        bgColor="transparent"
+        bgcolor="transparent"
         color="primary"
         handleClick={handleNavigate}
       >

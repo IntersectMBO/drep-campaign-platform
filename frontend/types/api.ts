@@ -4,25 +4,39 @@ export type currentDelegation = {
   encode: string | null;
 } | null;
 
-export type DRepCExplorerDetails = {
-  drep_hash_id: string | null;
-  view: string | null;
-  delegation_vote_count: string | null;
-  stake_address: string | null;
-  amount: string | null;
-  epoch_no: number | null;
-  active_until: number | null;
-  deposit: string | null;
-  date_of_registration: string | null;
-  epoch_of_registration: number | null;
-  url: string | null;
-  type: string | null;
-} | null;
-
 export type Delegator = {
   stakeAddress: string | null;
   delegationEpoch: number | null;
   votingPower: number | null;
+};
+
+export type Delegators = {
+  data: Delegator[];
+  totalItems: number;
+  currentPage: number;
+  itemsPerPage: number;
+  totalPages: number;
+};
+
+export type GovAction = {
+  gov_action_proposal_id: string | null;
+  type: string | null;
+  description: {};
+  vote: string | null;
+  url: string | null;
+  metadata: string | null;
+  epoch_no: number | null;
+  time_voted: string | null;
+  vote_tx_hash: string | null;
+  drep_id: string | null;
+};
+
+export type VoterGovActions = {
+  data: GovAction[];
+  totalItems: number;
+  currentPage: number;
+  itemsPerPage: number;
+  totalPages: number;
 };
 
 export type SingleDRep = {
@@ -50,14 +64,23 @@ export type SingleDRep = {
   attachment_drepId?: number | null;
   attachment_commentId?: number | null;
   signature_id?: number | null;
-  signature_drepVoterId?: string | null;
-  signature_drepStakeKey?: string | null;
-  signature_drepSignature?: string | null;
-  signature_drepSignatureKey?: string | null;
+  signature_voterId?: string | null;
+  signature_stakeKey?: string | null;
+  signature_signature?: string | null;
+  signature_signatureKey?: string | null;
   signature_drepId?: number | null;
-  cexplorerDetails: DRepCExplorerDetails;
-  activity?: any[];
-  delegators?: Delegator[];
+  drep_hash_id: string | null;
+  view: string | null;
+  delegation_vote_count: string | null;
+  stake_address: string | null;
+  voting_power: string | null;
+  live_stake: string | null;
+  epoch_no: number | null;
+  active_until: number | null;
+  deposit: string | null;
+  metadata_url: string | null;
+  has_script: string | null;
+  type: string | null;
 };
 
 export type DRepStats = {
@@ -78,3 +101,11 @@ export type DelegationData = {
   total_stake: string;
   added_power: boolean;
 };
+export interface VoterData {
+  address: string;
+  total_stake: number;
+  drep_id: string;
+  stake_address: string;
+  delegationHistory: any[];
+  isDelegated: boolean;
+}

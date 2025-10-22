@@ -149,7 +149,7 @@ const Editor: FC<EditorProps> = ({
           onChange={(content) => onChange(content)}
           ref={editorRef}
           markdown={markdown}
-          contentEditableClassName="prose max-w-full"
+          contentEditableClassName="prose w-full min-h-40"
           plugins={[
             headingsPlugin(),
             listsPlugin(),

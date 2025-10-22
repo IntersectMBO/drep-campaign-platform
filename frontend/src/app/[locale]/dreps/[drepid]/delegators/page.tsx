@@ -1,19 +1,14 @@
 'use client';
-import Loading from '@/app/[locale]/loading';
 import DrepProfileMetrics from '@/components/molecules/DrepProfileMetrics';
-import { useGetSingleDRepQuery } from '@/hooks/useGetSingleDRepQuery';
 import { useParams } from 'next/navigation';
-import { Suspense } from 'react';
 
-const DelegatorsPage = () => {
-  const { drepIdd } = useParams();
-  const { dRep } = useGetSingleDRepQuery(drepIdd);
-
+const page = () => {
+  const { drepid } = useParams();
   return (
-    <Suspense fallback={<Loading />}>
-      <DrepProfileMetrics drepMetrics={dRep} />;
-    </Suspense>
+    <div className="min-h-screen">
+      <DrepProfileMetrics voterId={String(drepid)} />
+    </div>
   );
 };
 
-export default DelegatorsPage;
+export default page;

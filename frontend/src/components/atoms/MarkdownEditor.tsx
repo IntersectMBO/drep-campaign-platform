@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import TextEditOptions from '../molecules/TextEditOptions';
 import { useCardano } from '@/context/walletContext';
 import { Controller } from 'react-hook-form';
-import { processNoteContent } from '@/lib/noteContentProcessor/processNoteContent';
 import { Typography } from '@mui/material';
 import { marked } from 'marked';
+import { processContent } from '@/lib/ContentProcessor/processContent';
+
 type MarkdownEditorProps = {
   control: any;
   errors: any;
@@ -19,7 +20,7 @@ const MarkdownEditor = ({ control, errors, name }: MarkdownEditorProps) => {
       name={name}
       control={control}
       render={({ field }) => {
-        const parts = processNoteContent(field.value);
+        const parts = processContent(field.value);
         return (
           <div className="flex flex-col">
             <div className="flex flex-row items-center justify-between rounded-t-xl border-l border-r border-t bg-slate-50 py-1">

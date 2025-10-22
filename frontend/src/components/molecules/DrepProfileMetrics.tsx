@@ -1,10 +1,10 @@
 import React from 'react';
 import DrepDelegatorsList from '../atoms/DrepDelegatorsList';
 
-const DrepProfileMetrics = ({drepMetrics}:{drepMetrics: any}) => {
+const DrepProfileMetrics = ({voterId}:{voterId: string}) => {
   return (
-    <div className='bg-white p-5 min-h-screen'>
-      <DrepDelegatorsList delegators={drepMetrics?.delegators} />
+    <div className='bg-white p-5'>
+      <DrepDelegatorsList voterId={voterId} />
     </div>
   );
 };

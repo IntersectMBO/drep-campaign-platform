@@ -68,6 +68,7 @@ const UpdateProfileStep4 = () => {
     await deleteItemFromIndexedDB('metadataJsonLd');
     await deleteItemFromIndexedDB('metadataJsonHash');
   };
+
   const saveProfile: SubmitHandler<InputType> = async (data) => {
     try {
       if (!dRepIDBech32 || dRepIDBech32 == '') {
@@ -90,6 +91,20 @@ const UpdateProfileStep4 = () => {
   const onError = (err) => {
     console.log(err);
   };
+
+  const handleSuccessfulSubmit = (hash?: string) => {
+    addSuccessAlert(
+      'Metadata updated successfully. It will probably take a few minutes to reflect',
+    );
+    resetDraft();
+
+    if (hash) {
+      router.push(`/dreps/workflow/profile/success?hash=${hash}`);
+    } else {
+      router.push('/dreps/workflow/profile/success');
+    }
+  };
+
   return (
     <div className="flex w-full flex-col gap-5 px-10 py-5">
       <div className="flex flex-col gap-5">
@@ -141,15 +156,7 @@ const UpdateProfileStep4 = () => {
           {isSubmittingMetadata && (
             <SubmitMetadataModal
               onClose={() => setIsSubmittingMetadata(false)}
-              onSuccessfulSubmit={() => {
-                if (isAwaitingSubmission) {
-                  addSuccessAlert(
-                    'Metadata updated successfully. It will probably take few minutes to reflect',
-                  );
-                  resetDraft();
-                  router.push('/dreps/workflow/profile/success');
-                }
-              }}
+              onSuccessfulSubmit={handleSuccessfulSubmit}
             />
           )}
         </div>

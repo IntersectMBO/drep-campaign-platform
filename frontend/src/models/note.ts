@@ -1,8 +1,9 @@
 export interface noteInput {
-  note_title: string;
-  note_tag: string[];
-  note_content: string;
+  title: string;
+  tag: string[];
+  content: string;
   stake_addr: string;
-  voter: string;
-  note_visibility: string;
+  drep: string;
+  author?: string;
+  visibility: string;
 }

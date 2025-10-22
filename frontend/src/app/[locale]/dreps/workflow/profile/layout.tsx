@@ -5,24 +5,36 @@ import { usePathname } from 'next/navigation';
 import { useDRepContext } from '@/context/drepContext';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
 
-
 interface Props {
   children?: React.ReactNode;
 }
 
 const Layout = ({ children }: Props) => {
   const pathname = usePathname();
-  const { currentLocale, isLoggedIn, setLoginModalOpen, loginModalOpen, isWalletListModalOpen } =
-    useDRepContext();
+  const {
+    currentLocale,
+    isLoggedIn,
+    setLoginModalOpen,
+    loginModalOpen,
+    isWalletListModalOpen,
+    setHideCloseButtonOnLoginModal,
+    setHideCloseButtonOnWalletListModal,
+  } = useDRepContext();
   const { addWarningAlert } = useGlobalNotifications();
+  
   useEffect(() => {
     if (
       !isLoggedIn && !isWalletListModalOpen &&
       pathname.includes(`/${currentLocale}/dreps/workflow/profile/update`)
     ) {
       setLoginModalOpen(true);
+      setHideCloseButtonOnLoginModal(true);
     }
-    if (isLoggedIn && loginModalOpen) setLoginModalOpen(false);
+    if ((isLoggedIn && loginModalOpen) || isWalletListModalOpen) {
+      setLoginModalOpen(false);
+      setHideCloseButtonOnWalletListModal(true);
+      setHideCloseButtonOnLoginModal(false);
+    }
   }, [loginModalOpen, isLoggedIn, isWalletListModalOpen]);
 
   useEffect(() => {

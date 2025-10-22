@@ -1,6 +1,5 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -10,7 +9,7 @@ import {
 } from 'typeorm';
 import { Note } from './note.entity';
 import { Comment } from './comment.entity';
-import { BaseEntity } from 'src/global';
+import { BaseEntity } from '../global';
 
 enum ReactionTypeName {
   Like = 'like',
@@ -26,8 +25,6 @@ export enum ReactionParentEntityType {
 @Entity()
 @Unique(['voter', 'type', 'parentId', 'parentEntity']) // Ensures delegator can't react twice to the same parent entity
 export class Reaction extends BaseEntity {
- 
-
   @Column({
     type: 'enum',
     enum: ReactionTypeName,
@@ -46,13 +43,13 @@ export class Reaction extends BaseEntity {
   @Column({ type: 'int', nullable: false })
   parentId: number;
 
-  @ManyToOne(() => Comment, (comment) => comment.id ) // Many-to-One relationship with Comment
+  @ManyToOne(() => Comment, (comment) => comment.id) // Many-to-One relationship with Comment
   comment: Comment;
 
   @ManyToMany(() => Note, (note) => note.id)
   note: Note;
 
-  @Column({ nullable: false,  })
+  @Column({ nullable: false })
   voter: string;
   //timestamps
   @CreateDateColumn()

@@ -9,6 +9,7 @@ export function SharedProvider({ children }) {
     isLoggedIn: false,
     isNotDRepErrorModalOpen: false,
     isMobileDrawerOpen: false,
+    hideCloseButtonOnLoginModal: false,
     loginCredentials:{
       signature:null,
       key:null
