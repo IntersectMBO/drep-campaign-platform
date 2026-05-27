@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
@@ -9,6 +9,11 @@ export class VoterService {
     private cexplorerService: DataSource,
   ) {}
   async getAdaHolderCurrentDelegation(stakeKey: string) {
+    // Validate stakeKey: must be a valid hex-encoded hash (typically 28-56 hex chars for Cardano stake key hashes)
+    if (!stakeKey || !/^[0-9a-fA-F]+$/.test(stakeKey)) {
+      throw new BadRequestException('Invalid stakeKey: must be a hex-encoded string');
+    }
+
     const delegation = await this.cexplorerService.manager.query(
       `SELECT
           CASE
@@ -26,7 +31,7 @@ export class VoterService {
       JOIN
           stake_address ON stake_address.id = delegation_vote.addr_id
       WHERE
-          stake_address.hash_raw = DECODE('${stakeKey}', 'hex')
+          stake_address.hash_raw = DECODE($1, 'hex')
           AND NOT EXISTS (
               SELECT *
               FROM delegation_vote AS dv2
@@ -34,6 +39,7 @@ export class VoterService {
                 AND dv2.tx_id > delegation_vote.tx_id
           )
       LIMIT 1;`,
+      [stakeKey],
     );
     return delegation[0];
   }

@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   Res,
+  BadRequestException,
 } from '@nestjs/common';
 
 import { createDrepDto, ValidateMetadataDTO } from 'src/dto';
@@ -25,6 +26,7 @@ export class DrepController {
   @Get('')
   getAll(
     @Query('s', new DefaultValuePipe('')) s: string,
+    // Note: search parameter is validated and parameterized in the service layer,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe)
     page: number,
     @Query('perPage', new DefaultValuePipe(24), ParseIntPipe)
