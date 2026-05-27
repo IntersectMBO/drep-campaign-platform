@@ -156,15 +156,20 @@ export class DrepService {
   ) {
     const offset = (currentPage - 1) * itemsPerPage;
 
-    const sanitizedSearch = query ? query.replace(/'/g, "''") : '';
+    // Use parameterized queries to prevent SQL injection
+    const searchParams: any[] = [];
     let sanitizedSearchCondition = '';
-    if (sanitizedSearch && sanitizedSearch.length > 0) {
-      sanitizedSearchCondition = `AND (dh.view ILIKE '%${sanitizedSearch}%' OR off_chain_vote_drep_data.given_name ILIKE '%${sanitizedSearch}%')`;
+    if (query && query.length > 0) {
+      const searchPattern = `%${query}%`;
+      const nextIdx = searchParams.length;
+      searchParams.push(searchPattern, searchPattern);
+      sanitizedSearchCondition = `AND (dh.view ILIKE $${nextIdx + 1} OR off_chain_vote_drep_data.given_name ILIKE $${nextIdx + 2})`;
     }
 
     let nameFilteredDRepCondition = '';
     if (nameFilteredDRepViews && nameFilteredDRepViews.length > 0) {
-      nameFilteredDRepCondition = `OR dh.view IN (${nameFilteredDRepViews.map((v) => `'${v}'`).join(', ')})`;
+      const nameParams = nameFilteredDRepViews.map((v) => `'${v.replace(/'/g, "''")}'`);
+      nameFilteredDRepCondition = `OR dh.view IN (${nameParams.join(', ')})`;
     }
 
     let chainStatusCondition = '';
@@ -178,10 +183,11 @@ export class DrepService {
 
     let campaignStatusCondition = '';
     if (dRepViews && dRepViews.length > 0) {
+      const escapedViews = dRepViews.map((v) => `'${v.replace(/'/g, "''")}'`);
       if (campaignStatus === 'claimed') {
-        campaignStatusCondition = `AND dh.view IN (${dRepViews.map((v) => `'${v}'`).join(', ')})`;
+        campaignStatusCondition = `AND dh.view IN (${escapedViews.join(', ')})`;
       } else if (campaignStatus === 'unclaimed') {
-        campaignStatusCondition = `AND dh.view NOT IN (${dRepViews.map((v) => `'${v}'`).join(', ')})`;
+        campaignStatusCondition = `AND dh.view NOT IN (${escapedViews.join(', ')})`;
       }
     }
 
@@ -221,6 +227,7 @@ export class DrepService {
         offset,
         typeCondition,
       ),
+      searchParams,
     );
     const totalResults = await this.cexplorerService.manager.query(
       getTotalResultsQuery(
@@ -229,6 +236,7 @@ export class DrepService {
         chainStatusCondition,
         typeCondition,
       ),
+      searchParams,
     );
 
     return {

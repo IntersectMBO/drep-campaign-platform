@@ -7,6 +7,7 @@ export const getAllDRepsQuery = (
   itemsPerPage: number,
   offset: number,
   typeCondition: string,
+  queryParams: any[] = [],
 ) => `
     WITH DRepDistr AS (SELECT *,
                               ROW_NUMBER() OVER (PARTITION BY drep_hash.id ORDER BY drep_distr.epoch_no DESC) AS rn
