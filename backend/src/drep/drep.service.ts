@@ -41,6 +41,10 @@ import { JsonLd } from 'jsonld/jsonld-spec';
 import { Response } from 'express';
 import { getDrepCexplorerDetailsQuery } from 'src/queries/drepCexplorerDetails';
 import { getDrepDelegatorsWithVotingPowerQuery } from 'src/queries/drepDelegatorsWithVotingPower';
+import {
+  createMetadataFetchConfig,
+  getSafeMetadataUrl,
+} from './metadata-url.guard';
 
 @Injectable()
 export class DrepService {
@@ -778,8 +782,9 @@ export class DrepService {
   }
   async getMetadataFromExternalLink(metadataUrl: string) {
     if (!metadataUrl) throw new Error('Inadequate parameters');
+    const safeMetadataUrl = await getSafeMetadataUrl(metadataUrl);
     const { data } = await firstValueFrom(
-      this.httpService.get(metadataUrl).pipe(
+      this.httpService.get(safeMetadataUrl, createMetadataFetchConfig()).pipe(
         catchError((err) => {
           console.log(err);
           throw new Error('Metadata not found');
@@ -799,8 +804,11 @@ export class DrepService {
     let status: MetadataValidationStatus;
     let metadata: any;
     try {
+      const safeMetadataUrl = await getSafeMetadataUrl(url).catch(() => {
+        throw MetadataValidationStatus.URL_NOT_FOUND;
+      });
       const { data } = await firstValueFrom(
-        this.httpService.get(url).pipe(
+        this.httpService.get(safeMetadataUrl, createMetadataFetchConfig()).pipe(
           catchError(() => {
             throw MetadataValidationStatus.URL_NOT_FOUND;
           }),
