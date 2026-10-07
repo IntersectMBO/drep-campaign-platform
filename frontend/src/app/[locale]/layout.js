@@ -13,7 +13,7 @@ import theme from '@/assets/theme';
 const poppins = Poppins({
   weight: '400',
   style: 'normal',
-  subsets: ['devanagari'],
+  subsets: ['latin'],
 });
 
 export function generateStaticParams() {
