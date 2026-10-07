@@ -2,11 +2,55 @@ import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { AttachmentService } from 'src/attachment/attachment.service';
 import { CommentsService } from 'src/comments/comments.service';
-import { Delegation, StakeKeys } from 'src/common/types';
 import { DrepService } from 'src/drep/drep.service';
 import { createNoteDto } from 'src/dto';
 import { ReactionsService } from 'src/reactions/reactions.service';
-import { DataSource } from 'typeorm';
+import { Brackets, DataSource } from 'typeorm';
+
+/**
+ * The caller asking for notes. Both fields are optional; an empty viewer only
+ * sees notes shared with everyone.
+ */
+export type NoteViewer = {
+  // stake address (bech32) of the caller, matched against the author's stake key
+  stakeKeyBech32?: string;
+  // DRep id the caller currently delegates to
+  delegatedDRepId?: string;
+};
+
+/**
+ * Visibility condition for notes joined as `note` with the author's
+ * signature joined as `signature`:
+ * everyone OR (delegators AND the caller delegates to the author)
+ * OR (myself AND the caller is the author).
+ * The alternatives are grouped in brackets so further filters can be added
+ * with `andWhere` without widening the result.
+ */
+export const noteVisibilityCondition = (viewer: NoteViewer = {}) =>
+  new Brackets((qb) => {
+    qb.where('note.note_visibility = :visibilityEveryone', {
+      visibilityEveryone: 'everyone',
+    });
+    if (viewer.delegatedDRepId) {
+      qb.orWhere(
+        '(note.note_visibility = :visibilityDelegators AND signature.drepVoterId = :viewerDelegatedDRepId)',
+        {
+          visibilityDelegators: 'delegators',
+          viewerDelegatedDRepId: viewer.delegatedDRepId,
+        },
+      );
+    }
+    if (viewer.stakeKeyBech32) {
+      qb.orWhere(
+        '(note.note_visibility = :visibilityMyself AND signature.drepStakeKey = :viewerStakeKeyBech32)',
+        {
+          visibilityMyself: 'myself',
+          viewerStakeKeyBech32: viewer.stakeKeyBech32,
+        },
+      );
+    }
+  });
+
 @Injectable()
 export class NoteService {
   constructor(
@@ -18,14 +62,12 @@ export class NoteService {
     private commentsService: CommentsService,
   ) {}
   async getAllNotes(
-    stakeKeyBech32?: string,
-    delegation?: Delegation,
+    viewer: NoteViewer = {},
     currentNote?: number,
     request?: string,
   ) {
     let allNotes = await this.getNotesWithVisibility(
-      delegation,
-      stakeKeyBech32,
+      viewer,
       currentNote,
       request,
     );
@@ -50,11 +92,17 @@ export class NoteService {
     return allNotes;
   }
 
-  async getSingleNote(noteId: string) {
+  async getSingleNote(noteId: string, viewer: NoteViewer = {}) {
     const numifiedNoteId = Number(noteId);
-    const note = await this.voltaireService.getRepository('Note').findOne({
-      where: { id: numifiedNoteId },
-    });
+    // A note the viewer may not see is reported as not found
+    const note = await this.voltaireService
+      .getRepository('Note')
+      .createQueryBuilder('note')
+      .leftJoin('note.voter', 'drep')
+      .leftJoin('drep.signatures', 'signature')
+      .where('note.id = :noteId', { noteId: numifiedNoteId })
+      .andWhere(noteVisibilityCondition(viewer))
+      .getOne();
     if (!note) {
       throw new NotFoundException('Note not found!');
     }
@@ -98,8 +146,7 @@ export class NoteService {
   }
 
   private async getNotesWithVisibility(
-    delegation?,
-    stakeKeyBech32?: string,
+    viewer: NoteViewer,
     currentNote?: number,
     request?: string,
   ) {
@@ -110,39 +157,18 @@ export class NoteService {
       .leftJoin('drep.signatures', 'signature')
       .orderBy('note.createdAt', 'DESC') // Order by createdAt descending
       .limit(20); // limit per req
-    // Basic query for notes with visibility 'everyone'
-    queryBuilder.where('note.note_visibility = :everyone', {
-      everyone: 'everyone',
-    });
+    // Only notes the viewer may see; the cursor narrows this further
+    queryBuilder.where(noteVisibilityCondition(viewer));
     if (currentNote) {
       if (request === 'before') {
-        queryBuilder.where('note.id <= :currentNote', { currentNote: Number(currentNote) });
+        queryBuilder.andWhere('note.id <= :currentNote', {
+          currentNote: Number(currentNote),
+        });
       } else if (request === 'after') {
-        queryBuilder.where('note.id <= :currentNote', {
+        queryBuilder.andWhere('note.id <= :currentNote', {
           currentNote: Number(currentNote) + 20,
         });
       }
-    }
-
-    // 'delegators' visibility
-    if (delegation) {
-      queryBuilder.orWhere(
-        'note.note_visibility = :delegators AND signature.drepVoterId = :drepVoterId',
-        {
-          delegators: 'delegators',
-          drepVoterId: delegation.drep_view,
-        },
-      );
-    }
-    // 'myself' visibility
-    if (stakeKeyBech32) {
-      queryBuilder.orWhere(
-        'note.note_visibility = :myself AND signature.drepStakeKey = :stakeKeyBech32',
-        {
-          myself: 'myself',
-          stakeKeyBech32: stakeKeyBech32,
-        },
-      );
     }
 
     return queryBuilder.getRawMany();

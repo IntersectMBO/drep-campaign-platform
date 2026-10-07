@@ -7,7 +7,7 @@ import { getSingleNote } from '@/services/requests/getSingleNote';
 import React, { useEffect, useState } from 'react';
 
 const page = (params: { params: { noteid: number } }) => {
-  const { isEnabled } = useCardano();
+  const { isEnabled, stakeKey, stakeKeyBech32 } = useCardano();
   const [initialValues, setInitialValues] = useState(null);
   const { setIsWalletListModalOpen } = useDRepContext();
   //displays or hides modal only if in form page
@@ -15,7 +15,10 @@ const page = (params: { params: { noteid: number } }) => {
     const fetchNoteandCheckLogin = async () => {
       try {
         if (!isEnabled) setIsWalletListModalOpen(true);
-        const note = await getSingleNote(params.params.noteid);
+        const note = await getSingleNote(params.params.noteid, {
+          stakeKey,
+          stakeKeyBech32,
+        });
         setInitialValues(note);
       } catch (error) {
         console.log(error);
@@ -25,7 +28,7 @@ const page = (params: { params: { noteid: number } }) => {
     return () => {
       setIsWalletListModalOpen(false);
     };
-  }, []);
+  }, [stakeKeyBech32]);
   return (
     <div className="drep_radial_bg flex items-center justify-center">
       <div className="form_container h-full ">
