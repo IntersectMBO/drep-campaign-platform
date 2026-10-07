@@ -41,6 +41,7 @@ import getEpochParams from '@/services/requests/getEpochParams';
 import { generateAnchor } from '@/lib/generateAnchor';
 import { CONFIGURED_NETWORK_ID } from '@/constants';
 import getFirstEpoch from '@/services/requests/getFIrstEpoch';
+import { DataSignature } from '@/services/requests/userLogin';
 
 interface Props {
   children: React.ReactNode;
@@ -80,6 +81,10 @@ interface CardanoContext {
   stakeKeyBech32?: string | undefined;
   setStakeKey: (key: string) => void;
   loginSignTransaction: () => Promise<any>;
+  signLoginMessage: (
+    message: string,
+    options?: { withDRepKey?: boolean },
+  ) => Promise<{ stake: DataSignature; drep?: DataSignature }>;
   loginHardwareWalletTransaction: () => Promise<any>;
   buildDRepUpdateCert: (
     cip95MetadataURL?: string,
@@ -454,6 +459,17 @@ function CardanoProvider(props: Props) {
     },
     [isEnabled, stakeKeys],
   );
+  // Signs with the wallet's DRep key (CIP-95), so the signature proves
+  // control of the DRep id
+  const signWithDRepKey = async (
+    payloadHex: string,
+  ): Promise<DataSignature> => {
+    if (!dRepID) throw new Error('The wallet did not provide a DRep key');
+    if (walletApi.cip95?.signData) {
+      return walletApi.cip95.signData(dRepID, payloadHex);
+    }
+    return walletApi.signData(dRepID, payloadHex);
+  };
   //implement sign transaction to determine whether the public key owner is the same owner of the secret key
   const loginSignTransaction = async () => {
     if (!walletApi) return;
@@ -462,7 +478,7 @@ function CardanoProvider(props: Props) {
       const payloadBuffer = Buffer.from(`Verify DRep ${dRepIDBech32}`).toString(
         'hex',
       );
-      const sign = await walletApi.signData(address, payloadBuffer);
+      const sign = await signWithDRepKey(payloadBuffer);
       const { signature, key } = sign;
       setLoginCredentials({ signature, vkey: key });
       setIsGettingSignatures(false);
@@ -471,6 +487,31 @@ function CardanoProvider(props: Props) {
       console.error(e);
       setIsGettingSignatures(false);
       throw e;
+    }
+  };
+  // Signs a login message from the server with the stake key and, for
+  // DReps, with the DRep key
+  const signLoginMessage = async (
+    message: string,
+    { withDRepKey = false }: { withDRepKey?: boolean } = {},
+  ) => {
+    if (!walletApi) throw new Error('Wallet not connected');
+    if (!stakeKey) throw new Error('No stake key selected in the wallet');
+    setIsGettingSignatures(true);
+    try {
+      const payloadHex = Buffer.from(message).toString('hex');
+      const stake: DataSignature = await walletApi.signData(
+        stakeKey,
+        payloadHex,
+      );
+      let drep: DataSignature | undefined;
+      if (withDRepKey) {
+        drep = await signWithDRepKey(payloadHex);
+        setLoginCredentials({ signature: drep.signature, vkey: drep.key });
+      }
+      return { stake, drep };
+    } finally {
+      setIsGettingSignatures(false);
     }
   };
   const initTransactionBuilder = async () => {
@@ -687,6 +728,7 @@ function CardanoProvider(props: Props) {
       isMainnet,
       disconnectWallet,
       loginSignTransaction,
+      signLoginMessage,
       loginHardwareWalletTransaction,
       buildDRepUpdateCert,
       signAndSubmitTransaction,

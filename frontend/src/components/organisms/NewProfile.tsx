@@ -11,7 +11,8 @@ import NewProfileForm from '../molecules/NewProfileForm';
 import { usePostNewDrepMutation } from '@/hooks/usePostNewDRepMutation';
 import { drepInput } from '@/models/drep';
 import { useGlobalNotifications } from '@/context/globalNotificationContext';
-import { setItemToLocalStorage, sha256 } from '@/lib';
+import { getItemFromLocalStorage, setItemToLocalStorage, sha256 } from '@/lib';
+import { getSession } from '@/lib/session';
 import { renderJsonldValue } from '../atoms/MetadataViewer';
 import { submitMetadata } from '@/lib/metadataProcessor';
 import { setItemToIndexedDB } from '@/lib/indexedDb';
@@ -71,6 +72,7 @@ const NewProfile = () => {
     metadataJsonLd,
     handleRefresh,
     isDRepRegistered,
+    login,
   } = useDRepContext();
 
   useEffect(() => {
@@ -139,7 +141,19 @@ const NewProfile = () => {
         setIsNotDRepErrorModalOpen(true);
         return;
       }
-      const { signature, key } = await loginSignTransaction();
+      // Creating a profile needs a session for this wallet's DRep key; its
+      // DRep signature is also used as the profile and metadata signature
+      let drepSignature =
+        getSession()?.drepId === dRepIDBech32
+          ? getItemFromLocalStorage('signatures')
+          : null;
+      if (!drepSignature?.signature) {
+        ({ drepSignature } = await login());
+      }
+      if (!drepSignature?.signature) {
+        throw new Error('Log in with your DRep key to create a profile');
+      }
+      const { signature, key } = drepSignature;
       if (
         currentMetadata?.givenName !== data.profileName ||
         currentMetadata?.bio !== data.profileBio ||
@@ -235,12 +249,10 @@ const NewProfile = () => {
       const res = await newDRepMutation.mutateAsync({
         drep: formData as any,
       });
-      const { insertedDrep, token } = res;
+      const { insertedDrep } = res;
       setNewDrepId(insertedDrep.raw[0].id);
       setCurrentRegistrationStep(2);
       addSuccessAlert('DRep Profile Created Successfully!');
-      setItemToLocalStorage('token', token);
-      setItemToLocalStorage('signatures', { signature, key });
       setIsLoggedIn(true);
       router.push(`/dreps/workflow/profile/update/step2`);
     } catch (error) {
