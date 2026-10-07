@@ -1,4 +1,7 @@
 import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -26,7 +29,8 @@ import {
   MetadataValidationStatus,
   ValidateMetadataResult,
 } from 'src/common/types';
-import { AuthService } from 'src/auth/auth.service';
+import { AuthPrincipal, requireDRepId } from 'src/auth/auth.principal';
+import { drepIdVariants, isSignedByDRep } from 'src/auth/data-signature';
 import { getAllDRepsQuery, getTotalResultsQuery } from 'src/queries/getDReps';
 import {
   getDRepDelegatorsCountQuery,
@@ -42,6 +46,29 @@ import { Response } from 'express';
 import { getDrepCexplorerDetailsQuery } from 'src/queries/drepCexplorerDetails';
 import { getDrepDelegatorsWithVotingPowerQuery } from 'src/queries/drepDelegatorsWithVotingPower';
 
+// Profile fields a DRep can set. The DRep id, stake address and signatures
+// are handled separately and never copied from the request body.
+const DREP_PROFILE_FIELDS = [
+  'social',
+  'platform_statement',
+  'expertise',
+  'perspective',
+] as const;
+
+const pickProfileFields = (drep: createDrepDto, parseJson = false) =>
+  DREP_PROFILE_FIELDS.reduce((acc, key) => {
+    let value = drep?.[key];
+    if (value === undefined) return acc;
+    if (parseJson) {
+      try {
+        value = JSON.parse(value);
+      } catch (e) {
+        // ignore
+      }
+    }
+    return { ...acc, [key]: value };
+  }, {});
+
 @Injectable()
 export class DrepService {
   constructor(
@@ -53,7 +80,6 @@ export class DrepService {
     private configService: ConfigService,
     private reactionsService: ReactionsService,
     private commentsService: CommentsService,
-    private authService: AuthService,
     private readonly httpService: HttpService,
   ) {}
   async getAllDReps(
@@ -659,25 +685,80 @@ export class DrepService {
     await this.voltaireService.getRepository('Drep').insert(modified);
     return modified;
   }
-  async registerDrep(drepDto: createDrepDto) {
+  /**
+   * Id of the campaign profile claimed by a key-based DRep, or null if the
+   * DRep has no profile.
+   */
+  async findProfileIdForDRep(drepId: string): Promise<number | null> {
+    const drepIds = drepIdVariants(drepId);
+    if (drepIds.length === 0) return null;
+    const signature = await this.voltaireService
+      .getRepository('Signature')
+      .createQueryBuilder('signature')
+      .select('signature.drepId', 'drepId')
+      .where('signature.drepVoterId IN (:...drepIds)', { drepIds })
+      .andWhere('signature.drepId IS NOT NULL')
+      .orderBy('signature.id', 'ASC')
+      .getRawOne();
+    return signature?.drepId ?? null;
+  }
+
+  /** Rejects the request unless the caller is the DRep owning the profile. */
+  async assertProfileOwner(profileId: number, principal: AuthPrincipal) {
+    const drepIds = drepIdVariants(requireDRepId(principal));
+    const id = Number(profileId);
+    const owned =
+      Number.isInteger(id) &&
+      drepIds.length > 0 &&
+      (await this.voltaireService
+        .getRepository('Signature')
+        .createQueryBuilder('signature')
+        .where('signature.drepId = :id', { id })
+        .andWhere('signature.drepVoterId IN (:...drepIds)', { drepIds })
+        .getCount()) > 0;
+    if (!owned) {
+      throw new ForbiddenException('You can only change your own DRep profile');
+    }
+  }
+
+  /**
+   * Signature and key to show on the caller's profile. They must have been
+   * made with the caller's DRep key.
+   */
+  private verifiedProfileSignature(
+    drep: createDrepDto,
+    principal: AuthPrincipal,
+  ) {
+    if (!drep?.signature && !drep?.key) return null;
+    const dataSignature = { signature: drep.signature, key: drep.key };
+    if (!isSignedByDRep(dataSignature, principal.drepId)) {
+      throw new BadRequestException(
+        'The signature was not made with your DRep key',
+      );
+    }
+    return { drepSignature: drep.signature, drepSignatureKey: drep.key };
+  }
+
+  async registerDrep(drepDto: createDrepDto, principal: AuthPrincipal) {
+    const drepId = requireDRepId(principal);
+    if ((await this.findProfileIdForDRep(drepId)) !== null) {
+      throw new ConflictException('This DRep already has a profile');
+    }
+    const signature = this.verifiedProfileSignature(drepDto, principal);
     const insertedDrep = await this.voltaireService
       .getRepository('Drep')
-      .insert(drepDto);
+      .insert(pickProfileFields(drepDto));
     const signatureDto = {
       drep: insertedDrep.identifiers[0].id,
-      drepVoterId: drepDto?.voter_id,
-      drepStakeKey: drepDto?.stake_addr,
-      drepSignatureKey: drepDto?.key,
-      drepSignature: drepDto?.signature,
+      drepVoterId: drepId,
+      drepStakeKey: principal.stakeAddress,
+      drepSignatureKey: signature?.drepSignatureKey ?? null,
+      drepSignature: signature?.drepSignature ?? null,
     };
     const insertedSig = await this.voltaireService
       .getRepository('Signature')
       .insert(signatureDto);
-    const { token } = await this.authService.login(
-      { signature: drepDto?.signature, key: drepDto.key },
-      10000,
-    );
-    return { insertedDrep, insertedSig, token };
+    return { insertedDrep, insertedSig };
   }
   async getEpochParams() {
     try {
@@ -728,37 +809,23 @@ export class DrepService {
     }));
   }
 
-  async updateDrepInfo(drepId: number, drep: createDrepDto) {
-    const foundDrep = await this.voltaireService
-      .getRepository('Drep')
-      .createQueryBuilder('drep')
-      .where('drep.id = :drepId', { drepId })
-      .getRawMany();
+  async updateDrepInfo(
+    drepId: number,
+    drep: createDrepDto,
+    principal: AuthPrincipal,
+  ) {
+    await this.assertProfileOwner(drepId, principal);
 
-    if (!foundDrep) {
-      throw new NotFoundException('Drep to be updated not found!');
-    }
-    if (drep.signature) {
+    const signature = this.verifiedProfileSignature(drep, principal);
+    if (signature) {
       await this.voltaireService
         .getRepository('Signature')
-        .update(
-          { drep: foundDrep[0].drep_id },
-          { drepSignatureKey: drep.key, drepSignature: drep.signature },
-        );
-      delete drep.signature;
-      delete drep.key;
-      delete drep.stake_addr;
-      delete drep.voter_id;
+        .update({ drep: drepId }, signature);
     }
-    const updatedDrep = Object.keys(drep).reduce((acc, key) => {
-      let value = drep[key];
-      try {
-        value = JSON.parse(value);
-      } catch (e) {
-        // ignore
-      }
-      return { ...acc, [key]: value };
-    }, {});
+    const updatedDrep = pickProfileFields(drep, true);
+    if (Object.keys(updatedDrep).length === 0) {
+      return { affected: 0 };
+    }
 
     return await this.voltaireService
       .getRepository('Drep')
@@ -833,9 +900,16 @@ export class DrepService {
   async saveMetadata(
     metadata: any,
     hash: string,
-    drepId: number,
+    profileId: number | undefined,
     fileName: string,
+    principal: AuthPrincipal,
   ) {
+    const drepId =
+      profileId ?? (await this.findProfileIdForDRep(requireDRepId(principal)));
+    if (drepId === null) {
+      throw new NotFoundException('Drep not found!');
+    }
+    await this.assertProfileOwner(drepId, principal);
     const metadataRepo = await this.voltaireService.getRepository('Metadata');
 
     // Check if a record with the same drepId already exists

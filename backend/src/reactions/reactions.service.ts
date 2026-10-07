@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
@@ -36,6 +36,9 @@ export class ReactionsService {
       .andWhere('reaction.type = :type', { type })
       .andWhere('reaction.voter = :voter', { voter })
       .getOne();
+    if (!reaction) {
+      throw new NotFoundException('Reaction not found');
+    }
     return this.voltaireService.getRepository('Reaction').delete(reaction.id);
   }
 }

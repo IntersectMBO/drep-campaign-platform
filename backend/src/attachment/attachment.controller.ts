@@ -14,6 +14,11 @@ import { AttachmentService } from './attachment.service';
 import { Response } from 'express';
 import { Attachment } from 'src/entities/attachment.entity';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import {
+  AuthPrincipal,
+  AuthUser,
+  requireDRepId,
+} from 'src/auth/auth.principal';
 
 @Controller('attachments')
 export class AttachmentController {
@@ -66,12 +71,15 @@ export class AttachmentController {
   ) {
     return this.attachmentService.getAttachmentFromIPFS(ipfsHash, res);
   }
+  // Pins files with the platform's IPFS account; used for DRep profiles
   @Post('ipfs/add')
   @UseInterceptors(FileInterceptor('attachment'))
   async uploadAttachmentToIpfs(
     @UploadedFile()
     attachment: Express.Multer.File,
+    @AuthUser() principal: AuthPrincipal,
   ) {
+    requireDRepId(principal);
     const attachmentFormData = new FormData();
     // Check if attachment is a File or has a buffer
     if (attachment instanceof File) {

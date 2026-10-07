@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { AuthPrincipal, requireDRepId } from 'src/auth/auth.principal';
+import { pickNoteFields } from './note-fields';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { AttachmentService } from 'src/attachment/attachment.service';
 import { CommentsService } from 'src/comments/comments.service';
@@ -60,41 +62,34 @@ export class NoteService {
     }
     return note;
   }
-  async registerNote(noteDto: createNoteDto) {
-    const isPresent = await this.drepService.getSingleDrepViaVoterID(
-      noteDto.voter,
+  async registerNote(noteDto: createNoteDto, principal: AuthPrincipal) {
+    const profileId = await this.drepService.findProfileIdForDRep(
+      requireDRepId(principal),
     );
-    if (isPresent) {
-      const modifiedNoteDto = { ...noteDto, voter: isPresent.drep_id };
-      const res = await this.voltaireService
-        .getRepository('Note')
-        .insert(modifiedNoteDto);
-      return { noteAdded: res.identifiers[0].id };
-    } else {
-      return new NotFoundException('DRep associated with note not found!');
+    if (profileId === null) {
+      throw new NotFoundException('DRep associated with note not found!');
     }
+    const res = await this.voltaireService
+      .getRepository('Note')
+      .insert({ ...pickNoteFields(noteDto), voter: profileId });
+    return { noteAdded: res.identifiers[0].id };
   }
-  async updateNoteInfo(noteId: string, note: createNoteDto) {
+  async updateNoteInfo(
+    noteId: string,
+    note: createNoteDto,
+    principal: AuthPrincipal,
+  ) {
     const numifiedNoteId = Number(noteId);
     const foundNote = await this.voltaireService.getRepository('Note').findOne({
       where: { id: numifiedNoteId },
+      loadRelationIds: { relations: ['voter'] },
     });
     if (!foundNote) {
       throw new NotFoundException('Note to be updated not found!');
     }
-    const isPresent = await this.drepService.getSingleDrepViaVoterID(
-      note.voter,
-    );
-    if (isPresent) {
-      const modifiedNote = { ...note, voter: isPresent.drep_id };
-      // Iterate through the properties of the note object
-      Object.keys(modifiedNote).forEach((key) => {
-        foundNote[key] = modifiedNote[key];
-      });
-      return await this.voltaireService.getRepository('Note').save(foundNote);
-    } else {
-      return new NotFoundException('DRep associated with note not found!');
-    }
+    await this.drepService.assertProfileOwner(foundNote.voter, principal);
+    Object.assign(foundNote, pickNoteFields(note));
+    return await this.voltaireService.getRepository('Note').save(foundNote);
   }
 
   private async getNotesWithVisibility(

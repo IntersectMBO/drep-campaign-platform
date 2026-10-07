@@ -15,6 +15,8 @@ services:
       DATABASE_USERNAME: voltaire
       DATABASE_PASSWORD: postgres
       NODE_ENV: development # Set node environment to development
+      # JWT_SECRET (required, at least 32 characters) is read from backend/.env,
+      # see backend/.env.example
     volumes: # Mount points for persistent data and source code
       - "./backend:/app"
     ports:

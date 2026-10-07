@@ -15,6 +15,7 @@ import { DrepService } from './drep.service';
 import { VoterService } from 'src/voter/voter.service';
 import { Delegation, StakeKeys } from 'src/common/types';
 import { Response } from 'express';
+import { AuthPrincipal, AuthUser, Public } from 'src/auth/auth.principal';
 
 @Controller('dreps')
 export class DrepController {
@@ -106,12 +107,16 @@ export class DrepController {
   }
 
   @Post('new')
-  create(@Body() drepDto: createDrepDto) {
-    return this.drepService.registerDrep(drepDto);
+  create(@Body() drepDto: createDrepDto, @AuthUser() principal: AuthPrincipal) {
+    return this.drepService.registerDrep(drepDto, principal);
   }
   @Post(':id/update')
-  updateDetails(@Param('id') drepId: number, @Body() drep: createDrepDto) {
-    return this.drepService.updateDrepInfo(drepId, drep);
+  updateDetails(
+    @Param('id', ParseIntPipe) drepId: number,
+    @Body() drep: createDrepDto,
+    @AuthUser() principal: AuthPrincipal,
+  ) {
+    return this.drepService.updateDrepInfo(drepId, drep, principal);
   }
   @Get('/metadata/external')
   getExternalMetadata(@Query('metadataUrl') metadataUrl: string) {
@@ -125,6 +130,8 @@ export class DrepController {
   ) {
     return this.drepService.getMetadata(drepId, hash, res);
   }
+  // Only checks a metadata document, nothing is stored
+  @Public()
   @Post('metadata/validate')
   validateMetadata(@Body() metadataBody: ValidateMetadataDTO) {
     return this.drepService.validateMetadata(metadataBody);
@@ -136,8 +143,15 @@ export class DrepController {
     @Body('hash') hash: string,
     @Body('drepId') drepId: number,
     @Body('name') name: string,
+    @AuthUser() principal: AuthPrincipal,
   ) {
-    return this.drepService.saveMetadata(metadata, hash, drepId, name);
+    return this.drepService.saveMetadata(
+      metadata,
+      hash,
+      drepId,
+      name,
+      principal,
+    );
   }
   @Get(':voterId/stats')
   getStats(@Param('voterId') voterId: string) {

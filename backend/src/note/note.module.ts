@@ -8,7 +8,6 @@ import { DrepService } from 'src/drep/drep.service';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { CommentsService } from 'src/comments/comments.service';
 import { VoterService } from 'src/voter/voter.service';
-import { AuthService } from 'src/auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { HttpModule, HttpService } from '@nestjs/axios';
 
@@ -28,7 +27,6 @@ import { HttpModule, HttpService } from '@nestjs/axios';
     ReactionsService,
     CommentsService,
     VoterService,
-    AuthService,
   ],
 })
 export class NoteModule {}
