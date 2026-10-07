@@ -11,15 +11,25 @@ import {
 import { useSharedContext } from './sharedContext';
 import { SliderMenu } from '@/components/organisms/SliderMenu';
 import { UserLoginModal } from '@/components/organisms/UserLoginModal';
+import Cookies from 'js-cookie';
 import {
   decodeToken,
   getItemFromLocalStorage,
   removeItemFromLocalStorage,
+  setItemToLocalStorage,
 } from '@/lib';
 import { processExternalMetadata } from '@/lib/metadataProcessor';
 import { getSingleDRepViaVoterId } from '@/services/requests/getSingleDrepViaVoterId';
 import { getItemFromIndexedDB } from '@/lib/indexedDb';
 import { getDRepRegStatus } from '@/services/requests/getDRepRegStatus';
+import { useCardano } from './walletContext';
+import { useGlobalNotifications } from './globalNotificationContext';
+import { clearSession, SESSION_EXPIRED_EVENT } from '@/lib/session';
+import {
+  DataSignature,
+  getLoginChallenge,
+  userLogin,
+} from '@/services/requests/userLogin';
 
 interface DRepContext {
   step1Status: stepStatus['status'];
@@ -40,6 +50,9 @@ interface DRepContext {
   setStep4Status: React.Dispatch<React.SetStateAction<stepStatus['status']>>;
   setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
   persistLogin: () => void;
+  login: (
+    loginPeriod?: string,
+  ) => Promise<{ token: string; drepSignature?: DataSignature }>;
   logout: () => void;
   setCurrentRegistrationStep: React.Dispatch<React.SetStateAction<number>>;
   setIsNotDRepErrorModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -69,6 +82,8 @@ DRepContext.displayName = 'DRepContext';
 function DRepProvider(props: Props) {
   const [isWalletListModalOpen, setIsWalletListModalOpen] = useState(false);
   const { sharedState, updateSharedState } = useSharedContext();
+  const { signLoginMessage, stakeKeyBech32 } = useCardano();
+  const { addWarningAlert } = useGlobalNotifications();
   const [isNotDRepErrorModalOpen, setIsNotDRepErrorModalOpen] = useState(false);
   const [metadataJsonLd, setMetadataJsonLd] = useState(null);
   const [metadataJsonHash, setMetadataJsonHash] = useState(null);
@@ -99,6 +114,17 @@ function DRepProvider(props: Props) {
   useEffect(() => {
     persistLogin();
   }, []);
+  // The API rejected the session: ask the user to log in again
+  useEffect(() => {
+    const onSessionExpired = () => {
+      setIsLoggedIn(false);
+      setLoginModalOpen(true);
+      addWarningAlert('Your session has ended, please log in again');
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
+    return () =>
+      window.removeEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
+  }, [addWarningAlert]);
   useEffect(() => {
     handleDrepProfileCreationState();
   }, [sharedState?.dRepIDBech32]);
@@ -184,9 +210,8 @@ function DRepProvider(props: Props) {
     const token = getItemFromLocalStorage('token');
     if (token) {
       const {
-        decoded: { exp, ...rest },
+        decoded: { exp },
       } = decodeToken(token);
-      const { signature, key } = rest as any;
       //check if token is expired
       if (exp < Date.now() / 1000) {
         setIsLoggedIn(false);
@@ -194,11 +219,50 @@ function DRepProvider(props: Props) {
         return;
       }
       setIsLoggedIn(true);
-      updateSharedState({ loginCredentials: { signature, key } });
+      const signatures = getItemFromLocalStorage('signatures');
+      if (signatures?.signature) {
+        updateSharedState({
+          loginCredentials: {
+            signature: signatures.signature,
+            key: signatures.key,
+          },
+        });
+      }
     }
   };
+  // Logs in by signing a login message from the server with the wallet's
+  // stake key and, for registered DReps, with the DRep key
+  const login = useCallback(
+    async (loginPeriod = '24 hrs') => {
+      const { message } = await getLoginChallenge();
+      const { stake, drep } = await signLoginMessage(message, {
+        withDRepKey: isDRepRegistered,
+      });
+      const { token } = await userLogin({
+        message,
+        stakeAddress: stakeKeyBech32,
+        stake,
+        drep,
+        expiry: loginPeriod,
+      });
+      Cookies.set('token', token, {
+        secure: false,
+        sameSite: 'strict',
+        path: '/',
+      });
+      setItemToLocalStorage('token', token);
+      if (drep) {
+        setItemToLocalStorage('signatures', drep);
+        updateSharedState({ loginCredentials: drep });
+      }
+      setIsLoggedIn(true);
+      setLoginModalOpen(false);
+      return { token, drepSignature: drep };
+    },
+    [signLoginMessage, stakeKeyBech32, isDRepRegistered],
+  );
   const logout = useCallback(async () => {
-    removeItemFromLocalStorage('token');
+    clearSession();
     setIsLoggedIn(false);
   }, []);
 
@@ -232,6 +296,7 @@ function DRepProvider(props: Props) {
       handleRefresh,
       setNewDrepId,
       persistLogin,
+      login,
       logout,
       setLoginModalOpen,
       ...sharedState,
@@ -251,6 +316,7 @@ function DRepProvider(props: Props) {
       metadataJsonLd,
       isDRepRegistered,
       metadataJsonHash,
+      login,
     ],
   );
 

@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { AuthPrincipal, AuthUser } from 'src/auth/auth.principal';
 import { createNoteDto } from 'src/dto';
 import { NoteService } from './note.service';
 import { VoterService } from 'src/voter/voter.service';
@@ -27,11 +28,15 @@ export class NoteController {
     return this.noteService.getSingleNote(noteId);
   }
   @Post('/new')
-  addNote(@Body() note: createNoteDto) {
-    return this.noteService.registerNote(note);
+  addNote(@Body() note: createNoteDto, @AuthUser() principal: AuthPrincipal) {
+    return this.noteService.registerNote(note, principal);
   }
   @Post('/:id/update')
-  updateNote(@Param('id') noteId: string, @Body() note: createNoteDto) {
-    return this.noteService.updateNoteInfo(noteId, note);
+  updateNote(
+    @Param('id') noteId: string,
+    @Body() note: createNoteDto,
+    @AuthUser() principal: AuthPrincipal,
+  ) {
+    return this.noteService.updateNoteInfo(noteId, note, principal);
   }
 }

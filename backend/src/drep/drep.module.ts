@@ -9,7 +9,6 @@ import { Note } from 'src/entities/note.entity';
 import { CommentsService } from 'src/comments/comments.service';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { VoterService } from 'src/voter/voter.service';
-import { AuthService } from 'src/auth/auth.service';
 import { HttpModule } from '@nestjs/axios';
 import { Metadata } from 'src/entities/metadata.entity';
 
@@ -28,7 +27,6 @@ import { Metadata } from 'src/entities/metadata.entity';
     CommentsService,
     ReactionsService,
     VoterService,
-    AuthService,
   ],
 })
 export class DrepModule {}

@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCardano } from '@/context/walletContext';
 import { useDRepContext } from '@/context/drepContext';
 import { Address } from '@emurgo/cardano-serialization-lib-asmjs';
@@ -16,8 +16,6 @@ import {Box, Typography} from '@mui/material';
 import { convertString } from '@/lib';
 import WalletConnectButton from '../molecules/WalletConnectButton';
 import LoginButton from '../molecules/LoginButton';
-import { getSwitchWithTextTrack } from './UserLoginModal';
-import { useScreenDimension } from '@/hooks';
 const FormSchema = z.object({
   signature: z.string(),
   key: z.string(),
@@ -28,15 +26,8 @@ const UpdateProfileStep2 = () => {
   const { handleSubmit, getValues, setValue } = useForm<InputType>({
     resolver: zodResolver(FormSchema),
   });
-  const { isMobile } = useScreenDimension();
-
-  const [isHardware, setIsHardware] = useState(!false);
   const { address, isEnabled, dRepIDBech32, stakeKey, loginCredentials } =
     useCardano();
-  const SwitchWithTextTrack = getSwitchWithTextTrack(
-    isMobile,
-    isMobile ? '9.375rem' : '13.75rem',
-  );
   const { setIsNotDRepErrorModalOpen, drepId, setStep2Status, setNewDrepId } =
     useDRepContext();
   const [signature, setSignature] = useState({ signature: null, key: null });
@@ -71,9 +62,6 @@ const UpdateProfileStep2 = () => {
       } else setStep2Status('pending');
     };
   }, [dRepIDBech32]);
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setIsHardware(!event.target.checked);
-  };
   useEffect(() => {
     try {
       if (loginCredentials.signature || loginCredentials.vkey) {
@@ -154,11 +142,7 @@ const UpdateProfileStep2 = () => {
             <>
               {!signature.signature ? (
                 <div className="flex flex-col items-center justify-center">
-                  <SwitchWithTextTrack
-                    checked={!isHardware}
-                    onChange={handleChange}
-                  />
-                  <LoginButton isHardware={isHardware} />
+                  <LoginButton />
                 </div>
               ) : (
                 <Box>

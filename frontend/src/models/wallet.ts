@@ -87,7 +87,7 @@ export interface CardanoApiWallet {
     getPubDRepKey(): Promise<string>;
     getRegisteredPubStakeKeys(): Promise<string[]>;
     getUnregisteredPubStakeKeys(): Promise<string[]>;
-    signData(): Promise<any>;
+    signData(addr: string, payload: string): Promise<any>;
   };
   isEnabled(): Promise<boolean>;
   getBalance(): Promise<string>;

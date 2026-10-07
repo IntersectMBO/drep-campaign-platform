@@ -9,7 +9,6 @@ import { AuthModule } from './auth/auth.module';
 import { VoterModule } from './voter/voter.module';
 import { CommentsModule } from './comments/comments.module';
 import { ReactionsModule } from './reactions/reactions.module';
-import { AuthService } from './auth/auth.service';
 import { ProposalsModule } from './proposals/proposals.module';
 import { MiscellaneousModule } from './miscellaneous/miscellaneous.module';
 import {NotificationsModule} from "./notifications/notifications.module";
@@ -34,6 +33,6 @@ import {NotificationsModule} from "./notifications/notifications.module";
     NotificationsModule
   ],
   controllers: [],
-  providers: [AuthService],
+  providers: [],
 })
 export class AppModule {}

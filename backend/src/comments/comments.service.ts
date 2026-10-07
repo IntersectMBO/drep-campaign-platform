@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { DataSource } from 'typeorm';
@@ -58,9 +58,12 @@ export class CommentsService {
       .createQueryBuilder('comment')
       .where('comment.parentId = :parentId', { parentId })
       .andWhere('comment.parentEntity = :parentEntity', { parentEntity })
-      .andWhere('comment.comment = :comment', { comment })
+      .andWhere('comment.content = :comment', { comment })
       .andWhere('comment.voter = :voter', { voter })
       .getOne();
+    if (!commentToRemove) {
+      throw new NotFoundException('Comment not found');
+    }
     return this.voltaireService
       .getRepository('Comment')
       .delete(commentToRemove.id);
